@@ -8,7 +8,7 @@
       "file-types": [
         "gloss"
       ],
-      "injection-regex": "gloss",
+      "injection-regex": "^gloss$",
       "highlights": "queries/highlights.scm"
     }
   ],

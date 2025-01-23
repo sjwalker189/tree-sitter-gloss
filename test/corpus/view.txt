@@ -1,0 +1,48 @@
+=======
+View
+=======
+
+view App {}
+
+---
+
+(program
+  (view_declaration
+	(identifier)
+	(view_block)
+  )	
+)
+
+================
+View with Parens
+================
+
+view App() {}
+
+---
+
+(program
+  (view_declaration
+	(identifier)
+	(view_block)
+  )	
+)
+
+==================
+View with parameter
+==================
+
+view App(c Context) {}
+
+---
+
+(program
+  (view_declaration
+	name: (identifier)
+	(parameter_declaration
+		name: (identifier)
+		type: (type_identifier)
+	)
+	(view_block)
+  )	
+)

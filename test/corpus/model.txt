@@ -1,0 +1,46 @@
+=======
+Model
+=======
+
+model User {
+	id 	    Int
+	name 	    String
+	tags 	    Tag[]
+	deleted_at  DateTime?
+}
+
+---
+
+(program
+  (model_declaration
+	(type_identifier)
+	(statement_block
+		(column_declaration
+			(property_identifier)
+			(column_type
+				(identifier)
+			)
+		)
+		(column_declaration
+			(property_identifier)
+			(column_type
+				(identifier)
+			)
+		)
+		(column_declaration
+			(property_identifier)
+			(column_type
+				(identifier)
+				(array)
+			)
+		)
+		(column_declaration
+			(property_identifier)
+			(column_type
+				(identifier)
+				(maybe)
+			)
+		)
+	)
+  )	
+)

@@ -1,0 +1,25 @@
+enum Status {
+  ACTIVE
+  DISABLED
+}
+
+model Tag {
+	color String
+	text  String
+}
+
+model ProfileCardProps {
+  id		Int
+  name	 	String 
+  verified 	Bool
+  created_at 	DateTime
+  deleted_at	DateTime?
+  tags 		Tag[]
+}
+
+view ProfileCard(props User) {
+	<div>Hello, {props.name}<div>
+	@if(props.verified)
+		<VerificationBadge />
+	@endif
+}
