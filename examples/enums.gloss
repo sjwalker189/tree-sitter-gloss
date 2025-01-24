@@ -1,0 +1,14 @@
+enum Bool {
+	TRUE
+	FALSE
+}
+
+enum State {
+	On "on",
+	Off "off"
+}
+
+pub enum TinyInt {
+	FALSE 0
+	TRUE 0
+}

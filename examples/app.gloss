@@ -1,6 +1,6 @@
 enum Status {
-  ACTIVE
-  DISABLED
+  ACTIVE,
+  DISABLED,
 }
 
 model Tag {
@@ -13,7 +13,7 @@ model ProfileCardProps {
   name	 	String 
   verified 	Bool
   created_at 	DateTime
-  deleted_at	DateTime?
+  deleted_at	DateTime
   tags 		Tag[]
 }
 
