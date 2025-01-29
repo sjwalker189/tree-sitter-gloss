@@ -1,8 +1,99 @@
 [
   {
+    "type": "_declaration",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "enum_item",
+        "named": true
+      }
+    ]
+  },
+  {
     "type": "comment",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "enum_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "enum_member",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "enum_item",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "enum_body",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "visibility_modifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "enum_member",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "field_identifier",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "number",
+            "named": true
+          },
+          {
+            "type": "string",
+            "named": true
+          }
+        ]
+      }
+    }
   },
   {
     "type": "source_file",
@@ -13,6 +104,10 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "_declaration",
+          "named": true
+        },
         {
           "type": "comment",
           "named": true
@@ -25,7 +120,47 @@
     }
   },
   {
+    "type": ",",
+    "named": false
+  },
+  {
+    "type": ":",
+    "named": false
+  },
+  {
     "type": "developer_comment",
     "named": true
+  },
+  {
+    "type": "enum",
+    "named": false
+  },
+  {
+    "type": "field_identifier",
+    "named": true
+  },
+  {
+    "type": "identifier",
+    "named": true
+  },
+  {
+    "type": "number",
+    "named": true
+  },
+  {
+    "type": "string",
+    "named": true
+  },
+  {
+    "type": "visibility_modifier",
+    "named": true
+  },
+  {
+    "type": "{",
+    "named": false
+  },
+  {
+    "type": "}",
+    "named": false
   }
 ]

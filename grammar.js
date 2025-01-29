@@ -33,40 +33,61 @@ module.exports = grammar({
 
   conflicts: ($) => [],
 
-  supertypes: ($) => [],
+  supertypes: ($) => [$._declaration],
 
   rules: {
-    source_file: ($) => seq(repeat(choice($.comment, $.developer_comment))),
-    //
+    source_file: ($) =>
+      seq(repeat(choice($.comment, $.developer_comment, $._declaration))),
+
     // Comments
     developer_comment: ($) => token(seq("//", /[^/].*/)),
     comment: ($) => prec(PREC.COMMENT, token(seq("///", /.*/))),
 
+    // Identifiers
     identifier: (_) => /[_\p{XID_Start}][_\p{XID_Continue}]*/,
-    // identifier: ($) => {
-    //   const alpha =
-    //     /[^\x00-\x1F\s\p{Zs}0-9:;`"'@#.,|^&<=>+*/\\%?!~()\[\]{}\uFEFF\u2060\u200B]|\\u[0-9a-fA-F]{4}|\\u\{[0-9a-fA-F]+\}/;
-    //   const alphanumeric =
-    //     /[^\x00-\x1F\s\p{Zs}:;`"'@#.,|^&<=>+*/\\%?!~()\[\]{}\uFEFF\u2060\u200B]|\\u[0-9a-fA-F]{4}|\\u\{[0-9a-fA-F]+\}/;
-    //   return token(seq(alpha, repeat(alphanumeric)));
-    // },
+    _type_identifier: ($) => alias($.identifier, $.type_identifier),
+    _field_identifier: ($) => alias($.identifier, $.field_identifier),
 
-    // _type_identifier: ($) => alias($.identifier, $.type_identifier),
-    // _field_identifier: ($) => alias($.identifier, $.field_identifier),
-    // _package_identifier: ($) => alias($.identifier, $.package_identifier),
+    // Package System
+    visibility_modifier: (_) => "pub",
+
+    // Declarations
+    _declaration: ($) => choice($.enum_item),
+
+    enum_item: ($) =>
+      seq(
+        optional($.visibility_modifier),
+        "enum",
+        field("name", $.identifier),
+        field("body", $.enum_body),
+      ),
+
+    enum_body: ($) => seq("{", repeat($.enum_member), "}"),
+
+    enum_member: ($) => choice($._implicit_enum_member, $._backed_enum_member),
+
+    _implicit_enum_member: ($) => seq(field("name", $._field_identifier), ","),
+
+    _backed_enum_member: ($) =>
+      seq(
+        field("name", $._field_identifier),
+        token(":"),
+        field("value", choice($.number, $.string)),
+        ",",
+      ),
 
     // Builtin primitive types
-    number: ($) => /\d+/,
-    string: ($) =>
+    number: (_) => /\d+/,
+    string: (_) =>
       token(
         choice(
           seq("'", /([^'\n]|\\(.|\n))*/, "'"),
           seq('"', /([^"\n]|\\(.|\n))*/, '"'),
         ),
       ),
-    true: ($) => "true",
-    false: ($) => "false",
-    nil: ($) => "nil",
+    true: (_) => "true",
+    false: (_) => "false",
+    nil: (_) => "nil",
   },
 });
 

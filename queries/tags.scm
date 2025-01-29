@@ -2,9 +2,8 @@
 
 ; (model_declaration
 ;     name: (type_identifier) @name) @definition.class
-;
-; (enum_declaration
-;     name: (type_identifier) @name) @definition.class
-;
-; (enum_body
-;     (field_identifier) @name) @constant
+
+(enum_item
+    name: (identifier) @name) @definition.class
+(enum_member
+    name: (field_identifier) @name) @constant
