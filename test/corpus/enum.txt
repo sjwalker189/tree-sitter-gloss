@@ -3,18 +3,47 @@ Enum
 =======
 
 enum Boolean {
-	True
-	False
+	True,
+	False,
 }
 
 ---
 
-(program
-  (enum_declaration
-	(identifier)
-	(enum_block
-		(enumeral)
-		(enumeral)
-	)
+(source_file
+  (enum_item
+    name: (identifier)
+    body: (enum_body
+        (enum_member
+            name: (field_identifier)
+        )
+        (enum_member
+            name: (field_identifier)
+        )
+    )
+  )	
+)
+
+======================
+Backed Enum (Numbers)
+======================
+
+enum TinyInt {
+	True: 1,
+	False: 0,
+}
+
+---
+
+(source_file
+  (enum_item
+    name: (identifier)
+    body: (enum_body
+        (enum_member
+            name: (field_identifier)
+            value: (number))
+        (enum_member
+            name: (field_identifier)
+            value (number))
+    )
   )	
 )

@@ -9,7 +9,15 @@
         "gloss"
       ],
       "injection-regex": "^gloss$",
-      "highlights": "queries/highlights.scm"
+      "highlights": [
+        "queries/highlights.scm"
+      ],
+      "injections": [
+        "queries/injections.scm"
+      ],
+      "tags": [
+        "queries/tags.scm"
+      ]
     }
   ],
   "metadata": {

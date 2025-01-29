@@ -1,0 +1,11 @@
+model Tag {
+	text String
+}
+
+pub model Public {
+	id Int
+	first_name String
+	last_name? String
+	tags Tag[]
+	legacy_tags? Tag[]
+}

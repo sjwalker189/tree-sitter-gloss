@@ -6,10 +6,10 @@
 
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
+
 const PREC = {
   COMMENT: 1, // Prefer comments over regexes
   STRING: 2, // In a string, prefer string characters over comments
-
   ASSIGN: 0,
   TERNARY: 1,
   OR: 2,
@@ -25,215 +25,103 @@ const PREC = {
 module.exports = grammar({
   name: "gloss",
 
-  extras: ($) => [
-    $.comment,
-    $.developer_comment,
-    /[\s\uFEFF\u2060\u200B\u00A0]/,
-  ],
+  extras: ($) => [$.comment, /\s/],
 
-  conflicts: ($) => [[$.comment, $.developer_comment, $.parameter_declaration]],
+  inline: ($) => [],
 
-  inline: ($) => [
-    $._expression,
-    $._attribute_expression,
-    $._call_signature,
-    $._formal_parameter,
-    $._constructable_expression,
-    $._declaration,
-  ],
+  word: ($) => $.identifier,
+
+  conflicts: ($) => [],
 
   supertypes: ($) => [$._declaration],
 
   rules: {
-    program: ($) => repeat($._declaration),
+    source_file: ($) =>
+      seq(repeat(choice($.comment, $.developer_comment, $._declaration))),
 
-    model_declaration: ($) =>
-      prec(
-        PREC.MEMBER,
-        // TODO: Explore composition using "model Child < Base {}" or "model Child(Base) {}"
-        seq("model", field("name", $._type_identifier), $.statement_block),
-      ),
-
-    view_declaration: ($) =>
-      prec(
-        PREC.MEMBER,
-        seq(
-          "view",
-          field("name", $.identifier),
-          optional(seq("(", optional($.parameter_declaration), ")")),
-          $.view_block,
-        ),
-      ),
-
-    enum_declaration: ($) =>
-      prec(PREC.MEMBER, seq("enum", $.identifier, $.enum_block)),
-
-    declaration: ($) =>
-      choice($.model_declaration, $.view_declaration, $.enum_declaration),
-
-    _declaration: ($) =>
-      choice($.model_declaration, $.view_declaration, $.enum_declaration),
-
+    // Comments
     developer_comment: ($) => token(seq("//", /[^/].*/)),
-
     comment: ($) => prec(PREC.COMMENT, token(seq("///", /.*/))),
 
-    // model block statement
-    statement_block: ($) =>
-      seq("{", optional(repeat1($.column_declaration)), "}"),
-
-    enum_block: ($) => seq("{", optional(repeat($.enumeral)), "}"),
-
-    view_block: ($) => seq("{", /* TODO */ "}"),
-
-    column_declaration: ($) =>
-      seq(alias($.identifier, $.property_identifier), $.column_type, "\n"),
-
-    assignment_pattern: ($) =>
-      seq($.identifier, "=", $._constructable_expression),
-
-    assignment_expression: ($) =>
-      prec.right(
-        PREC.ASSIGN,
-        seq(alias($.identifier, $.variable), "=", $._expression),
-      ),
-
-    binary_expression: ($) =>
-      choice(
-        ...[
-          ["&&", PREC.AND],
-          ["||", PREC.OR],
-          [">>", PREC.TIMES],
-          [">>>", PREC.TIMES],
-          ["<<", PREC.TIMES],
-          ["&", PREC.AND],
-          ["^", PREC.OR],
-          ["|", PREC.OR],
-          ["+", PREC.PLUS],
-          ["-", PREC.PLUS],
-          ["*", PREC.TIMES],
-          ["/", PREC.TIMES],
-          ["%", PREC.TIMES],
-          ["**", PREC.EXP],
-          ["<", PREC.REL],
-          ["<=", PREC.REL],
-          ["==", PREC.REL],
-          ["===", PREC.REL],
-          ["!=", PREC.REL],
-          ["!==", PREC.REL],
-          [">=", PREC.REL],
-          [">", PREC.REL],
-        ].map(([operator, precedence]) =>
-          prec.left(
-            precedence,
-            seq($._expression, field("operator", operator), $._expression),
-          ),
-        ),
-      ),
-
-    member_expression: ($) =>
-      prec(
-        PREC.MEMBER,
-        seq(
-          choice($.identifier, $.member_expression),
-          ".",
-          alias($.identifier, $.property_identifier),
-        ),
-      ),
-
-    column_type: ($) =>
-      seq(
-        field("type", $._type_identifier),
-        optional(choice($.maybe, $.array)),
-      ),
-
-    call_expression: ($) =>
-      prec(PREC.CALL, seq($._constructable_expression, $.arguments)),
-
-    // attribute: ($) => seq("@", $._attribute_expression),
-    parameter_list: ($) =>
-      seq(
-        "(",
-        optional(seq(commaSep($.parameter_declaration), optional(","))),
-        ")",
-      ),
-
-    // props AppProps
-    parameter_declaration: ($) =>
-      seq(field("name", $.identifier), field("type", $._type_identifier)),
-
-    arguments: ($) => seq("(", commaSep(optional($._expression)), ")"),
-
-    _call_signature: ($) => seq(field("parameters", $.formal_parameters)),
-
-    formal_parameters: ($) =>
-      seq("(", optional(seq(commaSep1($._formal_parameter))), ")"),
-
-    _formal_parameter: ($) =>
-      choice($.identifier, $.string, $.array, $.assignment_pattern),
-
-    _attribute_expression: ($) =>
-      choice($.identifier, $.call_expression, $.member_expression),
-
-    _expression: ($) =>
-      choice(
-        $._constructable_expression,
-        $.assignment_expression,
-        $.call_expression,
-        $.binary_expression,
-      ),
-
-    _constructable_expression: ($) =>
-      choice(
-        $.identifier,
-        $.member_expression,
-        $.number,
-        $.string,
-        $.true,
-        $.false,
-        $.null,
-        $.array,
-      ),
-
-    identifier: ($) => {
-      const alpha =
-        /[^\x00-\x1F\s\p{Zs}0-9:;`"'@#.,|^&<=>+*/\\%?!~()\[\]{}\uFEFF\u2060\u200B]|\\u[0-9a-fA-F]{4}|\\u\{[0-9a-fA-F]+\}/;
-      const alphanumeric =
-        /[^\x00-\x1F\s\p{Zs}:;`"'@#.,|^&<=>+*/\\%?!~()\[\]{}\uFEFF\u2060\u200B]|\\u[0-9a-fA-F]{4}|\\u\{[0-9a-fA-F]+\}/;
-      return token(seq(alpha, repeat(alphanumeric)));
-    },
-
+    // Identifiers
+    identifier: (_) => /[_\p{XID_Start}][_\p{XID_Continue}]*/,
     _type_identifier: ($) => alias($.identifier, $.type_identifier),
+    _field_identifier: ($) => alias($.identifier, $.field_identifier),
 
-    string: ($) =>
+    // Package System
+    visibility_modifier: (_) => "pub",
+
+    // Declarations
+    _declaration: ($) => choice($.enum_item),
+
+    enum_item: ($) =>
+      seq(
+        optional($.visibility_modifier),
+        "enum",
+        field("name", $.identifier),
+        field("body", $.enum_body),
+      ),
+
+    enum_body: ($) => seq("{", repeat($.enum_member), "}"),
+
+    enum_member: ($) => choice($._implicit_enum_member, $._backed_enum_member),
+
+    _implicit_enum_member: ($) => seq(field("name", $._field_identifier), ","),
+
+    _backed_enum_member: ($) =>
+      seq(
+        field("name", $._field_identifier),
+        token(":"),
+        field("value", choice($.number, $.string)),
+        ",",
+      ),
+
+    // Builtin primitive types
+    number: (_) => /\d+/,
+    string: (_) =>
       token(
         choice(
           seq("'", /([^'\n]|\\(.|\n))*/, "'"),
           seq('"', /([^"\n]|\\(.|\n))*/, '"'),
         ),
       ),
-
-    enumeral: ($) => {
-      const alpha =
-        /[^\x00-\x1F\s\p{Zs}0-9:;`"'@#.,|^&<=>+*/\\%?!~()\[\]{}\uFEFF\u2060\u200B]|\\u[0-9a-fA-F]{4}|\\u\{[0-9a-fA-F]+\}/;
-      const alphanumeric =
-        /[^\x00-\x1F\s\p{Zs}:;`"'@#.,|^&<=>+*/\\%?!~()\[\]{}\uFEFF\u2060\u200B]|\\u[0-9a-fA-F]{4}|\\u\{[0-9a-fA-F]+\}/;
-      return token(seq(alpha, repeat(alphanumeric)));
-    },
-
-    number: ($) => /\d+/,
-    array: ($) => seq("[", commaSep(optional($._expression)), "]"),
-    maybe: ($) => "?",
-    true: ($) => "true",
-    false: ($) => "false",
-    null: ($) => "null",
+    true: (_) => "true",
+    false: (_) => "false",
+    nil: (_) => "nil",
   },
 });
 
+/**
+ * Creates a rule to match one or more occurrences of `rule` separated by `sep`
+ *
+ * @param {RuleOrLiteral} rule
+ *
+ * @param {RuleOrLiteral} separator
+ *
+ * @returns {SeqRule}
+ */
+function sep1(rule, separator) {
+  return seq(rule, repeat(seq(separator, rule)));
+}
+
+/**
+ * Creates a rule to match one or more of the rules separated by a comma
+ *
+ * @param {Rule} rule
+ *
+ * @returns {SeqRule}
+ */
 function commaSep1(rule) {
   return seq(rule, repeat(seq(",", rule)));
 }
 
+/**
+ * Creates a rule to optionally match one or more of the rules separated by a comma
+ *
+ * @param {Rule} rule
+ *
+ * @returns {ChoiceRule}
+ */
 function commaSep(rule) {
   return optional(commaSep1(rule));
 }

@@ -1,30 +1,40 @@
-[
- "enum"
- "model"
- "view"
-] @keyword
+; Comments
 
 (comment) @comment
-; (developer_comment) @comment
+(developer_comment) @comment
 
-(arguments) @property
-; (attribute) @function
-(call_expression) @function
-(column_type) @type
-(enumeral) @constant
-(identifier) @variable
+; Identifiers
+((identifier) @constant
+ (#match? @constant "^[A-Z][A-Z\\d_]+$'"))
+
+
+; Package System
+
+(visibility_modifier) @keyword
+
+; Enums
+
+"enum" @keyword
+
+; TODO: This should be defined in tags.scm?
+(enum_item
+ name: (identifier) @type
+) 
+
+(enum_member
+  name: (field_identifier) @constant) 
+
+
+; Punctuation
+
+":" @punctuation.delimiter
+"," @punctuation.delimiter
+"{" @punctuation.delimiter
+"}" @punctuation.delimiter
+
+
+; Builtin types
+
 (string) @string
-
-(member_expression) @property
-(property_identifier) @property
-(type_identifier) @type
-
-"(" @punctuation.bracket
-")" @punctuation.bracket
-"[" @punctuation.bracket
-"]" @punctuation.bracket
-"{" @punctuation.bracket
-"}" @punctuation.bracket
-"=" @operator
-; "@" @operator
+(number) @number
 
