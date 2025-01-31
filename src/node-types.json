@@ -6,6 +6,10 @@
       {
         "type": "enum_item",
         "named": true
+      },
+      {
+        "type": "model_item",
+        "named": true
       }
     ]
   },
@@ -96,6 +100,83 @@
     }
   },
   {
+    "type": "model_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "model_field",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "model_field",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "field_identifier",
+            "named": true
+          }
+        ]
+      },
+      "type": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "model_item",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "model_body",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "visibility_modifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "source_file",
     "named": true,
     "root": true,
@@ -144,11 +225,19 @@
     "named": true
   },
   {
+    "type": "model",
+    "named": false
+  },
+  {
     "type": "number",
     "named": true
   },
   {
     "type": "string",
+    "named": true
+  },
+  {
+    "type": "type_identifier",
     "named": true
   },
   {

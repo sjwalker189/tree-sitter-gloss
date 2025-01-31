@@ -7,6 +7,9 @@
 ((identifier) @constant
  (#match? @constant "^[A-Z][A-Z\\d_]+$'"))
 
+(field_identifier) @property
+(type_identifier) @type
+
 
 ; Package System
 
@@ -24,6 +27,16 @@
 (enum_member
   name: (field_identifier) @constant) 
 
+; Models
+"model" @keyword
+
+(model_item
+  name: (identifier) @type
+)
+
+(model_field
+  name: (field_identifier) @property
+)
 
 ; Punctuation
 

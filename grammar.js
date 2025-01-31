@@ -51,8 +51,14 @@ module.exports = grammar({
     // Package System
     visibility_modifier: (_) => "pub",
 
-    // Declarations
-    _declaration: ($) => choice($.enum_item),
+    /**
+     * Declarations
+     */
+    _declaration: ($) => choice($.enum_item, $.model_item),
+
+    //
+    // Enum
+    //
 
     enum_item: ($) =>
       seq(
@@ -74,6 +80,34 @@ module.exports = grammar({
         token(":"),
         field("value", choice($.number, $.string)),
         ",",
+      ),
+
+    //
+    // Model
+    //
+
+    // TODO: it would be nice to drop the requirement for ":" and "," separators
+    // For example:
+    // model Example {
+    //    field_one String
+    //    field_two String
+    // }
+
+    model_item: ($) =>
+      seq(
+        optional($.visibility_modifier),
+        "model",
+        field("name", $.identifier),
+        field("body", $.model_body),
+      ),
+
+    model_body: ($) => seq("{", sep1($.model_field, ","), optional(","), "}"),
+
+    model_field: ($) =>
+      seq(
+        field("name", $._field_identifier),
+        token.immediate(":"),
+        field("type", $._type_identifier),
       ),
 
     // Builtin primitive types
