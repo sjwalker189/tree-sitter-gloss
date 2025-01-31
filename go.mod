@@ -1,4 +1,4 @@
-module github.com/tree-sitter/tree-sitter-gloss
+module github.com/sjwalker189/tree-sitter-gloss
 
 go 1.22
 

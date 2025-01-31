@@ -43,7 +43,33 @@ enum TinyInt {
             value: (number))
         (enum_member
             name: (field_identifier)
-            value (number))
+            value: (number))
     )
   )	
+)
+
+======================
+Backed Enum (Mixed)
+======================
+
+enum PublishStatus {
+	Draft: 1,
+	Published,
+	Archived,
+}
+
+---
+
+(source_file
+  (enum_item
+    name: (identifier)
+    body: (enum_body
+        (enum_member
+            name: (field_identifier)
+            value: (number))
+        (enum_member
+            name: (field_identifier))
+        (enum_member
+            name: (field_identifier))
+  ))	
 )
