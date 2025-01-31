@@ -1,48 +1,34 @@
-=======
-View
-=======
+===================
+View without params
+===================
 
 view App {}
 
 ---
 
-(program
-  (view_declaration
-	(identifier)
-	(view_block)
-  )	
-)
-
-================
-View with Parens
-================
-
-view App() {}
-
----
-
-(program
-  (view_declaration
-	(identifier)
-	(view_block)
-  )	
-)
-
-==================
-View with parameter
-==================
-
-view App(c Context) {}
-
----
-
-(program
-  (view_declaration
+(source_file
+  (view_item
 	name: (identifier)
-	(parameter_declaration
-		name: (identifier)
+	body: (view_body)
+  )	
+)
+
+======================
+View with params
+======================
+
+view App(anyNameHere: AppProps) {}
+
+---
+
+(source_file
+  (view_item
+	name: (identifier)
+	params: (view_parameters
+		props: (identifier)
 		type: (type_identifier)
 	)
-	(view_block)
+	body: (view_body)
   )	
 )
+

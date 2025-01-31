@@ -27,7 +27,9 @@
 (enum_member
   name: (field_identifier) @constant) 
 
+
 ; Models
+
 "model" @keyword
 
 (model_item
@@ -38,12 +40,28 @@
   name: (field_identifier) @property
 )
 
+
+; Views
+
+"view" @keyword
+
+(view_item
+  name: (identifier) @type
+)
+
+(view_parameters
+  props: (identifier) @variable.parameter
+
+)
+
 ; Punctuation
 
 ":" @punctuation.delimiter
 "," @punctuation.delimiter
 "{" @punctuation.delimiter
 "}" @punctuation.delimiter
+"(" @punctuation.delimiter
+")" @punctuation.delimiter
 
 
 ; Builtin types

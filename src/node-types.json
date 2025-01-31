@@ -10,6 +10,10 @@
       {
         "type": "model_item",
         "named": true
+      },
+      {
+        "type": "view_item",
+        "named": true
       }
     ]
   },
@@ -201,6 +205,91 @@
     }
   },
   {
+    "type": "view_body",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "view_item",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "view_body",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "params": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "view_parameters",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "visibility_modifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "view_parameters",
+    "named": true,
+    "fields": {
+      "props": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "type": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
+    "named": false
+  },
+  {
     "type": ",",
     "named": false
   },
@@ -239,6 +328,10 @@
   {
     "type": "type_identifier",
     "named": true
+  },
+  {
+    "type": "view",
+    "named": false
   },
   {
     "type": "visibility_modifier",

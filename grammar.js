@@ -54,7 +54,7 @@ module.exports = grammar({
     /**
      * Declarations
      */
-    _declaration: ($) => choice($.enum_item, $.model_item),
+    _declaration: ($) => choice($.enum_item, $.model_item, $.view_item),
 
     //
     // Enum
@@ -93,6 +93,15 @@ module.exports = grammar({
     //    field_two String
     // }
 
+    // TODO: define syntax for function types. For example:
+    // model User {
+    //    first_name String
+    //    last_name String
+    //    name: () -> String
+    //    initials: (onlyFirstName: Boolean) -> String
+    // }
+    // Do I need to care about async?
+
     model_item: ($) =>
       seq(
         optional($.visibility_modifier),
@@ -109,6 +118,47 @@ module.exports = grammar({
         token.immediate(":"),
         field("type", $._type_identifier),
       ),
+
+    //
+    // Views
+    //
+
+    view_item: ($) =>
+      seq(
+        optional($.visibility_modifier),
+        "view",
+        field("name", $.identifier),
+        optional(choice(field("params", $.view_parameters), seq("(", ")"))),
+        field("body", $.view_body),
+      ),
+
+    // View are a variant of a function parameter list where there
+    // is only ever one parameter
+    view_parameters: ($) =>
+      seq(
+        "(",
+        field("props", $.identifier),
+        token.immediate(":"),
+        field("type", $._type_identifier),
+        ")",
+      ),
+
+    // TODO: A view body contains html-like syntax with @directives and {expressions}
+    view_body: ($) => seq("{", "}"),
+
+    // parameter_list: ($) =>
+    //   seq(
+    //     "(",
+    //     optional(
+    //       seq(
+    //         commaSep(
+    //           choice($.parameter_declaration, $.variadic_parameter_declaration),
+    //         ),
+    //         optional(","),
+    //       ),
+    //     ),
+    //     ")",
+    //   ),
 
     // Builtin primitive types
     number: (_) => /\d+/,

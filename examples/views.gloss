@@ -1,0 +1,3 @@
+view Foo {}
+
+view Baz(props: BazProps) {}
