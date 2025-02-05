@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 project(tree-sitter-gloss
         VERSION "0.1.0"
         DESCRIPTION "Gloss grammar for tree-sitter"
-        HOMEPAGE_URL "https://github.com/tree-sitter/tree-sitter-gloss"
+        HOMEPAGE_URL "https://github.com/sjwalker189/tree-sitter-gloss"
         LANGUAGES C)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)

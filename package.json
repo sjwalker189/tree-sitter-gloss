@@ -3,7 +3,7 @@
   "name": "tree-sitter-gloss",
   "version": "0.1.0",
   "description": "Gloss grammar for tree-sitter",
-  "repository": "https://github.com/tree-sitter/tree-sitter-gloss",
+  "repository": "https://github.com/sjwalker189/tree-sitter-gloss",
   "license": "MIT",
   "author": {
     "name": "Sam Walker",

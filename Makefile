@@ -3,7 +3,7 @@ $(error Windows is not supported)
 endif
 
 LANGUAGE_NAME := tree-sitter-gloss
-HOMEPAGE_URL := https://github.com/tree-sitter/tree-sitter-gloss
+HOMEPAGE_URL := https://github.com/sjwalker189/tree-sitter-gloss
 VERSION := 0.1.0
 
 # repository
