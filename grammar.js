@@ -62,7 +62,7 @@ module.exports = grammar({
 
     enum_item: ($) =>
       seq(
-        optional($.visibility_modifier),
+        optional(field("visibility", $.visibility_modifier)),
         "enum",
         field("name", $.identifier),
         field("body", $.enum_body),
@@ -74,10 +74,8 @@ module.exports = grammar({
 
     enum_member: ($) => choice($._implicit_enum_member, $._backed_enum_member),
 
-    // CHANGE: Removed literal "," from here, handled by enum_body now
     _implicit_enum_member: ($) => field("name", $._field_identifier),
 
-    // CHANGE: Removed literal "," from here
     _backed_enum_member: ($) =>
       seq(
         field("name", $._field_identifier),

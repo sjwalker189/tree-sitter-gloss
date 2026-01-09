@@ -11,9 +11,9 @@
 #define ALIAS_COUNT 2
 #define TOKEN_COUNT 17
 #define EXTERNAL_TOKEN_COUNT 0
-#define FIELD_COUNT 6
+#define FIELD_COUNT 7
 #define MAX_ALIAS_SEQUENCE_LENGTH 6
-#define PRODUCTION_ID_COUNT 15
+#define PRODUCTION_ID_COUNT 16
 
 enum ts_symbol_identifiers {
   sym_identifier = 1,
@@ -300,6 +300,7 @@ enum ts_field_identifiers {
   field_props = 4,
   field_type = 5,
   field_value = 6,
+  field_visibility = 7,
 };
 
 static const char * const ts_field_names[] = {
@@ -310,21 +311,23 @@ static const char * const ts_field_names[] = {
   [field_props] = "props",
   [field_type] = "type",
   [field_value] = "value",
+  [field_visibility] = "visibility",
 };
 
 static const TSFieldMapSlice ts_field_map_slices[PRODUCTION_ID_COUNT] = {
   [1] = {.index = 0, .length = 2},
-  [2] = {.index = 2, .length = 2},
-  [4] = {.index = 4, .length = 1},
-  [5] = {.index = 5, .length = 1},
-  [6] = {.index = 6, .length = 2},
-  [7] = {.index = 8, .length = 3},
+  [2] = {.index = 2, .length = 3},
+  [3] = {.index = 5, .length = 2},
+  [5] = {.index = 7, .length = 1},
+  [6] = {.index = 8, .length = 1},
+  [7] = {.index = 9, .length = 2},
   [8] = {.index = 11, .length = 3},
-  [9] = {.index = 14, .length = 2},
-  [10] = {.index = 16, .length = 2},
-  [11] = {.index = 18, .length = 2},
-  [13] = {.index = 20, .length = 2},
-  [14] = {.index = 22, .length = 2},
+  [9] = {.index = 14, .length = 3},
+  [10] = {.index = 17, .length = 2},
+  [11] = {.index = 19, .length = 2},
+  [12] = {.index = 21, .length = 2},
+  [14] = {.index = 23, .length = 2},
+  [15] = {.index = 25, .length = 2},
 };
 
 static const TSFieldMapEntry ts_field_map_entries[] = {
@@ -334,44 +337,48 @@ static const TSFieldMapEntry ts_field_map_entries[] = {
   [2] =
     {field_body, 3},
     {field_name, 2},
-  [4] =
-    {field_name, 0},
+    {field_visibility, 0},
   [5] =
+    {field_body, 3},
+    {field_name, 2},
+  [7] =
+    {field_name, 0},
+  [8] =
     {field_name, 0, .inherited = true},
-  [6] =
+  [9] =
     {field_name, 0, .inherited = true},
     {field_value, 0, .inherited = true},
-  [8] =
+  [11] =
     {field_body, 3},
     {field_name, 1},
     {field_params, 2},
-  [11] =
+  [14] =
     {field_body, 4},
     {field_name, 2},
     {field_params, 3},
-  [14] =
+  [17] =
     {field_body, 4},
     {field_name, 1},
-  [16] =
+  [19] =
     {field_body, 5},
     {field_name, 2},
-  [18] =
+  [21] =
     {field_name, 0},
     {field_value, 2},
-  [20] =
+  [23] =
     {field_name, 0},
     {field_type, 2},
-  [22] =
+  [25] =
     {field_props, 1},
     {field_type, 3},
 };
 
 static const TSSymbol ts_alias_sequences[PRODUCTION_ID_COUNT][MAX_ALIAS_SEQUENCE_LENGTH] = {
   [0] = {0},
-  [3] = {
+  [4] = {
     [0] = alias_sym_field_identifier,
   },
-  [12] = {
+  [13] = {
     [0] = alias_sym_type_identifier,
   },
 };
@@ -1787,21 +1794,21 @@ static const TSParseActionEntry ts_parse_actions[] = {
   [52] = {.entry = {.count = 1, .reusable = true}}, SHIFT(19),
   [54] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_enum_body, 2, 0, 0),
   [56] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_comment, 1, 0, 0),
-  [58] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 4, 0, 2),
+  [58] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 4, 0, 3),
   [60] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_enum_item, 3, 0, 1),
   [62] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_model_item, 3, 0, 1),
   [64] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 3, 0, 1),
   [66] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_enum_item, 4, 0, 2),
-  [68] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_model_item, 4, 0, 2),
+  [68] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_model_item, 4, 0, 3),
   [70] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym__declaration, 1, 0, 0),
   [72] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_body, 2, 0, 0),
-  [74] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 4, 0, 7),
-  [76] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 5, 0, 8),
+  [74] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 4, 0, 8),
+  [76] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 5, 0, 9),
   [78] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_enum_body, 3, 0, 0),
   [80] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_model_body, 4, 0, 0),
   [82] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_model_body, 3, 0, 0),
-  [84] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 5, 0, 9),
-  [86] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 6, 0, 10),
+  [84] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 5, 0, 10),
+  [86] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_item, 6, 0, 11),
   [88] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_model_body, 5, 0, 0),
   [90] = {.entry = {.count = 1, .reusable = true}}, SHIFT(60),
   [92] = {.entry = {.count = 1, .reusable = true}}, SHIFT(37),
@@ -1812,7 +1819,7 @@ static const TSParseActionEntry ts_parse_actions[] = {
   [102] = {.entry = {.count = 1, .reusable = true}}, SHIFT(27),
   [104] = {.entry = {.count = 1, .reusable = true}}, SHIFT(21),
   [106] = {.entry = {.count = 1, .reusable = true}}, SHIFT(28),
-  [108] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym__type_identifier, 1, 0, 12),
+  [108] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym__type_identifier, 1, 0, 13),
   [110] = {.entry = {.count = 1, .reusable = true}}, SHIFT(65),
   [112] = {.entry = {.count = 1, .reusable = true}}, SHIFT(67),
   [114] = {.entry = {.count = 1, .reusable = true}}, SHIFT(69),
@@ -1824,26 +1831,26 @@ static const TSParseActionEntry ts_parse_actions[] = {
   [127] = {.entry = {.count = 1, .reusable = true}}, SHIFT(59),
   [129] = {.entry = {.count = 1, .reusable = true}}, SHIFT(5),
   [131] = {.entry = {.count = 1, .reusable = true}}, SHIFT(31),
-  [133] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym__field_identifier, 1, 0, 3),
-  [135] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym__implicit_enum_member, 1, 0, 4),
+  [133] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym__field_identifier, 1, 0, 4),
+  [135] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym__implicit_enum_member, 1, 0, 5),
   [137] = {.entry = {.count = 1, .reusable = true}}, SHIFT(40),
-  [139] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_model_field, 3, 0, 13),
+  [139] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_model_field, 3, 0, 14),
   [141] = {.entry = {.count = 1, .reusable = true}}, SHIFT(53),
   [143] = {.entry = {.count = 1, .reusable = true}}, SHIFT(44),
   [145] = {.entry = {.count = 1, .reusable = true}}, SHIFT(46),
   [147] = {.entry = {.count = 1, .reusable = true}}, SHIFT(47),
   [149] = {.entry = {.count = 1, .reusable = true}}, SHIFT(26),
   [151] = {.entry = {.count = 1, .reusable = true}},  ACCEPT_INPUT(),
-  [153] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym__backed_enum_member, 3, 0, 11),
+  [153] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym__backed_enum_member, 3, 0, 12),
   [155] = {.entry = {.count = 1, .reusable = true}}, SHIFT(16),
   [157] = {.entry = {.count = 1, .reusable = true}}, SHIFT(41),
   [159] = {.entry = {.count = 1, .reusable = true}}, SHIFT(48),
-  [161] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_enum_member, 1, 0, 6),
-  [163] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_enum_member, 1, 0, 5),
+  [161] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_enum_member, 1, 0, 7),
+  [163] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_enum_member, 1, 0, 6),
   [165] = {.entry = {.count = 1, .reusable = true}}, SHIFT(43),
   [167] = {.entry = {.count = 1, .reusable = true}}, SHIFT(68),
   [169] = {.entry = {.count = 1, .reusable = true}}, SHIFT(36),
-  [171] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_parameters, 5, 0, 14),
+  [171] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_view_parameters, 5, 0, 15),
   [173] = {.entry = {.count = 1, .reusable = true}}, SHIFT(25),
 };
 
