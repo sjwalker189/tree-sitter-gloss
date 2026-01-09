@@ -68,18 +68,21 @@ module.exports = grammar({
         field("body", $.enum_body),
       ),
 
-    enum_body: ($) => seq("{", sep1($.enum_member, ","), "}"),
+    // CHANGE: Strictly enforce comma after every member
+    // Pattern: { Member, Member, }
+    enum_body: ($) => seq("{", repeat(seq($.enum_member, ",")), "}"),
 
     enum_member: ($) => choice($._implicit_enum_member, $._backed_enum_member),
 
-    _implicit_enum_member: ($) => seq(field("name", $._field_identifier), ","),
+    // CHANGE: Removed literal "," from here, handled by enum_body now
+    _implicit_enum_member: ($) => field("name", $._field_identifier),
 
+    // CHANGE: Removed literal "," from here
     _backed_enum_member: ($) =>
       seq(
         field("name", $._field_identifier),
         token(":"),
         field("value", choice($.number, $.string)),
-        ",",
       ),
 
     //
@@ -189,23 +192,13 @@ function sep1(rule, separator) {
 }
 
 /**
- * Creates a rule to match one or more of the rules separated by a comma
- *
- * @param {Rule} rule
- *
- * @returns {SeqRule}
+ * Helper: Matches one or more rules separated by commas, with optional trailing comma.
+ * Used for Models, where strictness might be lower than Enums.
  */
 function commaSep1(rule) {
-  return seq(rule, repeat(seq(",", rule)));
+  return seq(rule, repeat(seq(",", rule)), optional(","));
 }
 
-/**
- * Creates a rule to optionally match one or more of the rules separated by a comma
- *
- * @param {Rule} rule
- *
- * @returns {ChoiceRule}
- */
 function commaSep(rule) {
   return optional(commaSep1(rule));
 }
