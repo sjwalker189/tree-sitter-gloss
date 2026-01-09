@@ -1,0 +1,16 @@
+tag Layout(
+  title: String,
+) {
+  <html>
+  <head>
+  	<title>{title}</title>
+  </head>
+   <body>
+   	@children
+   </body>
+  </html>
+}
+
+void tag Badge {
+
+}
