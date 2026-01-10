@@ -79,7 +79,7 @@ module.exports = grammar({
     _backed_enum_member: ($) =>
       seq(
         field("name", $._field_identifier),
-        token(":"),
+        token("="),
         field("value", choice($.number, $.string)),
       ),
 
