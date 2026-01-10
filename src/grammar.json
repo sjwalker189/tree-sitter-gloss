@@ -213,7 +213,7 @@
           "type": "TOKEN",
           "content": {
             "type": "STRING",
-            "value": ":"
+            "value": "="
           }
         },
         {

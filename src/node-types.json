@@ -298,6 +298,10 @@
     "named": false
   },
   {
+    "type": "=",
+    "named": false
+  },
+  {
     "type": "developer_comment",
     "named": true
   },

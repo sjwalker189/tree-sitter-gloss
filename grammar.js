@@ -72,7 +72,7 @@ module.exports = grammar({
     // Pattern: { Member, Member, }
     enum_body: ($) => seq("{", repeat(seq($.enum_member, ",")), "}"),
 
-    enum_member: ($) => choice($._implicit_enum_member, $._backed_enum_member),
+    enum_member: ($) => choice($._backed_enum_member, $._implicit_enum_member),
 
     _implicit_enum_member: ($) => field("name", $._field_identifier),
 
