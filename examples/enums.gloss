@@ -1,20 +1,44 @@
 enum Bool {
-	TRUE,
-	FALSE,
+	True,
+	False,
+}
+
+enum Unit {
+	Off,
+	On = 1,
 }
 
 enum State {
-	On: "on",
-	Off: "off",
+	On = "on",
+	Off = "off",
 }
 
-pub enum TinyInt {
-	FALSE: 0,
-	TRUE: 1,
+
+union Option<T> {
+	Some(T),
+	None,
 }
 
-pub enum Mixed {
-	ONE: 1,
-	TWO,
-	THREE
+struct User<T> {
+ name: string,
+ age: int,
+ meta: T,
+}
+
+fn newUser(name string) User {
+	return User<bool>{
+		name: "Sam",
+		age: 31,
+		meta: true,
+ 	}
+}
+
+let enabled = true
+
+fn main() bool {
+ let user = newUser("sam")
+
+ newUser(:name, :name)
+
+
 }

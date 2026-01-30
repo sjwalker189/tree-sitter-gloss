@@ -7,196 +7,215 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-const PREC = {
-  COMMENT: 1, // Prefer comments over regexes
-  STRING: 2, // In a string, prefer string characters over comments
-  ASSIGN: 0,
-  TERNARY: 1,
-  OR: 2,
-  AND: 3,
-  REL: 4,
-  PLUS: 5,
-  TIMES: 6,
-  EXP: 7,
-  CALL: 8,
-  MEMBER: 9,
-};
-
 module.exports = grammar({
   name: "gloss",
 
-  extras: ($) => [$.comment, /\s/],
-
-  inline: ($) => [],
+  extras: ($) => [/\s/, $.comment],
 
   word: ($) => $.identifier,
 
-  conflicts: ($) => [],
-
-  supertypes: ($) => [$._declaration],
-
   rules: {
-    source_file: ($) =>
-      seq(repeat(choice($.comment, $.developer_comment, $._declaration))),
+    source_file: ($) => repeat($._declaration),
 
-    // Comments
-    developer_comment: ($) => token(seq("//", /[^/].*/)),
-    comment: ($) => prec(PREC.COMMENT, token(seq("///", /.*/))),
+    _declaration: ($) =>
+      choice(
+        $.function_definition,
+        $.let_statement,
+        $.enum_definition,
+        $.union_definition,
+        $.struct_definition,
+      ),
 
-    // Identifiers
-    identifier: (_) => /[_\p{XID_Start}][_\p{XID_Continue}]*/,
-    _type_identifier: ($) => alias($.identifier, $.type_identifier),
-    _field_identifier: ($) => alias($.identifier, $.field_identifier),
-
-    // Package System
-    visibility_modifier: (_) => "pub",
-
-    /**
-     * Declarations
-     */
-    _declaration: ($) => choice($.enum_item, $.model_item, $.view_item),
-
-    //
-    // Enum
-    //
-
-    enum_item: ($) =>
+    // --- Functions ---
+    function_definition: ($) =>
       seq(
-        optional(field("visibility", $.visibility_modifier)),
-        "enum",
+        "fn",
         field("name", $.identifier),
-        field("body", $.enum_body),
+        optional($.type_parameters),
+        field("parameters", $.parameter_list),
+        optional(field("return_type", $._type)),
+        field("body", $.block),
       ),
 
-    // CHANGE: Strictly enforce comma after every member
-    // Pattern: { Member, Member, }
-    enum_body: ($) => seq("{", repeat(seq($.enum_member, ",")), "}"),
+    parameter_list: ($) => seq("(", sepBy(",", $.parameter), ")"),
 
-    enum_member: ($) => choice($._backed_enum_member, $._implicit_enum_member),
+    parameter: ($) => seq(field("name", $.identifier), field("type", $._type)),
 
-    _implicit_enum_member: ($) => field("name", $._field_identifier),
-
-    _backed_enum_member: ($) =>
+    // --- Let Statements ---
+    let_statement: ($) =>
       seq(
-        field("name", $._field_identifier),
-        token("="),
-        field("value", choice($.number, $.string)),
-      ),
-
-    //
-    // Model
-    //
-
-    // TODO: it would be nice to drop the requirement for ":" and "," separators
-    // For example:
-    // model Example {
-    //    field_one String
-    //    field_two String
-    // }
-
-    // TODO: define syntax for function types. For example:
-    // model User {
-    //    first_name String
-    //    last_name String
-    //    name: () -> String
-    //    initials: (onlyFirstName: Boolean) -> String
-    // }
-    // Do I need to care about async?
-
-    model_item: ($) =>
-      seq(
-        optional($.visibility_modifier),
-        "model",
+        "let",
         field("name", $.identifier),
-        field("body", $.model_body),
+        "=",
+        field("value", $._expression),
       ),
 
-    model_body: ($) => seq("{", sep1($.model_field, ","), optional(","), "}"),
+    // --- Type Definitions ---
+    enum_definition: ($) =>
+      seq("enum", field("name", $.identifier), $.enum_body),
 
-    model_field: ($) =>
+    enum_body: ($) => seq("{", sepBy(",", $.enum_member), optional(","), "}"),
+
+    enum_member: ($) =>
       seq(
-        field("name", $._field_identifier),
-        token.immediate(":"),
-        field("type", $._type_identifier),
+        field("name", $.property_identifier),
+        optional(seq("=", $._expression)),
       ),
 
-    //
-    // Views
-    //
-
-    view_item: ($) =>
+    union_definition: ($) =>
       seq(
-        optional($.visibility_modifier),
-        "view",
+        "union",
         field("name", $.identifier),
-        optional(choice(field("params", $.view_parameters), seq("(", ")"))),
-        field("body", $.view_body),
+        optional($.type_parameters),
+        $.union_body,
       ),
 
-    // View are a variant of a function parameter list where there
-    // is only ever one parameter
-    view_parameters: ($) =>
+    union_body: ($) => seq("{", sepBy(",", $.union_field), optional(","), "}"),
+
+    union_field: ($) =>
       seq(
+        field("name", $.identifier),
+        optional(seq("(", field("type", $._type), ")")),
+      ),
+
+    struct_definition: ($) =>
+      seq(
+        "struct",
+        field("name", $.identifier),
+        optional($.type_parameters),
+        field("body", $.struct_body),
+      ),
+
+    struct_body: ($) =>
+      seq("{", sepBy(",", $.struct_field), optional(","), "}"),
+
+    struct_field: ($) =>
+      seq(field("name", $.identifier), ":", field("type", $._type)),
+
+    // --- Types ---
+    _type: ($) =>
+      choice(
+        $.type_literal, // e.g., int, string
+        $.type_identifier, // e.g., T
+        alias($.struct_body, $.struct_type), // anonymous struct in union
+      ),
+
+    property_identifier: ($) => $.identifier,
+
+    generic_type: ($) => seq(field("name", $.identifier), $.type_parameters),
+
+    type_literal: ($) => choice("int", "string", "bool"),
+
+    type_identifier: ($) => $.identifier,
+
+    type_parameters: ($) =>
+      field("type_parameters", seq("<", sepBy(",", $.type_parameter), ">")),
+
+    type_parameter: ($) => field("name", $.identifier),
+
+    // --- Statements ---
+    block: ($) => seq("{", repeat($._statement), "}"),
+
+    _statement: ($) =>
+      choice(
+        $.return_statement,
+        $.let_statement,
+        // Expand here for other statement types (if, while, etc.)
+      ),
+
+    return_statement: ($) => seq("return", optional($._expression)),
+
+    // --- Expressions ---
+    _expression: ($) =>
+      choice(
+        $.binary_expression,
+        $.primary_expression,
+        $.struct_expression,
+        $.boolean,
+        $.call_expression,
+      ),
+
+    binary_expression: ($) =>
+      choice(
+        ...[
+          ["*", 4],
+          ["/", 4],
+          ["+", 3],
+          ["-", 3],
+        ].map(([operator, precedence]) =>
+          prec.left(
+            precedence,
+            seq(
+              field("left", $._expression),
+              field("operator", operator),
+              field("right", $._expression),
+            ),
+          ),
+        ),
+      ),
+
+    primary_expression: ($) =>
+      choice($.parenthesized_expression, $.identifier, $.number, $.string),
+
+    parenthesized_expression: ($) => seq("(", $._expression, ")"),
+
+    struct_expression: ($) =>
+      seq(
+        field("name", choice($.identifier, $.generic_type)),
+        field("body", $.field_initilizer_list),
+      ),
+
+    field_initilizer_list: ($) =>
+      seq("{", sepBy(",", $.field_initializer), optional(","), "}"),
+
+    field_initializer: ($) =>
+      seq(field("name", $.identifier), ":", field("value", $._expression)),
+
+    call_expression: ($) =>
+      seq(
+        field("name", $.identifier),
         "(",
-        field("props", $.identifier),
-        token.immediate(":"),
-        field("type", $._type_identifier),
+
+        // fn sum(1, 2)
+        // fn sum(a: 1, b: 2)
+        // fn sum(:a, :b)
+        optional(
+          sepBy(
+            ",",
+            choice(
+              $._expression,
+              $.labeled_function_argument,
+              $.labeled_function_argument_punned,
+            ),
+          ),
+        ),
+        optional(","),
         ")",
       ),
 
-    // TODO: A view body contains html-like syntax with @directives and {expressions}
-    view_body: ($) => seq("{", "}"),
+    labeled_function_argument: ($) =>
+      seq(field("label", $.identifier), ":", $._expression),
 
-    // parameter_list: ($) =>
-    //   seq(
-    //     "(",
-    //     optional(
-    //       seq(
-    //         commaSep(
-    //           choice($.parameter_declaration, $.variadic_parameter_declaration),
-    //         ),
-    //         optional(","),
-    //       ),
-    //     ),
-    //     ")",
-    //   ),
+    labeled_function_argument_punned: ($) =>
+      seq(":", field("label", $.identifier)),
 
-    // Builtin primitive types
-    number: (_) => /\d+/,
-    string: (_) =>
+    // --- Tokens ---
+    identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
+
+    number: ($) => /\d+/,
+
+    string: ($) => /"([^"\\]|\\.)*"/,
+
+    boolean: ($) => choice("true", "false"),
+
+    comment: ($) =>
       token(
-        choice(
-          seq("'", /([^'\n]|\\(.|\n))*/, "'"),
-          seq('"', /([^"\n]|\\(.|\n))*/, '"'),
-        ),
+        choice(seq("//", /.*/), seq("/*", /[^*]*\*+([^/*][^*]*\*+)*/, "/")),
       ),
-    true: (_) => "true",
-    false: (_) => "false",
-    nil: (_) => "nil",
   },
 });
 
-/**
- * Creates a rule to match one or more occurrences of `rule` separated by `sep`
- *
- * @param {RuleOrLiteral} rule
- *
- * @param {RuleOrLiteral} separator
- *
- * @returns {SeqRule}
- */
-function sep1(rule, separator) {
-  return seq(rule, repeat(seq(separator, rule)));
-}
-
-/**
- * Helper: Matches one or more rules separated by commas, with optional trailing comma.
- * Used for Models, where strictness might be lower than Enums.
- */
-function commaSep1(rule) {
-  return seq(rule, repeat(seq(",", rule)), optional(","));
-}
-
-function commaSep(rule) {
-  return optional(commaSep1(rule));
+// Helper for comma-separated lists
+function sepBy(sep, rule) {
+  return optional(seq(rule, repeat(seq(sep, rule))));
 }

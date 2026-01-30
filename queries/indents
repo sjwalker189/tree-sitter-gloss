@@ -1,0 +1,8 @@
+[
+  (block)
+  (struct_body)
+  (enum_definition)
+  (union_definition)
+] @indent.begin
+
+["}" ")"] @indent.end

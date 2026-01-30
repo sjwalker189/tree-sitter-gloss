@@ -1,71 +1,88 @@
-; Comments
-
-(comment) @comment
-(developer_comment) @comment
-
-; Identifiers
-((identifier) @constant
- (#match? @constant "^[A-Z][A-Z\\d_]+$'"))
-
-(field_identifier) @property
-(type_identifier) @type
-
-
-; Package System
-
-(visibility_modifier) @keyword
-
 ; Enums
-
-"enum" @keyword
-
-; TODO: This should be defined in tags.scm?
-(enum_item
- name: (identifier) @type
-) 
-
+(enum_definition name: (identifier) @type.definition)
 (enum_member
-  name: (field_identifier) @constant) 
+  name: (property_identifier (identifier)) @constant)
 
-
-; Models
-
-"model" @keyword
-
-(model_item
-  name: (identifier) @type
+; Unions
+(union_definition name: (identifier) @type.definition)
+(union_field
+  name: (identifier) @constant
 )
 
-(model_field
-  name: (field_identifier) @property
+; Structs
+(struct_definition
+  name: (identifier) @type.definition
+)
+
+(struct_field
+  name: (identifier) @variable.member
+)
+
+(struct_expression
+  name: (_) @type
+)
+
+(field_initializer
+  name: (identifier) @variable.member  
+)
+
+; Functions
+(function_definition
+  name: (identifier) @function
 )
 
 
-; Views
-
-"view" @keyword
-
-(view_item
-  name: (identifier) @type
+(parameter
+  name: (identifier) @variable.parameter
 )
 
-(view_parameters
-  props: (identifier) @variable.parameter
-
+(type_parameters
+  (type_parameter
+    name: (identifier) @type
+  )
 )
 
-; Punctuation
+(call_expression
+  name: (identifier) @function.call)
 
-":" @punctuation.delimiter
-"," @punctuation.delimiter
-"{" @punctuation.delimiter
-"}" @punctuation.delimiter
-"(" @punctuation.delimiter
-")" @punctuation.delimiter
+(labeled_function_argument
+  label: (identifier) @variable.parameter)
 
+(labeled_function_argument
+  ":" @punctuation.muted)
 
-; Builtin types
+(labeled_function_argument_punned
+  label: (identifier) @variable.parameter)
+;
+; (labeled_function_argument_punned
+;   ":" @punctuation.muted)
+;
 
-(string) @string
+; --- Types ---
+(type_literal) @type.builtin
+(type_identifier) @type
+(type_parameter) @type.definition
+
+; --- Literals ---
+(boolean) @boolean
 (number) @number
+(string) @string
+(comment) @comment @spell
 
+
+; --- Keywords & Operators ---
+
+[
+  "fn"
+  "let"
+  "enum"
+  "union"
+  "struct"
+  "return"
+] @keyword
+
+["=" ":" "," "<" ">" "(" ")" "{" "}" "+" "-" "*" "/"] @punctuation.bracket
+
+
+; --- Identifiers (fallback) ---
+; (identifier) @variable.reference

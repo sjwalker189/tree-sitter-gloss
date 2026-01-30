@@ -1,0 +1,5 @@
+(function_definition name: (identifier) @definition.function)
+(struct_definition name: (identifier) @definition.type)
+(enum_definition name: (identifier) @definition.type)
+(union_definition name: (identifier) @definition.type)
+(let_statement name: (identifier) @definition.variable)
