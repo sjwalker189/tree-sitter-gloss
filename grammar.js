@@ -26,9 +26,12 @@ module.exports = grammar({
         $.struct_definition,
       ),
 
+    visibility: ($) => "pub",
+
     // --- Functions ---
     function_definition: ($) =>
       seq(
+        optional($.visibility),
         "fn",
         field("name", $.identifier),
         optional($.type_parameters),
@@ -52,7 +55,12 @@ module.exports = grammar({
 
     // --- Type Definitions ---
     enum_definition: ($) =>
-      seq("enum", field("name", $.identifier), $.enum_body),
+      seq(
+        optional($.visibility),
+        "enum",
+        field("name", $.identifier),
+        $.enum_body,
+      ),
 
     enum_body: ($) => seq("{", sepBy(",", $.enum_member), optional(","), "}"),
 
@@ -64,6 +72,7 @@ module.exports = grammar({
 
     union_definition: ($) =>
       seq(
+        optional($.visibility),
         "union",
         field("name", $.identifier),
         optional($.type_parameters),
@@ -80,6 +89,7 @@ module.exports = grammar({
 
     struct_definition: ($) =>
       seq(
+        optional($.visibility),
         "struct",
         field("name", $.identifier),
         optional($.type_parameters),
@@ -92,17 +102,27 @@ module.exports = grammar({
     struct_field: ($) =>
       seq(field("name", $.identifier), ":", field("type", $._type)),
 
+    composite_literal: ($) =>
+      seq(field("type", $._type), field("body", $.literal_value)),
+
+    literal_value: ($) =>
+      seq("{", optional(seq(sepBy(",", $._expression), optional(","))), "}"),
+
     // --- Types ---
     _type: ($) =>
       choice(
         $.type_literal, // e.g., int, string
         $.type_identifier, // e.g., T
-        alias($.struct_body, $.struct_type), // anonymous struct in union
+        $.generic_type, // e.g. Option<int>
+        $.slice_type,
+        alias($.struct_body, $.struct_type), // anonymous struct
       ),
 
     property_identifier: ($) => $.identifier,
 
     generic_type: ($) => seq(field("name", $.identifier), $.type_parameters),
+
+    slice_type: ($) => seq("[", "]", field("element_type", $._type)),
 
     type_literal: ($) => choice("int", "string", "bool"),
 
@@ -114,24 +134,41 @@ module.exports = grammar({
     type_parameter: ($) => field("name", $.identifier),
 
     // --- Statements ---
-    block: ($) => seq("{", repeat($._statement), "}"),
 
     _statement: ($) =>
       choice(
         $.return_statement,
         $.let_statement,
-        // Expand here for other statement types (if, while, etc.)
+        $.if_statement,
+        $.block,
+        $._expression,
       ),
 
-    return_statement: ($) => seq("return", optional($._expression)),
+    block: ($) => prec(1, seq("{", repeat($._statement), "}")),
+
+    return_statement: ($) => prec.right(seq("return", optional($._expression))),
+
+    if_statement: ($) =>
+      prec.right(
+        seq(
+          "if",
+          field("condition", $._expression),
+          field("consequence", $.block),
+          optional(
+            seq("else", field("alternative", choice($.block, $.if_statement))),
+          ),
+        ),
+      ),
 
     // --- Expressions ---
     _expression: ($) =>
       choice(
+        $.boolean,
+        $.composite_literal,
+        $.unary_expression,
         $.binary_expression,
         $.primary_expression,
         $.struct_expression,
-        $.boolean,
         $.call_expression,
       ),
 
@@ -154,15 +191,27 @@ module.exports = grammar({
         ),
       ),
 
+    unary_expression: ($) =>
+      prec(
+        6,
+        seq(
+          field("operator", choice("-", "+")),
+          field("argument", $._expression),
+        ),
+      ),
+
     primary_expression: ($) =>
-      choice($.parenthesized_expression, $.identifier, $.number, $.string),
+      choice($.parenthesized_expression, $.identifier, $._number, $.string),
 
     parenthesized_expression: ($) => seq("(", $._expression, ")"),
 
     struct_expression: ($) =>
-      seq(
-        field("name", choice($.identifier, $.generic_type)),
-        field("body", $.field_initilizer_list),
+      prec(
+        1,
+        seq(
+          field("name", choice($.identifier, $.generic_type)),
+          field("body", $.field_initilizer_list),
+        ),
       ),
 
     field_initilizer_list: ($) =>
@@ -172,41 +221,79 @@ module.exports = grammar({
       seq(field("name", $.identifier), ":", field("value", $._expression)),
 
     call_expression: ($) =>
-      seq(
-        field("name", $.identifier),
-        "(",
+      prec(
+        1,
+        seq(
+          field("name", $.identifier),
+          "(",
 
-        // fn sum(1, 2)
-        // fn sum(a: 1, b: 2)
-        // fn sum(:a, :b)
-        optional(
-          sepBy(
-            ",",
-            choice(
-              $._expression,
-              $.labeled_function_argument,
-              $.labeled_function_argument_punned,
+          // fn sum(1, 2)
+          // fn sum(a: 1, b: 2)
+          // fn sum(:a, :b)
+          optional(
+            sepBy(
+              ",",
+              choice(
+                $._expression,
+                $.labeled_function_argument,
+                $.labeled_function_argument_punned,
+              ),
             ),
           ),
+          optional(","),
+          ")",
         ),
-        optional(","),
-        ")",
       ),
 
     labeled_function_argument: ($) =>
       seq(field("label", $.identifier), ":", $._expression),
 
     labeled_function_argument_punned: ($) =>
-      seq(":", field("label", $.identifier)),
+      field("label", $.labeled_identifier),
+
+    labeled_identifier: ($) => seq(":", $.identifier),
 
     // --- Tokens ---
     identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
 
-    number: ($) => /\d+/,
+    // --- Numbers ---
+    _number: ($) => choice($.float_literal, $.int_literal),
+
+    // Priority 2: Floats (Must be higher than Int to catch '1.0' before '1')
+    float_literal: ($) =>
+      token(
+        choice(
+          // 1. Decimal floats with a dot (e.g., 1.0, 1., 1.23, 1.2e-5)
+          //    Matches: Digits + Dot + Optional Digits + Optional Exponent
+          /\d+(_?\d+)*\.(\d+(_?\d+)*)?([eE][+-]?\d+(_?\d+)*)?/,
+
+          // 2. Decimal floats starting with a dot (e.g., .5, .2e+5)
+          /\.\d+(_?\d+)*([eE][+-]?\d+(_?\d+)*)?/,
+
+          // 3. Scientific notation without a dot (e.g., 1e5)
+          /\d+(_?\d+)*[eE][+-]?\d+(_?\d+)*/,
+
+          // 4. Hexadecimal floats (e.g., 0x1.fp-5)
+          /0[xX][0-9a-fA-F]+(_?[0-9a-fA-F])*\.?[0-9a-fA-F]*(_?[0-9a-fA-F])*[pP][+-]?\d+(_?\d+)*/,
+        ),
+      ),
+
+    // Priority 1: Integers
+    int_literal: ($) =>
+      token(
+        choice(
+          prec(2, /0[xX](_?[0-9a-fA-F])+/),
+          prec(2, /0[bB](_?[01])+/),
+          prec(2, /0[oO](_?[0-7])+/),
+          prec(1, /[0-9](_?\d+)*/),
+        ),
+      ),
 
     string: ($) => /"([^"\\]|\\.)*"/,
 
     boolean: ($) => choice("true", "false"),
+
+    nil: ($) => "nil",
 
     comment: ($) =>
       token(

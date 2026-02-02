@@ -52,36 +52,50 @@
   ":" @punctuation.muted)
 
 (labeled_function_argument_punned
-  label: (identifier) @variable.parameter)
-;
-; (labeled_function_argument_punned
-;   ":" @punctuation.muted)
-;
+  label: (labeled_identifier
+    (identifier) @variable.parameter
+  )
+)
+
+
+(labeled_identifier
+  ":" @punctuation.muted)
+
 
 ; --- Types ---
 (type_literal) @type.builtin
 (type_identifier) @type
 (type_parameter) @type.definition
+(generic_type
+  (identifier) @type
+)
 
 ; --- Literals ---
 (boolean) @boolean
-(number) @number
 (string) @string
 (comment) @comment @spell
+
+(int_literal) @number
+(float_literal) @float
 
 
 ; --- Keywords & Operators ---
 
+(visibility) @keyword.modifier
+
 [
-  "fn"
   "let"
   "enum"
   "union"
   "struct"
   "return"
+  "if"
+  "else"
 ] @keyword
 
-["=" ":" "," "<" ">" "(" ")" "{" "}" "+" "-" "*" "/"] @punctuation.bracket
+"fn" @keyword.function
+
+["=" ":" "," "<" ">" "(" ")" "[" "]" "{" "}" "+" "-" "*" "/"] @punctuation.bracket
 
 
 ; --- Identifiers (fallback) ---

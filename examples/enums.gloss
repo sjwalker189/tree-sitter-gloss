@@ -25,6 +25,15 @@ struct User<T> {
  meta: T,
 }
 
+union Message<T> {
+	On({ value: T }),
+	Off(bool),
+}	
+
+pub fn applyMessage<T>(m: Message<T>) void {
+	//
+}
+
 fn newUser(name string) User {
 	return User<bool>{
 		name: "Sam",
@@ -35,10 +44,34 @@ fn newUser(name string) User {
 
 let enabled = true
 
-fn main() bool {
+pub fn main() bool {
  let user = newUser("sam")
+ let genericList = []Option<int>{
+	Some(1),
+ }
 
- newUser(:name, :name)
+ let userList = []any{
+	1,
+	-1,
+	0.1,
+	1.00,
+	1_000,
+	"a",
+	true,
+	false,
+	0b0001
+	0x0000FF,
+	0o07,
+	User{name: "foo"},
+ }
 
+ let user = newUser(:user, 1, true, {foo: ""})
 
+ if 1 > 0 {
+	io.println("is true")
+ } else {
+ 	panic("fatal!")
+ }
+
+ return true
 }
