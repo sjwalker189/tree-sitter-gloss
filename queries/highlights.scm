@@ -91,6 +91,9 @@
   "return"
   "if"
   "else"
+  "loop"
+  "break"
+  "continue"
 ] @keyword
 
 "fn" @keyword.function

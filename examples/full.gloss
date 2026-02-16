@@ -1,16 +1,36 @@
-tag Layout(
-  title: String,
-) {
-  <html>
-  <head>
-  	<title>{title}</title>
-  </head>
-   <body>
-   	@children
-   </body>
-  </html>
+import gloss/io
+
+struct User {
+	id: int,
+	name: string,
+	email: string,
 }
 
-void tag Badge {
+union Option<T> {
+	Some(T),
+	None,
+}
 
+fn main() Option<string> {
+	let count = 10
+	let user = User{ id: 5, name: "Sam", email: "sam@example.com" }
+
+	if count > 10 {
+		io.println("greater than 10")
+	} else {
+		io.println("less than 10")
+	}
+
+	for let i in 10 {
+		io.println(i)
+	}
+
+	loop {
+		if count == 10 {
+			break
+		}
+	}
+
+
+	return Option::None
 }

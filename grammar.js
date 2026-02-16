@@ -137,16 +137,26 @@ module.exports = grammar({
 
     _statement: ($) =>
       choice(
-        $.return_statement,
         $.let_statement,
         $.if_statement,
         $.block,
         $._expression,
+        $.return_statement,
+        $.continue_statement,
+        $.break_statement,
+        $.loop_statement,
       ),
 
     block: ($) => prec(1, seq("{", repeat($._statement), "}")),
 
     return_statement: ($) => prec.right(seq("return", optional($._expression))),
+
+    // TODO: labeled break/continue
+    break_statement: () => "break",
+
+    continue_statement: () => "continue",
+
+    loop_statement: ($) => seq("loop", field("body", $.block)),
 
     if_statement: ($) =>
       prec.right(
