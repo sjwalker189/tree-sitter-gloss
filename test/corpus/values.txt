@@ -1,0 +1,41 @@
+======
+Values
+======
+
+fn main() {
+ test(
+ 	1,
+	"1",
+	true,
+	false,
+	User{name: "sam"},
+ )
+}
+
+---
+
+(source_file
+ (function_declaration
+  name: (identifier)
+  parameters: (parameter_list)
+  body: (block
+	  (call_expression
+	   function: (expression (identifier))
+	   arguments: (argument_list
+		   (expression (number))
+		   (expression (string))
+		   (expression (boolean))
+		   (expression (boolean))
+		   (expression (struct_literal
+				type: (type_identifier)
+					(field_value
+					name: (identifier)
+				 	value: (expression (string))
+					)
+				)
+		   )
+		   )
+	  )
+	)
+  )
+)

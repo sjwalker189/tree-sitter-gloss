@@ -11,9 +11,14 @@ union Option<T> {
 	None,
 }
 
+fn foo() {}
+
+
 fn main() Option<string> {
 	let count = 10
 	let user = User{ id: 5, name: "Sam", email: "sam@example.com" }
+
+	let b = user.name.bar
 
 	if count > 10 {
 		io.println("greater than 10")
@@ -33,4 +38,4 @@ fn main() Option<string> {
 
 
 	return Option::None
-}
+

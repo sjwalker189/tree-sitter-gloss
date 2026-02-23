@@ -1,0 +1,79 @@
+=====
+Union
+=====
+
+union Message {
+	Increment,
+	Decrement,
+}
+
+union Option<T> {
+	Some(T),
+	None,
+}
+
+union Action {
+	Create(User),
+	Ban({ reason: string }),
+	Delete,
+}
+
+---
+
+(source_file
+	(union_declaration
+		name: (type_identifier)
+		body: (union_body
+			(union_variant
+				name: (identifier)
+			)
+			(union_variant
+				name: (identifier)
+			)
+		)
+	)
+
+	(union_declaration
+		name: (type_identifier)
+		type_parameters: (type_parameters
+			(type_identifier)
+		)
+		body: (union_body
+			(union_variant
+				name: (identifier)
+				payload: (union_payload
+					type: (type_identifier)
+				)
+			)
+			(union_variant
+				name: (identifier)
+			)
+		)
+	)
+
+	(union_declaration
+		name: (type_identifier)
+		body: (union_body
+			(union_variant
+				name: (identifier)
+				payload: (union_payload
+					type: (type_identifier)
+				)
+			)
+			(union_variant
+				name: (identifier)
+				payload: (union_payload
+					inline_struct: (inline_struct_type 
+						(field_declaration
+							name: (identifier)
+							type: (primitive_type)
+						)
+					)
+				)
+			)
+			(union_variant
+				name: (identifier)
+			)
+		)
+	)
+)

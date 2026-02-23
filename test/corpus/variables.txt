@@ -1,0 +1,21 @@
+=========
+Variables
+=========
+
+let five = 5
+
+const ans = true
+
+
+---
+
+(source_file
+ (variable_declaration
+  name: (identifier)
+  value: (expression (number))
+ )
+ (constant_declaration
+  name: (identifier)
+  value: (expression (boolean))
+ )
+)

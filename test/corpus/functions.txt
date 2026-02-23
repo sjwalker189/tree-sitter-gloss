@@ -1,0 +1,77 @@
+=========
+Functions
+=========
+
+pub fn main() {}
+
+fn returns_true() bool {
+	return true
+}
+
+fn returns_t<T>(value: T) T {
+	return value
+}
+
+fn get_user_by_id(id: string) Either<User, Error> {}
+
+---
+
+(source_file
+	(function_declaration
+		visibility: (visibility_modifier)
+		name: (identifier)
+		parameters: (parameter_list)
+		body: (block)
+	)
+
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list)
+		return_type: (primitive_type)
+		body: (block
+			(return_statement
+				(expression
+					(boolean)
+				)
+			)
+		)
+	)
+
+	(function_declaration
+		name: (identifier)
+		type_parameters: (type_parameters (type_identifier))
+		parameters: (parameter_list
+			(parameter_declaration
+				name: (identifier)
+				type: (type_identifier)
+			)
+		)
+		return_type: (type_identifier)
+		body: (block
+			(return_statement
+				(expression
+					(identifier)
+				)
+			)
+		)
+	)
+
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list
+			(parameter_declaration
+				name: (identifier)
+				type: (primitive_type)
+			)
+		)
+		return_type: (generic_type
+			name: (type_identifier)
+			type_arguments: (type_arguments
+				(type_identifier)			
+				(type_identifier)			
+			)
+		)
+		body: (block)
+	)
+
+)

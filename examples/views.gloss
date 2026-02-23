@@ -1,3 +1,6 @@
-view Foo {}
+fn main() {
+ test(
+ 	1,
+ )
+}
 
-view Baz(props: BazProps) {}

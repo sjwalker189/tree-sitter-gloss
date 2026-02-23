@@ -7,312 +7,235 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
+// Helper functions (standard practice in Go and Rust tree-sitter grammars)
+function commaSep(rule) {
+  return optional(commaSep1(rule));
+}
+
+function commaSep1(rule) {
+  return seq(rule, repeat(seq(",", rule)));
+}
+
 module.exports = grammar({
   name: "gloss",
 
+  // Ignore whitespace and comments automatically
   extras: ($) => [/\s/, $.comment],
 
-  word: ($) => $.identifier,
+  conflicts: ($) => [[$._statement, $.expression]],
 
   rules: {
+    // ------------------------------------------------------------------------
+    // Top-Level
+    // ------------------------------------------------------------------------
     source_file: ($) => repeat($._declaration),
+
+    comment: ($) => token(seq("//", /.*/)),
 
     _declaration: ($) =>
       choice(
-        $.function_definition,
-        $.let_statement,
-        $.enum_definition,
-        $.union_definition,
-        $.struct_definition,
+        $.enum_declaration,
+        $.union_declaration,
+        $.struct_declaration,
+        $.function_declaration,
+        $.constant_declaration,
+        $.variable_declaration,
       ),
 
-    visibility: ($) => "pub",
+    // ------------------------------------------------------------------------
+    // Declarations
+    // ------------------------------------------------------------------------
 
-    // --- Functions ---
-    function_definition: ($) =>
+    // Enums
+    enum_declaration: ($) =>
+      seq("enum", field("name", $.type_identifier), field("body", $.enum_body)),
+    enum_body: ($) => seq("{", commaSep($.enum_variant), optional(","), "}"),
+    enum_variant: ($) =>
       seq(
-        optional($.visibility),
+        field("name", $.identifier),
+        optional(seq("=", field("value", $.expression))),
+      ),
+
+    // Unions
+    union_declaration: ($) =>
+      seq(
+        "union",
+        field("name", $.type_identifier),
+        optional(field("type_parameters", $.type_parameters)),
+        field("body", $.union_body),
+      ),
+    union_body: ($) => seq("{", commaSep($.union_variant), optional(","), "}"),
+    union_variant: ($) =>
+      seq(
+        field("name", $.identifier),
+        optional(field("payload", $.union_payload)),
+      ),
+    union_payload: ($) =>
+      seq(
+        "(",
+        choice(
+          field("type", $._type),
+          field("inline_struct", $.inline_struct_type),
+        ),
+        ")",
+      ),
+    inline_struct_type: ($) =>
+      seq("{", commaSep($.field_declaration), optional(","), "}"),
+
+    slice_type: ($) => seq("[", "]", field("element", $._type)),
+
+    // Structs
+    struct_declaration: ($) =>
+      seq(
+        "struct",
+        field("name", $.type_identifier),
+        optional(field("type_parameters", $.type_parameters)),
+        field("body", $.struct_body),
+      ),
+    struct_body: ($) =>
+      seq("{", commaSep($.field_declaration), optional(","), "}"),
+    field_declaration: ($) =>
+      seq(
+        field("name", $.identifier),
+        ":", // Assuming colon is required in structs based on your snippet
+        field("type", $._type),
+      ),
+
+    // Functions
+    function_declaration: ($) =>
+      seq(
+        optional(field("visibility", $.visibility_modifier)),
         "fn",
         field("name", $.identifier),
-        optional($.type_parameters),
+        optional(field("type_parameters", $.type_parameters)),
         field("parameters", $.parameter_list),
         optional(field("return_type", $._type)),
         field("body", $.block),
       ),
+    visibility_modifier: ($) => "pub",
+    parameter_list: ($) => seq("(", commaSep($.parameter_declaration), ")"),
+    parameter_declaration: ($) =>
+      seq(field("name", $.identifier), ":", field("type", $._type)),
 
-    parameter_list: ($) => seq("(", sepBy(",", $.parameter), ")"),
-
-    parameter: ($) => seq(field("name", $.identifier), field("type", $._type)),
-
-    // --- Let Statements ---
-    let_statement: ($) =>
+    // Variables
+    variable_declaration: ($) =>
       seq(
         "let",
         field("name", $.identifier),
         "=",
-        field("value", $._expression),
+        field("value", $.expression),
       ),
 
-    // --- Type Definitions ---
-    enum_definition: ($) =>
+    constant_declaration: ($) =>
       seq(
-        optional($.visibility),
-        "enum",
+        "const",
         field("name", $.identifier),
-        $.enum_body,
+        "=",
+        field("value", $.expression),
       ),
 
-    enum_body: ($) => seq("{", sepBy(",", $.enum_member), optional(","), "}"),
-
-    enum_member: ($) =>
-      seq(
-        field("name", $.property_identifier),
-        optional(seq("=", $._expression)),
-      ),
-
-    union_definition: ($) =>
-      seq(
-        optional($.visibility),
-        "union",
-        field("name", $.identifier),
-        optional($.type_parameters),
-        $.union_body,
-      ),
-
-    union_body: ($) => seq("{", sepBy(",", $.union_field), optional(","), "}"),
-
-    union_field: ($) =>
-      seq(
-        field("name", $.identifier),
-        optional(seq("(", field("type", $._type), ")")),
-      ),
-
-    struct_definition: ($) =>
-      seq(
-        optional($.visibility),
-        "struct",
-        field("name", $.identifier),
-        optional($.type_parameters),
-        field("body", $.struct_body),
-      ),
-
-    struct_body: ($) =>
-      seq("{", sepBy(",", $.struct_field), optional(","), "}"),
-
-    struct_field: ($) =>
-      seq(field("name", $.identifier), ":", field("type", $._type)),
-
-    composite_literal: ($) =>
-      seq(field("type", $._type), field("body", $.literal_value)),
-
-    literal_value: ($) =>
-      seq("{", optional(seq(sepBy(",", $._expression), optional(","))), "}"),
-
-    // --- Types ---
+    // ------------------------------------------------------------------------
+    // Types
+    // ------------------------------------------------------------------------
     _type: ($) =>
-      choice(
-        $.type_literal, // e.g., int, string
-        $.type_identifier, // e.g., T
-        $.generic_type, // e.g. Option<int>
-        $.slice_type,
-        alias($.struct_body, $.struct_type), // anonymous struct
+      choice($.type_identifier, $.generic_type, $.primitive_type, $.slice_type),
+
+    // Distinguish type identifiers (capitalized conventionally) from regular ones
+    primitive_type: ($) => choice("int", "string", "bool", "void", "nil"),
+
+    generic_type: ($) =>
+      seq(
+        field("name", $.type_identifier),
+        field("type_arguments", $.type_arguments),
       ),
+    type_parameters: ($) => seq("<", commaSep1($.type_identifier), ">"),
+    type_arguments: ($) => seq("<", commaSep1($._type), ">"),
 
-    property_identifier: ($) => $.identifier,
-
-    generic_type: ($) => seq(field("name", $.identifier), $.type_parameters),
-
-    slice_type: ($) => seq("[", "]", field("element_type", $._type)),
-
-    type_literal: ($) => choice("int", "string", "bool"),
-
-    type_identifier: ($) => $.identifier,
-
-    type_parameters: ($) =>
-      field("type_parameters", seq("<", sepBy(",", $.type_parameter), ">")),
-
-    type_parameter: ($) => field("name", $.identifier),
-
-    // --- Statements ---
+    // ------------------------------------------------------------------------
+    // Statements & Blocks
+    // ------------------------------------------------------------------------
+    block: ($) => seq("{", repeat($._statement), optional($.expression), "}"),
 
     _statement: ($) =>
       choice(
-        $.let_statement,
-        $.if_statement,
-        $.block,
-        $._expression,
+        $.constant_declaration,
+        $.variable_declaration,
         $.return_statement,
-        $.continue_statement,
-        $.break_statement,
-        $.loop_statement,
-      ),
-
-    block: ($) => prec(1, seq("{", repeat($._statement), "}")),
-
-    return_statement: ($) => prec.right(seq("return", optional($._expression))),
-
-    // TODO: labeled break/continue
-    break_statement: () => "break",
-
-    continue_statement: () => "continue",
-
-    loop_statement: ($) => seq("loop", field("body", $.block)),
-
-    if_statement: ($) =>
-      prec.right(
-        seq(
-          "if",
-          field("condition", $._expression),
-          field("consequence", $.block),
-          optional(
-            seq("else", field("alternative", choice($.block, $.if_statement))),
-          ),
-        ),
-      ),
-
-    // --- Expressions ---
-    _expression: ($) =>
-      choice(
-        $.boolean,
-        $.composite_literal,
-        $.unary_expression,
-        $.binary_expression,
-        $.primary_expression,
-        $.struct_expression,
         $.call_expression,
+        // Note: You will expand this with if, for, expression statements, etc.
       ),
 
-    binary_expression: ($) =>
+    return_statement: ($) => prec.right(seq("return", optional($.expression))),
+
+    // ------------------------------------------------------------------------
+    // Expressions
+    // ------------------------------------------------------------------------
+    expression: ($) =>
       choice(
-        ...[
-          ["*", 4],
-          ["/", 4],
-          ["+", 3],
-          ["-", 3],
-        ].map(([operator, precedence]) =>
-          prec.left(
-            precedence,
-            seq(
-              field("left", $._expression),
-              field("operator", operator),
-              field("right", $._expression),
-            ),
-          ),
-        ),
+        $.identifier,
+        $.number,
+        $.string,
+        $.boolean,
+        $.struct_literal,
+        $.call_expression,
+        $.member_expression,
       ),
 
-    unary_expression: ($) =>
-      prec(
-        6,
+    struct_literal: ($) =>
+      seq(
+        field("type", $._type),
+        "{",
+        commaSep($.field_value),
+        optional(","),
+        "}",
+      ),
+
+    slice_literal: ($) =>
+      seq(
+        field("type", $.slice_type),
+        "{",
+        commaSep(field("element", $.expression)),
+        optional(","),
+        "}",
+      ),
+
+    field_value: ($) =>
+      seq(field("name", $.identifier), ":", field("value", $.expression)),
+
+    member_expression: ($) =>
+      prec.left(
+        2,
         seq(
-          field("operator", choice("-", "+")),
-          field("argument", $._expression),
+          field("object", $.expression),
+          ".",
+          field("property", $.property_identifier),
         ),
       ),
-
-    primary_expression: ($) =>
-      choice($.parenthesized_expression, $.identifier, $._number, $.string),
-
-    parenthesized_expression: ($) => seq("(", $._expression, ")"),
-
-    struct_expression: ($) =>
-      prec(
-        1,
-        seq(
-          field("name", choice($.identifier, $.generic_type)),
-          field("body", $.field_initilizer_list),
-        ),
-      ),
-
-    field_initilizer_list: ($) =>
-      seq("{", sepBy(",", $.field_initializer), optional(","), "}"),
-
-    field_initializer: ($) =>
-      seq(field("name", $.identifier), ":", field("value", $._expression)),
 
     call_expression: ($) =>
-      prec(
-        1,
-        seq(
-          field("name", $.identifier),
-          "(",
+      seq(field("function", $.expression), field("arguments", $.argument_list)),
 
-          // fn sum(1, 2)
-          // fn sum(a: 1, b: 2)
-          // fn sum(:a, :b)
-          optional(
-            sepBy(
-              ",",
-              choice(
-                $._expression,
-                $.labeled_function_argument,
-                $.labeled_function_argument_punned,
-              ),
-            ),
-          ),
-          optional(","),
-          ")",
-        ),
-      ),
+    argument_list: ($) =>
+      seq("(", optional(seq(commaSep($._argument), optional(","))), ")"),
 
-    labeled_function_argument: ($) =>
-      seq(field("label", $.identifier), ":", $._expression),
+    _argument: ($) =>
+      choice($.expression, $.labeled_argument, $.punned_argument),
 
-    labeled_function_argument_punned: ($) =>
-      field("label", $.labeled_identifier),
+    // Standard labeled argument: a: 5
+    labeled_argument: ($) =>
+      seq(field("label", $.identifier), ":", field("value", $.expression)),
 
-    labeled_identifier: ($) => seq(":", $.identifier),
+    // Punned argument: :a
+    punned_argument: ($) => seq(":", field("label", $.identifier)),
 
-    // --- Tokens ---
+    // ------------------------------------------------------------------------
+    // Primitives / Terminals
+    // ------------------------------------------------------------------------
     identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
-
-    // --- Numbers ---
-    _number: ($) => choice($.float_literal, $.int_literal),
-
-    // Priority 2: Floats (Must be higher than Int to catch '1.0' before '1')
-    float_literal: ($) =>
-      token(
-        choice(
-          // 1. Decimal floats with a dot (e.g., 1.0, 1., 1.23, 1.2e-5)
-          //    Matches: Digits + Dot + Optional Digits + Optional Exponent
-          /\d+(_?\d+)*\.(\d+(_?\d+)*)?([eE][+-]?\d+(_?\d+)*)?/,
-
-          // 2. Decimal floats starting with a dot (e.g., .5, .2e+5)
-          /\.\d+(_?\d+)*([eE][+-]?\d+(_?\d+)*)?/,
-
-          // 3. Scientific notation without a dot (e.g., 1e5)
-          /\d+(_?\d+)*[eE][+-]?\d+(_?\d+)*/,
-
-          // 4. Hexadecimal floats (e.g., 0x1.fp-5)
-          /0[xX][0-9a-fA-F]+(_?[0-9a-fA-F])*\.?[0-9a-fA-F]*(_?[0-9a-fA-F])*[pP][+-]?\d+(_?\d+)*/,
-        ),
-      ),
-
-    // Priority 1: Integers
-    int_literal: ($) =>
-      token(
-        choice(
-          prec(2, /0[xX](_?[0-9a-fA-F])+/),
-          prec(2, /0[bB](_?[01])+/),
-          prec(2, /0[oO](_?[0-7])+/),
-          prec(1, /[0-9](_?\d+)*/),
-        ),
-      ),
-
-    string: ($) => /"([^"\\]|\\.)*"/,
-
+    property_identifier: ($) => alias($.identifier, $.property_identifier),
+    type_identifier: ($) => /[A-Z][a-zA-Z0-9_]*/,
+    number: ($) => /\d+/,
+    string: ($) => /"[^"]*"/,
     boolean: ($) => choice("true", "false"),
-
-    nil: ($) => "nil",
-
-    comment: ($) =>
-      token(
-        choice(seq("//", /.*/), seq("/*", /[^*]*\*+([^/*][^*]*\*+)*/, "/")),
-      ),
   },
 });
-
-// Helper for comma-separated lists
-function sepBy(sep, rule) {
-  return optional(seq(rule, repeat(seq(sep, rule))));
-}

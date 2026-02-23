@@ -1,5 +1,5 @@
 =================
-Developer Comment
+Comment
 =================
 
 // This is a comment
@@ -7,20 +7,7 @@ Developer Comment
 ---
 
 (source_file
-  (developer_comment)
-)
-
-
-=================
-Package Comment
-=================
-
-/// Package name
-/// This is a package comment
-
----
-
-(source_file
-  (comment)
   (comment)
 )
+
+

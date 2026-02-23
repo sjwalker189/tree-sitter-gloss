@@ -1,105 +1,90 @@
 ; Enums
-(enum_definition name: (identifier) @type.definition)
-(enum_member
-  name: (property_identifier (identifier)) @constant)
+(enum_variant
+  name: (identifier) @constant)
 
 ; Unions
-(union_definition name: (identifier) @type.definition)
-(union_field
+(union_variant
   name: (identifier) @constant
 )
 
-; Structs
-(struct_definition
-  name: (identifier) @type.definition
-)
-
-(struct_field
+(field_declaration
   name: (identifier) @variable.member
 )
 
-(struct_expression
-  name: (_) @type
-)
-
-(field_initializer
-  name: (identifier) @variable.member  
-)
-
 ; Functions
-(function_definition
+(function_declaration
   name: (identifier) @function
 )
 
-
-(parameter
+(parameter_declaration
   name: (identifier) @variable.parameter
 )
 
-(type_parameters
-  (type_parameter
-    name: (identifier) @type
-  )
+(function_declaration
+  name: (identifier) @function)
+
+(member_expression
+    property: (property_identifier) @variable.property
 )
 
 (call_expression
-  name: (identifier) @function.call)
+  function: (expression (identifier) @function.call))
 
-(labeled_function_argument
+(call_expression
+  function: (expression 
+    (member_expression
+      property: (property_identifier) @function.method.call)))
+
+(labeled_argument
   label: (identifier) @variable.parameter)
 
-(labeled_function_argument
+(labeled_argument
   ":" @punctuation.muted)
 
-(labeled_function_argument_punned
-  label: (labeled_identifier
-    (identifier) @variable.parameter
-  )
+(punned_argument
+  label: (identifier) @variable.parameter
 )
 
-
-(labeled_identifier
+(punned_argument
   ":" @punctuation.muted)
 
 
 ; --- Types ---
-(type_literal) @type.builtin
+(primitive_type) @type.builtin
 (type_identifier) @type
-(type_parameter) @type.definition
-(generic_type
-  (identifier) @type
-)
 
 ; --- Literals ---
+(number) @number
 (boolean) @boolean
 (string) @string
 (comment) @comment @spell
-
-(int_literal) @number
-(float_literal) @float
+; (int_literal) @number
+; (float_literal) @float
 
 
 ; --- Keywords & Operators ---
 
-(visibility) @keyword.modifier
+(visibility_modifier) @keyword.modifier
 
 [
   "let"
+  "const"
   "enum"
   "union"
   "struct"
-  "return"
-  "if"
-  "else"
-  "loop"
-  "break"
-  "continue"
+  ; "if"
+  ; "else"
+  ; "loop"
+  ; "break"
+  ; "continue"
 ] @keyword
 
 "fn" @keyword.function
+"return" @keyword.return
 
-["=" ":" "," "<" ">" "(" ")" "[" "]" "{" "}" "+" "-" "*" "/"] @punctuation.bracket
+["=" ":" "," "<" ">" "(" ")" "[" "]" "{" "}" ] @punctuation.bracket
 
 
 ; --- Identifiers (fallback) ---
 ; (identifier) @variable.reference
+; "+" "-" "*" "/"
