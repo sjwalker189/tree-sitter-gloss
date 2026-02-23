@@ -1,75 +1,48 @@
 =======
-Enum
+Structs
 =======
 
-enum Boolean {
-	True,
-	False,
+struct User {
+	id: int,
+	name: string,
+}
+
+struct Box<T> {
+	value: T,
+}
+
+struct Map<T comparable> {
+	list: List<T>,
 }
 
 ---
 
 (source_file
-  (enum_item
-    name: (identifier)
-    body: (enum_body
-        (enum_member
-            name: (field_identifier)
-        )
-        (enum_member
-            name: (field_identifier)
-        )
-    )
-  )	
-)
-
-======================
-Backed Enum (Numbers)
-======================
-
-enum TinyInt {
-	True: 1,
-	False: 0,
-}
-
----
-
-(source_file
-  (enum_item
-    name: (identifier)
-    body: (enum_body
-        (enum_member
-            name: (field_identifier)
-            value: (number))
-        (enum_member
-            name: (field_identifier)
-            value: (number))
-    )
-  )	
-)
-
-======================
-Backed Enum (Mixed)
-======================
-
-enum PublishStatus {
-	Draft: 1,
-	Published,
-	Archived,
-}
-
----
-
-(source_file
-  (enum_item
-    name: (identifier)
-    body: (enum_body
-        (enum_member
-            name: (field_identifier)
-            value: (number))
-        (enum_member
-            name: (field_identifier))
-        (enum_member
-            name: (field_identifier))
-  ))	
+	(struct_declaration
+		(identifier)
+		(struct_body
+			(struct_field
+				(identifier)
+				(type_identifier)
+			)
+			(struct_field
+				(identifier)
+				(type_identifier)
+			)
+		)
+	)
+	(struct_declaration
+		(identifier)
+		(type_parameters
+			(type_parameter_declaration
+				(type_identifier)
+			)
+		)
+		(struct_body
+			(struct_field
+				(identifier)
+				(type_identifier)
+			)
+		)
+	)
 )

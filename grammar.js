@@ -6,6 +6,18 @@
 
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
+// prettier-ignore
+
+const PREC = {
+  primary: 7,
+  unary: 6,
+  multiplicative: 5,
+  additive: 4,
+  comparative: 3,
+  and: 2,
+  or: 1,
+  composite_literal: -1,
+};
 
 module.exports = grammar({
   name: "gloss",
@@ -17,158 +29,95 @@ module.exports = grammar({
   rules: {
     source_file: ($) => repeat($._declaration),
 
-    _declaration: ($) =>
-      choice(
-        $.function_definition,
-        $.let_statement,
-        $.enum_definition,
-        $.union_definition,
-        $.struct_definition,
-      ),
+    // --- Declarations ---
+    _top_level_declaration: ($) => choice($.struct_declaration),
 
-    visibility: ($) => "pub",
-
-    // --- Functions ---
-    function_definition: ($) =>
+    struct_declaration: ($) =>
       seq(
-        optional($.visibility),
-        "fn",
-        field("name", $.identifier),
-        optional($.type_parameters),
-        field("parameters", $.parameter_list),
-        optional(field("return_type", $._type)),
-        field("body", $.block),
-      ),
-
-    parameter_list: ($) => seq("(", sepBy(",", $.parameter), ")"),
-
-    parameter: ($) => seq(field("name", $.identifier), field("type", $._type)),
-
-    // --- Let Statements ---
-    let_statement: ($) =>
-      seq(
-        "let",
-        field("name", $.identifier),
-        "=",
-        field("value", $._expression),
-      ),
-
-    // --- Type Definitions ---
-    enum_definition: ($) =>
-      seq(
-        optional($.visibility),
-        "enum",
-        field("name", $.identifier),
-        $.enum_body,
-      ),
-
-    enum_body: ($) => seq("{", sepBy(",", $.enum_member), optional(","), "}"),
-
-    enum_member: ($) =>
-      seq(
-        field("name", $.property_identifier),
-        optional(seq("=", $._expression)),
-      ),
-
-    union_definition: ($) =>
-      seq(
-        optional($.visibility),
-        "union",
-        field("name", $.identifier),
-        optional($.type_parameters),
-        $.union_body,
-      ),
-
-    union_body: ($) => seq("{", sepBy(",", $.union_field), optional(","), "}"),
-
-    union_field: ($) =>
-      seq(
-        field("name", $.identifier),
-        optional(seq("(", field("type", $._type), ")")),
-      ),
-
-    struct_definition: ($) =>
-      seq(
-        optional($.visibility),
         "struct",
-        field("name", $.identifier),
+        $._type_identifier,
         optional($.type_parameters),
-        field("body", $.struct_body),
+        $.struct_body,
       ),
 
-    struct_body: ($) =>
-      seq("{", sepBy(",", $.struct_field), optional(","), "}"),
+    struct_type: ($) =>
+      seq("struct", optional($.type_parameters), $.struct_body),
 
-    struct_field: ($) =>
-      seq(field("name", $.identifier), ":", field("type", $._type)),
+    struct_body: ($) => seq("{", sepBy(",", $.field_declaration), "}"),
 
-    composite_literal: ($) =>
-      seq(field("type", $._type), field("body", $.literal_value)),
-
-    literal_value: ($) =>
-      seq("{", optional(seq(sepBy(",", $._expression), optional(","))), "}"),
-
-    // --- Types ---
-    _type: ($) =>
-      choice(
-        $.type_literal, // e.g., int, string
-        $.type_identifier, // e.g., T
-        $.generic_type, // e.g. Option<int>
-        $.slice_type,
-        alias($.struct_body, $.struct_type), // anonymous struct
-      ),
-
-    property_identifier: ($) => $.identifier,
-
-    generic_type: ($) => seq(field("name", $.identifier), $.type_parameters),
-
-    slice_type: ($) => seq("[", "]", field("element_type", $._type)),
-
-    type_literal: ($) => choice("int", "string", "bool"),
-
-    type_identifier: ($) => $.identifier,
-
-    type_parameters: ($) =>
-      field("type_parameters", seq("<", sepBy(",", $.type_parameter), ">")),
-
-    type_parameter: ($) => field("name", $.identifier),
-
-    // --- Statements ---
-
-    _statement: ($) =>
-      choice(
-        $.let_statement,
-        $.if_statement,
-        $.block,
-        $._expression,
-        $.return_statement,
-        $.continue_statement,
-        $.break_statement,
-        $.loop_statement,
-      ),
-
-    block: ($) => prec(1, seq("{", repeat($._statement), "}")),
-
-    return_statement: ($) => prec.right(seq("return", optional($._expression))),
-
-    // TODO: labeled break/continue
-    break_statement: () => "break",
-
-    continue_statement: () => "continue",
-
-    loop_statement: ($) => seq("loop", field("body", $.block)),
-
-    if_statement: ($) =>
-      prec.right(
-        seq(
-          "if",
-          field("condition", $._expression),
-          field("consequence", $.block),
-          optional(
-            seq("else", field("alternative", choice($.block, $.if_statement))),
-          ),
+    field_declaration: ($) =>
+      seq(
+        field("name", $._field_identifier),
+        ":",
+        field(
+          "type",
+          choice($._type_identifier, $.qualified_type, $.generic_type),
         ),
       ),
+
+    type_parameters: ($) =>
+      seq("<", sepBy(",", $.type_parameter_declaration), ">"),
+
+    type_parameter_declaration: ($) =>
+      seq($.type_identifier, optional($.type_reference)),
+
+    type_identifier: ($) => alias($.identifier, "type_identifier"),
+
+    type_arguments: ($) => seq(">", sepBy(",", $.type_reference), ">"),
+
+    type_reference: ($) => seq($.type_identifier, optional($.type_arguments)),
+
+    generic_type: ($) => seq($.type_identifier, $.type_arguments),
+
+    qualified_type: ($) =>
+      seq(
+        field("package", $._package_identifier),
+        ".",
+        field("name", $._type_identifier),
+      ),
+
+    literal_value: ($) =>
+      seq(
+        "{",
+        optional(
+          seq(
+            sepBy(",", choice($.literal_element, $.keyed_element)),
+            optional(","),
+          ),
+        ),
+        "}",
+      ),
+
+    literal_element: ($) => choice($._expression, $.literal_value),
+
+    keyed_element: ($) =>
+      seq(
+        field("key", $.literal_element),
+        ":",
+        field("value", $.literal_element),
+      ),
+
+    composite_literal: ($) =>
+      prec(
+        PREC.composite_literal,
+        seq(
+          field(
+            "type",
+            choice(
+              // $.slice_type,
+              // $.array_type,
+              // $.struct_type,
+              $._type_identifier,
+              $.type_reference,
+              $.qualified_type,
+            ),
+          ),
+          field("body", $.literal_value),
+        ),
+      ),
+
+    // --- Statements ---
+    _statement: ($) => choice(),
 
     // --- Expressions ---
     _expression: ($) =>
@@ -219,7 +168,7 @@ module.exports = grammar({
       prec(
         1,
         seq(
-          field("name", choice($.identifier, $.generic_type)),
+          field("name", $.type_reference),
           field("body", $.field_initilizer_list),
         ),
       ),
@@ -265,6 +214,10 @@ module.exports = grammar({
 
     // --- Tokens ---
     identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
+
+    _type_identifier: ($) => alias($.identifier, $.type_identifier),
+    _field_identifier: ($) => alias($.identifier, $.field_identifier),
+    _package_identifier: ($) => alias($.identifier, $.package_identifier),
 
     // --- Numbers ---
     _number: ($) => choice($.float_literal, $.int_literal),
