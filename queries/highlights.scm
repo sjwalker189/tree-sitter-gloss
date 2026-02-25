@@ -91,6 +91,7 @@
   "while"
   "for"
   "in"
+  "match"
 ] @keyword
 
 (break_statement) @keyword
@@ -100,6 +101,9 @@
 "return" @keyword.return
 
 [":" "," "<" ">" "(" ")" "[" "]" "{" "}" ] @punctuation.bracket
+
+"=>" @punctuation.special
+(catch_all_pattern) @variable.builtin
 
 [
   "=="

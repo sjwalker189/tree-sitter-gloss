@@ -41,7 +41,11 @@ module.exports = grammar({
   // Ignore whitespace and comments automatically
   extras: ($) => [/\s/, $.comment],
 
-  conflicts: ($) => [[$._statement, $.expression]],
+  conflicts: ($) => [
+    [$._statement, $.expression],
+    [$.expression, $.composite_literal],
+    // [$.match_expression, $.composite_literal],
+  ],
 
   reserved: {
     global: ($) => [
@@ -300,6 +304,7 @@ module.exports = grammar({
         $.call_expression,
         $.member_expression,
         $.index_expression,
+        $.match_expression,
         $.type_identifier,
         $.identifier,
       ),
@@ -307,12 +312,9 @@ module.exports = grammar({
     // prec(1) eagerly binds the `{` to the type identifier so it doesn't
     // prematurely end `let` declarations.
     composite_literal: ($) =>
-      prec(
-        1,
-        seq(
-          field("type", choice($.identifier, $.type_identifier, $.slice_type)),
-          field("body", $.literal_body),
-        ),
+      seq(
+        field("type", choice($.identifier, $.type_identifier, $.slice_type)),
+        field("body", $.literal_body),
       ),
 
     literal_body: ($) =>
@@ -421,6 +423,46 @@ module.exports = grammar({
           field("index", $.expression),
           "]",
         ),
+      ),
+
+    match_expression: ($) =>
+      seq("match", field("value", $.expression), field("body", $.match_body)),
+
+    match_body: ($) =>
+      seq(
+        "{",
+        optional(
+          seq(
+            $.match_arm,
+            repeat(seq(optional(","), $.match_arm)),
+            optional(","),
+          ),
+        ),
+        "}",
+      ),
+
+    match_arm: ($) =>
+      seq(
+        field("pattern", $._pattern),
+        "=>",
+        field("value", choice($.expression, $.block)),
+      ),
+
+    // --- PATTERNS ---
+    _pattern: ($) =>
+      choice(
+        alias("_", $.catch_all_pattern),
+        $.number,
+        $.string,
+        $.boolean,
+        $.identifier,
+        $.enum_pattern,
+      ),
+
+    enum_pattern: ($) =>
+      seq(
+        field("name", $.type_identifier),
+        optional(seq("(", commaSep($._pattern), ")")),
       ),
 
     argument_list: ($) =>

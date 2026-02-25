@@ -26,4 +26,13 @@ fn main() Option<string> {
 	for let i = 0; i < 10; i++ {
 		continue
 	}
+
+	let ans = match foo {
+	  1 => {
+		io.println("is 1")
+	  }
+	  _ => {
+		io.println("something else")
+	  }
+	}
 }
