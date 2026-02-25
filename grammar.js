@@ -44,7 +44,7 @@ module.exports = grammar({
   conflicts: ($) => [
     [$._statement, $.expression],
     [$.expression, $.composite_literal],
-    // [$.match_expression, $.composite_literal],
+    [$.expression, $._jsx_element_name],
   ],
 
   reserved: {
@@ -309,6 +309,9 @@ module.exports = grammar({
         $.index_expression,
         $.match_expression,
         $.anonymous_function,
+        $.jsx_element, // <div>...</div>
+        $.jsx_self_closing_element, // <br />
+        $.jsx_fragment, // <>...</>
         $.type_identifier,
         $.identifier,
       ),
@@ -490,6 +493,62 @@ module.exports = grammar({
 
     // Punned argument: :a
     punned_argument: ($) => seq(":", field("label", $.identifier)),
+
+    // Elements
+    jsx_element: ($) =>
+      seq($.jsx_opening_element, repeat($._jsx_child), $.jsx_closing_element),
+
+    // 2. Fragments: <> Hello </>
+    jsx_fragment: ($) => seq("<", ">", repeat($._jsx_child), "<", "/", ">"),
+
+    // 3. Self-closing: <input type="text" />
+    jsx_self_closing_element: ($) =>
+      seq(
+        "<",
+        field("name", $._jsx_element_name),
+        repeat(field("attribute", $.jsx_attribute)),
+        "/",
+        ">",
+      ),
+
+    jsx_opening_element: ($) =>
+      seq(
+        "<",
+        field("name", $._jsx_element_name),
+        repeat(field("attribute", $.jsx_attribute)),
+        ">",
+      ),
+
+    jsx_closing_element: ($) =>
+      seq("<", "/", field("name", $._jsx_element_name), ">"),
+
+    // JSX element names can be lowercase (div), uppercase (Button), or members (UI.Button)
+    _jsx_element_name: ($) =>
+      choice($.identifier, $.type_identifier, $.member_expression),
+
+    // Attributes: id="main" OR onClick={handleClick}
+    jsx_attribute: ($) =>
+      seq(
+        field("name", $.identifier),
+        optional(seq("=", field("value", choice($.string, $.jsx_expression)))),
+      ),
+
+    // Inside a JSX tag, you can have text, nested JSX, or a Gloss expression
+    _jsx_child: ($) =>
+      choice(
+        $.jsx_text,
+        $.jsx_element,
+        $.jsx_self_closing_element,
+        $.jsx_fragment,
+        $.jsx_expression,
+      ),
+
+    // { user.name }
+    jsx_expression: ($) =>
+      seq("{", repeat($._statement), optional($.expression), "}"),
+
+    // Plain text: Matches anything that isn't a `<` or `{`
+    jsx_text: ($) => /[^{<]+/,
 
     // ------------------------------------------------------------------------
     // Primitives / Terminals

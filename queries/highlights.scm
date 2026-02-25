@@ -141,6 +141,12 @@
   "--"
 ] @operator
 
+(jsx_opening_element name: (_) @tag)
+(jsx_closing_element name: (_) @tag)
+(jsx_self_closing_element name: (_) @tag)
+(jsx_attribute name: (identifier) @tag.attribute)
+(jsx_text) @none
+
 ; Treat blank identifiers like comments
 ((identifier) @comment
  (#eq? @comment "_"))

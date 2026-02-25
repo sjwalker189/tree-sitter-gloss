@@ -35,4 +35,12 @@ fn main() Option<string> {
 		io.println("something else")
 	  }
 	}
+
+	return <div id={"1"}>
+		hello {msg.getName()}!
+		{for i,b in foo {
+			io.println()
+			""
+		}}
+	</div>
 }
