@@ -11,20 +11,28 @@
   name: (identifier) @variable.member
 )
 
+(field_value
+  name: (identifier) @variable.member
+)
+
 ; Functions
 (function_declaration
   name: (identifier) @function
 )
 
 (parameter_declaration
-  name: (identifier) @variable.parameter
+  name: (identifier) @variable.member
 )
 
 (function_declaration
   name: (identifier) @function)
 
 (member_expression
-    property: (property_identifier) @variable.property
+    property: (property_identifier) @property
+)
+
+(composite_literal
+  type: (identifier) @type
 )
 
 (call_expression
@@ -53,10 +61,15 @@
 (primitive_type) @type.builtin
 (type_identifier) @type
 
+(generic_type
+  name: (identifier) @type
+)
+
 ; --- Literals ---
 (number) @number
 (boolean) @boolean
 (string) @string
+(escape_sequence) @string.escape
 (comment) @comment @spell
 ; (int_literal) @number
 ; (float_literal) @float
@@ -72,19 +85,61 @@
   "enum"
   "union"
   "struct"
-  ; "if"
-  ; "else"
-  ; "loop"
-  ; "break"
-  ; "continue"
+  "if"
+  "else"
+  "loop"
+  "while"
+  "for"
+  "in"
 ] @keyword
+
+(break_statement) @keyword
+(continue_statement) @keyword
 
 "fn" @keyword.function
 "return" @keyword.return
 
-["=" ":" "," "<" ">" "(" ")" "[" "]" "{" "}" ] @punctuation.bracket
+[":" "," "<" ">" "(" ")" "[" "]" "{" "}" ] @punctuation.bracket
 
+[
+  "=="
+  "!="
+  "<"
+  "<="
+  ">"
+  ">="
+  "+"
+  "-"
+  "*"
+  "/"
+  "%"
+  "&&" 
+  "||" 
+  "!"  
+  "&"  
+  "|" 
+  "^"
+  "<<"
+  ">>"
+  "~" 
+  "="
+  "+="
+  "-="
+  "*="
+  "/="
+  "%="
+  "<<="
+  ">>="
+  "&="
+  "|="
+  "^="
+  "++"
+  "--"
+] @operator
+
+; Treat blank identifiers like comments
+((identifier) @comment
+ (#eq? @comment "_"))
 
 ; --- Identifiers (fallback) ---
 ; (identifier) @variable.reference
-; "+" "-" "*" "/"

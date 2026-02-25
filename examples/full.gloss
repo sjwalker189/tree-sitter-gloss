@@ -15,27 +15,15 @@ fn foo() {}
 
 
 fn main() Option<string> {
-	let count = 10
-	let user = User{ id: 5, name: "Sam", email: "sam@example.com" }
+	const items = []int{1,2,4}
 
-	let b = user.name.bar
-
-	if count > 10 {
-		io.println("greater than 10")
+	if true > 10 {
+		io.println("true")
 	} else {
-		io.println("less than 10")
+		io.println("false")
 	}
 
-	for let i in 10 {
-		io.println(i)
+	for let i = 0; i < 10; i++ {
+		continue
 	}
-
-	loop {
-		if count == 10 {
-			break
-		}
-	}
-
-
-	return Option::None
-
+}

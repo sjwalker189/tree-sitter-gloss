@@ -8,7 +8,11 @@ type Opt bool
 
 func foo() {}
 
-func main() *App[any] {
+func main() *App[int] {
+	app := App[int]{
+		Value: 1,
+	}
+
 	foo()
-	return nil
+	return &app
 }
