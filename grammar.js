@@ -155,7 +155,10 @@ module.exports = grammar({
     visibility_modifier: ($) => "pub",
     parameter_list: ($) => seq("(", commaSep($.parameter_declaration), ")"),
     parameter_declaration: ($) =>
-      seq(field("name", $.identifier), ":", field("type", $._type)),
+      seq(
+        field("name", $.identifier),
+        optional(seq(":", field("type", $._type))),
+      ),
 
     // Variables
     variable_declaration: ($) =>
@@ -305,6 +308,7 @@ module.exports = grammar({
         $.member_expression,
         $.index_expression,
         $.match_expression,
+        $.anonymous_function,
         $.type_identifier,
         $.identifier,
       ),
@@ -463,6 +467,15 @@ module.exports = grammar({
       seq(
         field("name", $.type_identifier),
         optional(seq("(", commaSep($._pattern), ")")),
+      ),
+
+    anonymous_function: ($) =>
+      seq(
+        "fn",
+        optional(field("type_parameters", $.type_parameters)),
+        field("parameters", $.parameter_list),
+        optional(field("return_type", $._type)),
+        field("body", choice($.block, seq("=>", $.expression))),
       ),
 
     argument_list: ($) =>
