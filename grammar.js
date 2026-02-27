@@ -1,7 +1,6 @@
 /**
  * @file Gloss grammar for tree-sitter
- * @author Sam Walker <sjwalker189@gmail.com>
- * @license MIT
+ * @author Sam Walker <sjwalker189@gmail.com>amm* @license MIT
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
@@ -45,22 +44,39 @@ module.exports = grammar({
     [$._statement, $.expression],
     [$.expression, $.composite_literal],
     [$.expression, $._jsx_element_name],
+    [$.unary_expression, $.binary_expression, $.call_expression],
+    [$.update_expression, $.binary_expression, $.call_expression],
+    [$.binary_expression, $.call_expression],
+    [$.generic_type, $.expression],
+    [$._type, $.expression],
+    [$.tuple_type, $.tuple_expression],
   ],
 
   reserved: {
     global: ($) => [
+      // Control flow
       "break",
-      "fn",
-      "struct",
-      "else",
-      "const",
-      "if",
       "continue",
+      "return",
+      "if",
+      "else",
       "for",
       "while",
       "loop",
-      "return",
+      "match",
+
+      // Declarations
       "let",
+      "const",
+      "fn",
+      "struct",
+      "enum",
+      "union",
+      "type",
+      "use",
+
+      // Modifiers
+      "extern",
     ],
   },
 
@@ -74,6 +90,8 @@ module.exports = grammar({
 
     _declaration: ($) =>
       choice(
+        $.use_declaration,
+        $.type_declaration,
         $.enum_declaration,
         $.union_declaration,
         $.struct_declaration,
@@ -85,20 +103,39 @@ module.exports = grammar({
     // ------------------------------------------------------------------------
     // Declarations
     // ------------------------------------------------------------------------
+    use_declaration: ($) => seq("use", field("module", $.string)),
+
+    type_declaration: ($) =>
+      seq(
+        optional("extern"),
+        optional($.visibility_modifier),
+        "type",
+        field("name", $.type_identifier),
+        optional(field("type_parameters", $.type_parameters)),
+        field("type", $._type),
+      ),
 
     // Enums
     enum_declaration: ($) =>
-      seq("enum", field("name", $.type_identifier), field("body", $.enum_body)),
+      seq(
+        optional("extern"),
+        optional($.visibility_modifier),
+        "enum",
+        field("name", $.type_identifier),
+        field("body", $.enum_body),
+      ),
     enum_body: ($) => seq("{", commaSep($.enum_variant), optional(","), "}"),
     enum_variant: ($) =>
       seq(
-        field("name", $.identifier),
+        field("name", $.type_identifier),
         optional(seq("=", field("value", $.expression))),
       ),
 
     // Unions
     union_declaration: ($) =>
       seq(
+        optional("extern"),
+        optional($.visibility_modifier),
         "union",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
@@ -107,7 +144,7 @@ module.exports = grammar({
     union_body: ($) => seq("{", commaSep($.union_variant), optional(","), "}"),
     union_variant: ($) =>
       seq(
-        field("name", $.identifier),
+        field("name", $.type_identifier),
         optional(field("payload", $.union_payload)),
       ),
     union_payload: ($) =>
@@ -122,18 +159,37 @@ module.exports = grammar({
     inline_struct_type: ($) =>
       seq("{", commaSep($.field_declaration), optional(","), "}"),
 
-    slice_type: ($) => seq("[", "]", field("element", $._type)),
+    slice_type: ($) =>
+      seq(
+        "[",
+        optional(field("size", $.int_literal)),
+        "]",
+        field("element", $._type),
+      ),
 
     // Structs
     struct_declaration: ($) =>
       seq(
+        optional("extern"),
+        optional($.visibility_modifier),
         "struct",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
         field("body", $.struct_body),
       ),
+
     struct_body: ($) =>
-      seq("{", commaSep($.field_declaration), optional(","), "}"),
+      seq(
+        "{",
+        repeat(
+          choice(
+            seq($.field_declaration, optional(",")),
+            $.function_declaration,
+          ),
+        ),
+        "}",
+      ),
+
     field_declaration: ($) =>
       seq(
         field("name", $.identifier),
@@ -144,7 +200,7 @@ module.exports = grammar({
     // Functions
     function_declaration: ($) =>
       seq(
-        optional(field("visibility", $.visibility_modifier)),
+        optional($.visibility_modifier),
         "fn",
         field("name", $.identifier),
         optional(field("type_parameters", $.type_parameters)),
@@ -152,8 +208,11 @@ module.exports = grammar({
         optional(field("return_type", $._type)),
         field("body", $.block),
       ),
+
     visibility_modifier: ($) => "pub",
+
     parameter_list: ($) => seq("(", commaSep($.parameter_declaration), ")"),
+
     parameter_declaration: ($) =>
       seq(
         field("name", $.identifier),
@@ -163,6 +222,7 @@ module.exports = grammar({
     // Variables
     variable_declaration: ($) =>
       seq(
+        optional(field("visibility", $.visibility_modifier)),
         "let",
         field("name", $.identifier),
         optional(seq(":", $._type)),
@@ -172,6 +232,7 @@ module.exports = grammar({
 
     constant_declaration: ($) =>
       seq(
+        optional(field("visibility", $.visibility_modifier)),
         "const",
         field("name", $.identifier),
         "=",
@@ -188,17 +249,21 @@ module.exports = grammar({
         $.generic_type,
         $.primitive_type,
         $.slice_type,
+        $.tuple_type,
       ),
 
-    // Distinguish type identifiers (capitalized conventionally) from regular ones
     primitive_type: ($) => choice("int", "string", "bool", "void", "nil"),
+
+    tuple_type: ($) => seq("(", commaSep($._type), ")"),
 
     generic_type: ($) =>
       seq(
         field("name", choice($.identifier, $.type_identifier)),
         field("type_arguments", $.type_arguments),
       ),
+
     type_parameters: ($) => seq("<", commaSep1($.type_identifier), ">"),
+
     type_arguments: ($) => seq("<", commaSep1($._type), ">"),
 
     // ------------------------------------------------------------------------
@@ -303,10 +368,13 @@ module.exports = grammar({
         $.binary_expression,
         $.update_expression,
         $.parenthesized_expression,
+        $.tuple_expression,
         $.composite_literal,
         $.call_expression,
         $.member_expression,
+        $.optional_member_expression,
         $.index_expression,
+        $.optional_index_expression,
         $.match_expression,
         $.anonymous_function,
         $.jsx_element, // <div>...</div>
@@ -410,13 +478,36 @@ module.exports = grammar({
         ),
       ),
 
+    optional_member_expression: ($) =>
+      prec.left(
+        PREC.member,
+        seq(
+          field("object", $.expression),
+          "?.",
+          field("property", $.property_identifier),
+        ),
+      ),
+
     parenthesized_expression: ($) => seq("(", $.expression, ")"),
+
+    tuple_expression: ($) =>
+      seq(
+        "(",
+        optional(
+          choice(
+            seq($.expression, ","),
+            seq($.expression, ",", commaSep1($.expression), optional(",")),
+          ),
+        ),
+        ")",
+      ),
 
     call_expression: ($) =>
       prec.left(
         PREC.call,
         seq(
           field("function", $.expression),
+          optional(field("type_parameters", $.type_arguments)),
           field("arguments", $.argument_list),
         ),
       ),
@@ -426,6 +517,17 @@ module.exports = grammar({
         PREC.index,
         seq(
           field("operand", $.expression),
+          "[",
+          field("index", $.expression),
+          "]",
+        ),
+      ),
+    optional_index_expression: ($) =>
+      prec.left(
+        PREC.index,
+        seq(
+          field("operand", $.expression),
+          "?.",
           "[",
           field("index", $.expression),
           "]",
@@ -553,7 +655,7 @@ module.exports = grammar({
     // ------------------------------------------------------------------------
     // Primitives / Terminals
     // ------------------------------------------------------------------------
-    identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
+    identifier: ($) => /[a-z_][a-zA-Z0-9_]*/,
     blank_identifier: ($) => "_",
     property_identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
     type_identifier: ($) => /[A-Z][a-zA-Z0-9_]*/,

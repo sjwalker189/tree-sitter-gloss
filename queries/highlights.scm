@@ -1,3 +1,16 @@
+
+
+(constant_declaration
+  name: (identifier) @constant
+)
+(identifier) @variable
+
+((identifier) @variable.builtin
+ (#eq? @variable.builtin "self"))
+
+((identifier) @constant
+ (#match? @constant "^[A-Z][A-Z0-9_]*$"))
+
 ; Enums
 (enum_variant
   name: (identifier) @constant)
@@ -24,8 +37,6 @@
   name: (identifier) @variable.member
 )
 
-(function_declaration
-  name: (identifier) @function)
 
 (member_expression
     property: (property_identifier) @property
@@ -65,6 +76,10 @@
   name: (identifier) @type
 )
 
+(tuple_type
+  (identifier) @type
+)
+
 ; --- Literals ---
 (number) @number
 (boolean) @boolean
@@ -76,24 +91,21 @@
 
 
 ; --- Keywords & Operators ---
-
-(visibility_modifier) @keyword.modifier
-
 [
+  "use"
   "let"
   "const"
   "enum"
   "union"
   "struct"
-  "if"
-  "else"
-  "loop"
-  "while"
-  "for"
-  "in"
-  "match"
+  "type"
 ] @keyword
+[ "if" "else" "match"] @keyword.conditional
+[ "loop" "for" "while" ] @keyword.repeat
+[ "in" ] @keyword.operator
+[ "extern" ] @keyword.modifier
 
+(visibility_modifier) @keyword.modifier
 (break_statement) @keyword
 (continue_statement) @keyword
 
@@ -139,6 +151,7 @@
   "^="
   "++"
   "--"
+  "?."
 ] @operator
 
 (jsx_opening_element name: (_) @tag)

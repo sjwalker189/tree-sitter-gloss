@@ -1,21 +1,13 @@
-import gloss/io
-
-struct User {
-	id: int,
-	name: string,
-	email: string,
-}
-
-union Option<T> {
-	Some(T),
-	None,
-}
-
-fn foo() {}
+use "github.com/gloss/std"
 
 
-fn main() Option<string> {
+fn main() (int, string) {
 	const items = []int{1,2,4}
+
+	foo<string>()
+
+	io.println(a)
+	io.println(COUNT)
 
 	if true > 10 {
 		io.println("true")
@@ -23,9 +15,14 @@ fn main() Option<string> {
 		io.println("false")
 	}
 
-	for let i = 0; i < 10; i++ {
+	for i = 0; i < 10; i++ {
 		continue
 	}
+
+	for k,v in foo {
+		//
+	}
+
 
 	let ans = match foo {
 	  1 => {
