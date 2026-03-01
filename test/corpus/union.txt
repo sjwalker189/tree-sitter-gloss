@@ -25,10 +25,10 @@ union Action {
 		name: (type_identifier)
 		body: (union_body
 			(union_variant
-				name: (identifier)
+				name: (type_identifier)
 			)
 			(union_variant
-				name: (identifier)
+				name: (type_identifier)
 			)
 		)
 	)
@@ -40,13 +40,13 @@ union Action {
 		)
 		body: (union_body
 			(union_variant
-				name: (identifier)
+				name: (type_identifier)
 				payload: (union_payload
 					type: (type_identifier)
 				)
 			)
 			(union_variant
-				name: (identifier)
+				name: (type_identifier)
 			)
 		)
 	)
@@ -55,13 +55,13 @@ union Action {
 		name: (type_identifier)
 		body: (union_body
 			(union_variant
-				name: (identifier)
+				name: (type_identifier)
 				payload: (union_payload
 					type: (type_identifier)
 				)
 			)
 			(union_variant
-				name: (identifier)
+				name: (type_identifier)
 				payload: (union_payload
 					inline_struct: (inline_struct_type 
 						(field_declaration
@@ -72,7 +72,7 @@ union Action {
 				)
 			)
 			(union_variant
-				name: (identifier)
+				name: (type_identifier)
 			)
 		)
 	)

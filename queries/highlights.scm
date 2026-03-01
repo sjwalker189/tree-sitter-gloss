@@ -13,11 +13,11 @@
 
 ; Enums
 (enum_variant
-  name: (identifier) @constant)
+  name: (type_identifier) @constant)
 
 ; Unions
 (union_variant
-  name: (identifier) @constant
+  name: (type_identifier) @constant
 )
 
 (field_declaration

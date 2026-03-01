@@ -18,7 +18,7 @@ fn get_user_by_id(id: string) Either<User, Error> {}
 
 (source_file
 	(function_declaration
-		visibility: (visibility_modifier)
+		(visibility_modifier)
 		name: (identifier)
 		parameters: (parameter_list)
 		body: (block)
@@ -73,5 +73,4 @@ fn get_user_by_id(id: string) Either<User, Error> {}
 		)
 		body: (block)
 	)
-
 )

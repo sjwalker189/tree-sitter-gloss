@@ -3,19 +3,30 @@ Variables
 =========
 
 let five = 5
+let ok: bool = true
 
-const ans = true
-
+const ans = 5
+const ok: bool = true
 
 ---
 
 (source_file
  (variable_declaration
   name: (identifier)
-  value: (expression (number))
+  value: (expression (number (int_literal)))
+ )
+ (variable_declaration
+  name: (identifier)
+  type: (primitive_type)
+  value: (expression (boolean))
  )
  (constant_declaration
   name: (identifier)
+  value: (expression (number (int_literal)))
+ )
+ (constant_declaration
+  name: (identifier)
+  type: (primitive_type)
   value: (expression (boolean))
  )
 )

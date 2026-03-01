@@ -1,0 +1,77 @@
+=======
+Structs
+=======
+
+struct User {
+	name: string,
+	age: int,
+	fn toString() string {}
+}
+
+struct Result<Value, Error> {
+	value: Value,
+	error: Error,
+}
+
+struct UserBox {
+	value: User<T>,
+}
+
+---
+
+(source_file
+	(struct_declaration
+		name: (type_identifier)
+		body: (struct_body
+			(field_declaration
+				name: (identifier)
+				type: (primitive_type)
+			)
+			(field_declaration
+				name: (identifier)
+				type: (primitive_type)
+			)
+			(function_declaration
+				name: (identifier)
+				parameters: (parameter_list)
+				return_type: (primitive_type)
+				body: (block)
+			)
+		
+		)
+	)
+
+	(struct_declaration
+		name: (type_identifier)
+		type_parameters: (type_parameters
+			(type_identifier)
+			(type_identifier)
+		)
+		body: (struct_body
+			(field_declaration
+				name: (identifier)
+				type: (type_identifier)
+			)
+			(field_declaration
+				name: (identifier)
+				type: (type_identifier)
+			)
+		)
+	)
+
+	(struct_declaration
+		name: (type_identifier)
+		body: (struct_body
+			(field_declaration
+				name: (identifier)
+				type: (generic_type
+					name: (type_identifier)
+					type_arguments: (type_arguments
+						(type_identifier)
+					)
+				)
+			)
+		)
+	)
+
+)

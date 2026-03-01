@@ -1,0 +1,13 @@
+version: '3'
+
+tasks:
+  test:
+    desc: Run grammar tests
+    sources:
+      - 'grammar.js'      
+      - 'queries/*.scm'   
+      - 'config.yaml'    
+    cmds:
+      - echo "Changes detected, running tests..."
+      - npx tree-sitter generate
+      - npx tree-sitter test

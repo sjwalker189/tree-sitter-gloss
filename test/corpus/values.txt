@@ -22,17 +22,19 @@ fn main() {
 	  (call_expression
 	   function: (expression (identifier))
 	   arguments: (argument_list
-		   (expression (number))
+		   (expression (number (int_literal)))
 		   (expression (string))
 		   (expression (boolean))
 		   (expression (boolean))
-		   (expression (struct_literal
+		   (expression (composite_literal
 				type: (type_identifier)
-					(field_value
+				body: (literal_body
+				    (field_value
 					name: (identifier)
 				 	value: (expression (string))
-					)
+				    )
 				)
+		   	)
 		   )
 		   )
 	  )

@@ -1,6 +1,14 @@
 use "github.com/gloss/std"
 
 
+struct User {
+	name: string,
+
+	fn toString() string {
+		
+	}
+}
+
 fn main() (int, string) {
 	const items = []int{1,2,4}
 
@@ -8,6 +16,8 @@ fn main() (int, string) {
 
 	io.println(a)
 	io.println(COUNT)
+
+	const a: string = ""
 
 	if true > 10 {
 		io.println("true")

@@ -19,10 +19,10 @@ enum BoolInt {
 		name: (type_identifier)
 		body: (enum_body
 			(enum_variant
-				name: (identifier)
+				name: (type_identifier)
 			)
 			(enum_variant
-				name: (identifier)
+				name: (type_identifier)
 			)
 		)
 	)
@@ -31,12 +31,12 @@ enum BoolInt {
 		name: (type_identifier)
 		body: (enum_body
 			(enum_variant
-				name: (identifier)
-				value: (expression (number))
+				name: (type_identifier)
+				value: (expression (number (int_literal)))
 			)
 			(enum_variant
-				name: (identifier)
-				value: (expression (number))
+				name: (type_identifier)
+				value: (expression (number (int_literal)))
 			)
 		)
 	)
