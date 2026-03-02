@@ -29,11 +29,7 @@ fn get_user_by_id(id: string) Either<User, Error> {}
 		parameters: (parameter_list)
 		return_type: (primitive_type)
 		body: (block
-			(return_statement
-				(expression
-					(boolean)
-				)
-			)
+			(return_statement (boolean))
 		)
 	)
 
@@ -48,11 +44,7 @@ fn get_user_by_id(id: string) Either<User, Error> {}
 		)
 		return_type: (type_identifier)
 		body: (block
-			(return_statement
-				(expression
-					(identifier)
-				)
-			)
+			(return_statement (identifier))
 		)
 	)
 

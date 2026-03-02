@@ -3809,7 +3809,12 @@
   "precedences": [],
   "externals": [],
   "inline": [],
-  "supertypes": [],
+  "supertypes": [
+    "expression",
+    "_declaration",
+    "_statement",
+    "number"
+  ],
   "reserved": {
     "global": [
       {

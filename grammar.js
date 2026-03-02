@@ -52,6 +52,8 @@ module.exports = grammar({
     [$.tuple_type, $.tuple_expression],
   ],
 
+  supertypes: ($) => [$.expression, $._declaration, $._statement, $.number],
+
   reserved: {
     global: ($) => [
       // Control flow

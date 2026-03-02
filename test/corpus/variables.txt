@@ -13,20 +13,20 @@ const ok: bool = true
 (source_file
  (variable_declaration
   name: (identifier)
-  value: (expression (number (int_literal)))
+  value: (int_literal)
  )
  (variable_declaration
   name: (identifier)
   type: (primitive_type)
-  value: (expression (boolean))
+  value: (boolean)
  )
  (constant_declaration
   name: (identifier)
-  value: (expression (number (int_literal)))
+  value: (int_literal)
  )
  (constant_declaration
   name: (identifier)
   type: (primitive_type)
-  value: (expression (boolean))
+  value: (boolean)
  )
 )

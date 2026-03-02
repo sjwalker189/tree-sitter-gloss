@@ -32,11 +32,11 @@ enum BoolInt {
 		body: (enum_body
 			(enum_variant
 				name: (type_identifier)
-				value: (expression (number (int_literal)))
+				value: (int_literal)
 			)
 			(enum_variant
 				name: (type_identifier)
-				value: (expression (number (int_literal)))
+				value: (int_literal)
 			)
 		)
 	)

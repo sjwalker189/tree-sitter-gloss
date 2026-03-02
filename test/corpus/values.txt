@@ -20,24 +20,24 @@ fn main() {
   parameters: (parameter_list)
   body: (block
 	  (call_expression
-	   function: (expression (identifier))
+	   function: (identifier)
 	   arguments: (argument_list
-		   (expression (number (int_literal)))
-		   (expression (string))
-		   (expression (boolean))
-		   (expression (boolean))
-		   (expression (composite_literal
-				type: (type_identifier)
-				body: (literal_body
-				    (field_value
-					name: (identifier)
-				 	value: (expression (string))
-				    )
-				)
-		   	)
+		   (int_literal)
+		   (string)
+		   (boolean)
+		   (boolean)
+		   (composite_literal
+		    type: (type_identifier)
+		    body: (literal_body
+			    (field_value
+			     name: (identifier)
+			     value: (string)
+			    )
+			  )
 		   )
 		   )
 	  )
 	)
+
   )
-)
+  )
