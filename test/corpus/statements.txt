@@ -1,0 +1,93 @@
+==========
+Statements
+==========
+
+fn main() {
+	const a = 1
+	let b = 2
+	b = 3
+	
+	if sum(a,b) >= 10 {
+		return
+	} else if false {
+		//
+	} else {
+	 	loop {}
+	}
+
+	while true { break }
+	for let i = 0; i < 10; i++ { continue }
+
+	return 0
+}
+
+
+---
+
+(source_file
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list)
+		body: (block
+			(constant_declaration
+			  name: (identifier)
+			  value: (expression (number (int_literal)))
+			)
+		 	(variable_declaration
+			  name: (identifier)
+			  value: (expression (number (int_literal)))
+			)
+	 		(assignment_statement
+			  left: (identifier)
+			  right: (expression (number (int_literal)))
+			)
+			(if_statement
+				condition: (expression 
+					(binary_expression
+						left: (expression
+							(call_expression
+					  		function: (expression (identifier))
+							  arguments: (argument_list
+								(expression (identifier))
+								(expression (identifier))
+			 				 )
+						))
+						right: (expression (number (int_literal)))					
+					)
+				)	
+				consequence: (block
+					(return_statement))
+				alternative: (if_statement
+					condition: (expression (boolean))
+					consequence: (block (comment))
+					alternative: (block (loop_statement (block)))
+				)
+			)
+			(while_statement
+				condition: (expression (boolean))
+				body: (block (break_statement))
+			)
+			(for_statement
+					initializer: (variable_declaration
+						name: (identifier)
+						value: (expression (number (int_literal)))
+					)
+					condition: (expression (binary_expression
+						left: (expression (identifier))
+						right: (expression (number (int_literal)))
+					))
+					update: (expression
+						(update_expression
+							argument: (expression (identifier))
+						)
+					)
+					body: (block
+						(continue_statement)
+					)
+			)
+			(return_statement
+				(expression (number (int_literal)))
+			)
+		)
+	)
+)
