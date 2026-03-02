@@ -1758,6 +1758,10 @@
               },
               {
                 "type": "SYMBOL",
+                "name": "generic_type"
+              },
+              {
+                "type": "SYMBOL",
                 "name": "slice_type"
               }
             ]

@@ -1,0 +1,244 @@
+===========
+Expressions
+===========
+
+const example = (true, false, "", 1, 1.0, -10)
+
+const ans = cast<string>(1)
+
+const ans = calc(label: 1)
+
+const ans = calc(:label)
+
+const expressions = (
+  (true),
+  +a,
+  -a,
+  !a,
+  ~a,
+  a+b,
+  a-b,
+  a/b,
+  a*b,
+  a%b,
+  a<<b,
+  a>>b,
+  a<b,
+  a<=b,
+  a>b,
+  a>=b,
+  a==b,
+  a!=b,
+  a&b,
+  a^b,
+  a|b,
+  a&&b,
+  a||b,
+  ++a,
+  a++,
+  --a,
+  a--,
+)
+
+const users = []User{
+	User{
+		name: "Sam",
+	}
+}
+
+const users = [5]Box<User>{
+	Box<User>{
+		value: user,
+	}
+}
+
+
+---
+
+(source_file
+ (constant_declaration
+	name: (identifier)
+	value: (tuple_expression
+		(boolean)
+		(boolean)
+		(string)
+		(int_literal)
+		(float_literal)
+		(unary_expression argument: (int_literal))
+	)
+ )
+ (constant_declaration
+	name: (identifier)
+	value: (call_expression
+		function: (identifier)
+		type_parameters: (type_arguments
+		  (primitive_type)
+		)
+		arguments: (argument_list
+		  (int_literal)
+		)
+	)
+ )
+ (constant_declaration
+	name: (identifier)
+	value: (call_expression
+		function: (identifier)
+		arguments: (argument_list
+			(labeled_argument
+		  	label: (identifier)
+			value: (int_literal)
+		  	)
+		)
+	)
+ )
+
+ (constant_declaration
+	name: (identifier)
+	value: (call_expression
+		function: (identifier)
+		arguments: (argument_list
+			(punned_argument
+		  		label: (identifier)
+		  	)
+		)
+	)
+ )
+
+ (constant_declaration
+	name: (identifier)
+	value: (tuple_expression
+	 (parenthesized_expression (boolean))
+ 	 (unary_expression argument: (identifier))
+ 	 (unary_expression argument: (identifier))
+ 	 (unary_expression argument: (identifier))
+ 	 (unary_expression argument: (identifier))
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+	 (binary_expression
+	  left: (identifier)
+	  right: (identifier)
+	 )
+ 	 (update_expression argument: (identifier))
+ 	 (update_expression argument: (identifier))
+ 	 (update_expression argument: (identifier))
+ 	 (update_expression argument: (identifier))
+	)
+ )
+
+ (constant_declaration
+  name: (identifier)
+  value: (composite_literal
+	  type: (slice_type
+		  element: (type_identifier)
+		)
+	  body: (literal_body
+	  	(composite_literal
+			type: (type_identifier)
+			body: (literal_body
+				(field_value
+				 name: (identifier)
+				 value: (string)
+				)		
+			)
+		)
+	 )
+	 )
+ )
+
+(constant_declaration
+  name: (identifier)
+  value: (composite_literal
+	  type: (slice_type
+		  size: (int_literal)
+		  element: (generic_type
+				name: (type_identifier)
+				type_arguments: (type_arguments
+					(type_identifier)
+				)
+			)
+		)
+	  body: (literal_body
+	  	(composite_literal
+			type: (generic_type
+				name: (type_identifier)
+				type_arguments: (type_arguments
+					(type_identifier)
+				)
+			)
+			body: (literal_body
+				(field_value
+				 name: (identifier)
+				 value: (identifier)
+				)		
+			)
+		)
+	 )
+	 )
+ )
+ )

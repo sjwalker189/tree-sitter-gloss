@@ -1,6 +1,6 @@
-=======
-Structs
-=======
+===================
+Struct Declarations
+===================
 
 struct User {
 	name: string,

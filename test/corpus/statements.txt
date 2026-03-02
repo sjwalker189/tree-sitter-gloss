@@ -17,6 +17,7 @@ fn main() {
 
 	while true { break }
 	for let i = 0; i < 10; i++ { continue }
+	for k,v in list {}
 
 	return 0
 }
@@ -62,6 +63,7 @@ fn main() {
 				condition: (boolean)
 				body: (block (break_statement))
 			)
+
 			(for_statement
 			 initializer: (variable_declaration
 				 name: (identifier)
@@ -74,6 +76,14 @@ fn main() {
 			 body: (block
 				 (continue_statement))
 			)
+
+			(for_in_statement
+				index: (identifier)
+				value: (identifier)
+				right: (identifier)
+				body: (block)
+			)
+
 			(return_statement (int_literal))
 		)
 	)

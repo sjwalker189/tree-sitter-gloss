@@ -52,7 +52,13 @@ module.exports = grammar({
     [$.tuple_type, $.tuple_expression],
   ],
 
-  supertypes: ($) => [$.expression, $._declaration, $._statement, $.number],
+  supertypes: ($) => [
+    $.expression,
+    $._declaration,
+    $._statement,
+    $.number,
+    $._pattern,
+  ],
 
   reserved: {
     global: ($) => [
@@ -391,7 +397,10 @@ module.exports = grammar({
     // prematurely end `let` declarations.
     composite_literal: ($) =>
       seq(
-        field("type", choice($.identifier, $.type_identifier, $.slice_type)),
+        field(
+          "type",
+          choice($.identifier, $.type_identifier, $.generic_type, $.slice_type),
+        ),
         field("body", $.literal_body),
       ),
 
