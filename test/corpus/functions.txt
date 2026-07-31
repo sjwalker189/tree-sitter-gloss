@@ -2,7 +2,7 @@
 Functions
 =========
 
-pub fn main() {}
+private fn main() {}
 
 fn returns_true() bool {
 	return true

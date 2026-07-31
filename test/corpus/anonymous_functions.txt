@@ -1,0 +1,82 @@
+==================
+Multiple returns and untyped parameters
+==================
+
+fn divmod(a: int, b) (int, int) {
+	return a, b
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list
+			(parameter_declaration
+				name: (identifier)
+				type: (primitive_type))
+			(parameter_declaration
+				name: (identifier)))
+		return_type: (tuple_type
+			(primitive_type)
+			(primitive_type))
+		body: (block
+			(return_statement
+				(identifier)
+				(identifier)))))
+
+==================
+Anonymous functions
+==================
+
+fn higher() {
+	let double = fn(x: int) int { x * 2 }
+	let log = fn(msg: string) { io.println(msg) }
+	let id = fn<T>(v: T) T { v }
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list)
+		body: (block
+			(variable_declaration
+				name: (identifier)
+				value: (anonymous_function
+					parameters: (parameter_list
+						(parameter_declaration
+							name: (identifier)
+							type: (primitive_type)))
+					return_type: (primitive_type)
+					body: (block
+						(binary_expression
+							left: (identifier)
+							right: (int_literal)))))
+			(variable_declaration
+				name: (identifier)
+				value: (anonymous_function
+					parameters: (parameter_list
+						(parameter_declaration
+							name: (identifier)
+							type: (primitive_type)))
+					body: (block
+						(call_expression
+							function: (member_expression
+								object: (identifier)
+								property: (property_identifier))
+							arguments: (argument_list
+								(identifier))))))
+			(variable_declaration
+				name: (identifier)
+				value: (anonymous_function
+					type_parameters: (type_parameters
+						(type_identifier))
+					parameters: (parameter_list
+						(parameter_declaration
+							name: (identifier)
+							type: (type_identifier)))
+					return_type: (type_identifier)
+					body: (block
+						(identifier)))))))

@@ -1,0 +1,95 @@
+==========
+Renderer declaration
+==========
+
+extern renderer Html {
+	element div: GlobalAttrs & { children: Element }
+	element a: GlobalAttrs & { href: string, children: Element }
+	element img: GlobalAttrs & { src: string }
+	element input: GlobalAttrs & { value?: string, disabled?: bool }
+}
+
+---
+
+(source_file
+  (renderer_declaration
+    name: (type_identifier)
+    body: (renderer_body
+      (element_declaration
+        tag: (identifier)
+        attrs: (intersection_type
+          left: (type_identifier)
+          right: (record_type
+            (field_declaration
+              name: (identifier)
+              type: (type_identifier)))))
+      (element_declaration
+        tag: (identifier)
+        attrs: (intersection_type
+          left: (type_identifier)
+          right: (record_type
+            (field_declaration
+              name: (identifier)
+              type: (primitive_type))
+            (field_declaration
+              name: (identifier)
+              type: (type_identifier)))))
+      (element_declaration
+        tag: (identifier)
+        attrs: (intersection_type
+          left: (type_identifier)
+          right: (record_type
+            (field_declaration
+              name: (identifier)
+              type: (primitive_type)))))
+      (element_declaration
+        tag: (identifier)
+        attrs: (intersection_type
+          left: (type_identifier)
+          right: (record_type
+            (field_declaration
+              name: (identifier)
+              type: (primitive_type))
+            (field_declaration
+              name: (identifier)
+              type: (primitive_type))))))))
+
+==========
+Compound and quoted schema field names
+==========
+
+renderer Web {
+	element div: { aria-hidden?: bool, data-sitekey?: string, x-data?: string }
+	element span: { @click?: string, :class?: string, "x-transition:enter"?: string }
+}
+
+---
+
+(source_file
+	(renderer_declaration
+		name: (type_identifier)
+		body: (renderer_body
+			(element_declaration
+				tag: (identifier)
+				attrs: (record_type
+					(field_declaration
+						name: (compound_field_name)
+						type: (primitive_type))
+					(field_declaration
+						name: (compound_field_name)
+						type: (primitive_type))
+					(field_declaration
+						name: (compound_field_name)
+						type: (primitive_type))))
+			(element_declaration
+				tag: (identifier)
+				attrs: (record_type
+					(field_declaration
+						name: (compound_field_name)
+						type: (primitive_type))
+					(field_declaration
+						name: (compound_field_name)
+						type: (primitive_type))
+					(field_declaration
+						name: (string)
+						type: (primitive_type)))))))

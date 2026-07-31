@@ -14,7 +14,8 @@ union Option<T> {
 
 union Action {
 	Create(User),
-	Ban({ reason: string }),
+	Move(int, int),
+	Ban { reason: string },
 	Delete,
 }
 
@@ -41,8 +42,8 @@ union Action {
 		body: (union_body
 			(union_variant
 				name: (type_identifier)
-				payload: (union_payload
-					type: (type_identifier)
+				payload: (tuple_payload
+					(type_identifier)
 				)
 			)
 			(union_variant
@@ -56,18 +57,23 @@ union Action {
 		body: (union_body
 			(union_variant
 				name: (type_identifier)
-				payload: (union_payload
-					type: (type_identifier)
+				payload: (tuple_payload
+					(type_identifier)
 				)
 			)
 			(union_variant
 				name: (type_identifier)
-				payload: (union_payload
-					inline_struct: (inline_struct_type 
-						(field_declaration
-							name: (identifier)
-							type: (primitive_type)
-						)
+				payload: (tuple_payload
+					(primitive_type)
+					(primitive_type)
+				)
+			)
+			(union_variant
+				name: (type_identifier)
+				payload: (struct_payload
+					(field_declaration
+						name: (identifier)
+						type: (primitive_type)
 					)
 				)
 			)

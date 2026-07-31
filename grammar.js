@@ -40,7 +40,13 @@ module.exports = grammar({
   // Ignore whitespace and comments automatically
   extras: ($) => [/\s/, $.comment],
 
+  // Newline-based statement termination (Go-style ASI). The external scanner
+  // emits this zero-width token at statement boundaries (newline / EOF / `}`).
+  externals: ($) => [$._automatic_semicolon],
+
   conflicts: ($) => [
+    // A trailing `call_expression` may be a statement or the block's value
+    // expression; both are valid and lower identically.
     [$._statement, $.expression],
     [$.expression, $.composite_literal],
     [$.expression, $._jsx_element_name],
@@ -82,9 +88,11 @@ module.exports = grammar({
       "union",
       "type",
       "use",
+      "renderer",
 
       // Modifiers
       "extern",
+      "mut",
     ],
   },
 
@@ -103,6 +111,7 @@ module.exports = grammar({
         $.enum_declaration,
         $.union_declaration,
         $.struct_declaration,
+        $.renderer_declaration,
         $.function_declaration,
         $.constant_declaration,
         $.variable_declaration,
@@ -150,21 +159,16 @@ module.exports = grammar({
         field("body", $.union_body),
       ),
     union_body: ($) => seq("{", commaSep($.union_variant), optional(","), "}"),
+    // Variants mirror Rust enums: unit (`None`), tuple (`Some(T)`,
+    // `Pair(int, string)`), or struct (`On { value: T }`).
     union_variant: ($) =>
       seq(
         field("name", $.type_identifier),
-        optional(field("payload", $.union_payload)),
+        optional(field("payload", choice($.tuple_payload, $.struct_payload))),
       ),
-    union_payload: ($) =>
-      seq(
-        "(",
-        choice(
-          field("type", $._type),
-          field("inline_struct", $.inline_struct_type),
-        ),
-        ")",
-      ),
-    inline_struct_type: ($) =>
+    tuple_payload: ($) =>
+      seq("(", commaSep1($._type), optional(","), ")"),
+    struct_payload: ($) =>
       seq("{", commaSep($.field_declaration), optional(","), "}"),
 
     slice_type: ($) =>
@@ -176,6 +180,11 @@ module.exports = grammar({
       ),
 
     // Structs
+    //
+    // The body is optional so `extern struct Request` declares an opaque
+    // host-provided type: known by name, with no readable fields. The compiler
+    // restricts the bodyless form to `extern`; the grammar stays permissive and lets
+    // it say so, which keeps a half-typed declaration parsing while it is edited.
     struct_declaration: ($) =>
       seq(
         optional("extern"),
@@ -183,7 +192,7 @@ module.exports = grammar({
         "struct",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
-        field("body", $.struct_body),
+        optional(field("body", $.struct_body)),
       ),
 
     struct_body: ($) =>
@@ -192,32 +201,116 @@ module.exports = grammar({
         repeat(
           choice(
             seq($.field_declaration, optional(",")),
-            $.function_declaration,
+            alias($._method_declaration, $.function_declaration),
           ),
         ),
         "}",
       ),
 
+    // A field name is usually an identifier. An attribute schema declares the names
+    // it accepts, though, so a field may also carry a compound or quoted name — see
+    // `compound_field_name`.
     field_declaration: ($) =>
       seq(
-        field("name", $.identifier),
-        ":", // Assuming colon is required in structs based on your snippet
+        field("name", choice($.identifier, $.compound_field_name, $.string)),
+        // Optional fields (`name?: T`) — used by attribute record types so a
+        // renderer can mark element attributes as not required.
+        optional(field("optional", "?")),
+        ":",
         field("type", $._type),
       ),
 
+    // A compound field name, for an attribute schema declaring the names it accepts:
+    // `aria-hidden?: string`, `x-data?: string`, `@click?: string`, `:class?: string`.
+    //
+    // Unlike `compound_attribute_name` this excludes an internal `:`, because in field
+    // position `:` introduces the type. `x-transition:enter: string` has no
+    // unambiguous reading, and permitting it would make `{a:b}` lex as one name
+    // followed by a missing type. Such an attribute is declared with a quoted name
+    // instead — `"x-transition:enter"?: string` — which is why `field_declaration`
+    // also accepts a string.
+    //
+    // A leading `:` sigil is still fine: nothing else can start a field name, so
+    // `:class` is unambiguous.
+    compound_field_name: ($) =>
+      token(
+        choice(
+          /[@:][a-zA-Z_][a-zA-Z0-9_]*([-.][a-zA-Z_][a-zA-Z0-9_]*)*/,
+          /[a-zA-Z_][a-zA-Z0-9_]*([-.][a-zA-Z_][a-zA-Z0-9_]*)+/,
+        ),
+      ),
+
+    // Renderers
+    //
+    // A renderer declares the type surface of a rendering backend: its method
+    // signatures (bodyless) and the intrinsic elements it understands, each with
+    // a typed attribute schema. Declaration-only — the backend supplies the impl.
+    renderer_declaration: ($) =>
+      seq(
+        optional("extern"),
+        optional($.visibility_modifier),
+        "renderer",
+        field("name", $.type_identifier),
+        field("body", $.renderer_body),
+      ),
+
+    // A renderer declares its element vocabulary only. Text/Fragment and the
+    // like are runtime methods the backend impl provides, not type surface.
+    renderer_body: ($) => seq("{", repeat($.element_declaration), "}"),
+
+    element_declaration: ($) =>
+      seq(
+        "element",
+        field("tag", $.identifier),
+        ":",
+        field("attrs", $._attr_type),
+      ),
+
     // Functions
+    //
+    // Top level only — a struct method is `_method_declaration` below. The body is
+    // optional here so `extern fn Raw(props: RawProps) Element` parses: a
+    // host-provided declaration has no body, because the host supplies it.
+    //
+    // No ambiguity follows from that at top level, since every declaration begins
+    // with a keyword. Whatever comes after a bodyless signature cannot be mistaken
+    // for a return type.
     function_declaration: ($) =>
+      seq(
+        optional("extern"),
+        optional($.visibility_modifier),
+        "fn",
+        // Capitalized names are allowed so JSX component functions (`fn Heading`)
+        // parse; capitalization is what distinguishes a component from an intrinsic
+        // element.
+        field("name", choice($.identifier, $.type_identifier)),
+        optional(field("type_parameters", $.type_parameters)),
+        field("parameters", $.parameter_list),
+        optional(field("return_type", $._type)),
+        optional(field("body", $.block)),
+      ),
+
+    // A struct method. Aliased to `function_declaration`, so the tree keeps the shape
+    // the compiler's own CST produces, but declared separately because a method
+    // differs in two ways that matter to the parser:
+    //
+    //   - It is never `extern`. The compiler rejects methods on an extern struct, and
+    //     a non-extern struct's methods are ordinary ones.
+    //   - Its body is required. Sharing the optional-body rule made `fn m() foo`
+    //     inside a struct body unresolvable — `foo` could be the return type, or the
+    //     name of the next field.
+    _method_declaration: ($) =>
       seq(
         optional($.visibility_modifier),
         "fn",
-        field("name", $.identifier),
+        field("name", choice($.identifier, $.type_identifier)),
         optional(field("type_parameters", $.type_parameters)),
         field("parameters", $.parameter_list),
         optional(field("return_type", $._type)),
         field("body", $.block),
       ),
 
-    visibility_modifier: ($) => "pub",
+    visibility_modifier: ($) => "private",
 
     parameter_list: ($) => seq("(", commaSep($.parameter_declaration), ")"),
 
@@ -259,6 +352,33 @@ module.exports = grammar({
         $.primitive_type,
         $.slice_type,
         $.tuple_type,
+        $.reference_type,
+      ),
+
+    // A reference type: `&T` (shared) or `&mut T` (mutable). No lifetimes — the
+    // GC'd backend keeps the referent alive; `mut` is intent only and unchecked.
+    reference_type: ($) =>
+      prec.right(
+        PREC.unary,
+        seq("&", optional("mut"), field("inner", $._type)),
+      ),
+
+    // Attribute-schema types. Kept separate from `_type` because a record type
+    // (`{ ... }`) would otherwise collide with blocks and composite literals
+    // wherever a type precedes `{`. Only renderer element schemas use these.
+    _attr_type: ($) =>
+      choice($.type_identifier, $.record_type, $.intersection_type),
+
+    // An anonymous record type, e.g. `{ href: string, disabled?: bool }`.
+    record_type: ($) =>
+      seq("{", commaSep($.field_declaration), optional(","), "}"),
+
+    // Type intersection, e.g. `GlobalAttrs & { href: string }`. Lets an element
+    // compose a shared attribute set with element-specific attributes.
+    intersection_type: ($) =>
+      prec.left(
+        PREC.bitwise_and,
+        seq(field("left", $._attr_type), "&", field("right", $._attr_type)),
       ),
 
     primitive_type: ($) => choice("int", "string", "bool", "void", "nil"),
@@ -278,7 +398,16 @@ module.exports = grammar({
     // ------------------------------------------------------------------------
     // Statements & Blocks
     // ------------------------------------------------------------------------
-    block: ($) => seq("{", repeat($._statement), optional($.expression), "}"),
+    // Statements are newline-terminated (see `externals`); a final unterminated
+    // expression is the block's value (Rust-like). The trailing expression may
+    // also absorb the terminator the scanner emits just before `}`.
+    block: ($) =>
+      seq(
+        "{",
+        repeat(seq($._statement, $._automatic_semicolon)),
+        optional(seq($.expression, optional($._automatic_semicolon))),
+        "}",
+      ),
 
     _statement: ($) =>
       choice(
@@ -292,11 +421,18 @@ module.exports = grammar({
         $.while_statement,
         $.for_statement,
         $.for_in_statement,
+        // A side-effecting `match` mid-block. It is an expression too, and was reachable
+        // only as a block's trailing value or inside a JSX interpolation — so a `match`
+        // written for its arms' effects did not parse.
+        $.match_expression,
         $.break_statement,
         $.continue_statement,
       ),
 
-    return_statement: ($) => prec.right(seq("return", optional($.expression))),
+    // A function may return multiple values (`return 0, "ok"`), matching the
+    // tuple return type `(int, string)`.
+    return_statement: ($) =>
+      prec.right(seq("return", optional(commaSep1($.expression)))),
 
     assignment_statement: ($) =>
       seq(
@@ -351,12 +487,20 @@ module.exports = grammar({
         field("body", $.block),
       ),
 
+    // One name binds the value (`for card in cards`), two bind index and value
+    // (`for i, card in cards`). The single-name form is the common one in templates,
+    // and binding the value rather than the index is what Rust does — iterating a
+    // collection to get its elements, not its positions.
+    //
+    // `value` is therefore always the element; `index` is present only in the
+    // two-name form.
     for_in_statement: ($) =>
       seq(
         "for",
-        field("index", $.identifier),
-        ",",
-        field("value", $.identifier),
+        choice(
+          field("value", $.identifier),
+          seq(field("index", $.identifier), ",", field("value", $.identifier)),
+        ),
         "in",
         field("right", $.expression),
         field("body", $.block),
@@ -385,6 +529,7 @@ module.exports = grammar({
         $.index_expression,
         $.optional_index_expression,
         $.match_expression,
+        $.if_statement, // `if`/`else` as a value (Rust-like block expression)
         $.anonymous_function,
         $.jsx_element, // <div>...</div>
         $.jsx_self_closing_element, // <br />
@@ -580,10 +725,35 @@ module.exports = grammar({
         $.enum_pattern,
       ),
 
+    // Mirrors union variants: tuple destructuring (`Some(n)`) or struct
+    // destructuring (`On { value }`, `On { value: v }`).
     enum_pattern: ($) =>
       seq(
         field("name", $.type_identifier),
-        optional(seq("(", commaSep($._pattern), ")")),
+        optional(
+          choice(
+            seq("(", commaSep($._pattern), ")"),
+            $.struct_pattern,
+          ),
+        ),
+      ),
+    // A trailing `..` (rest_pattern) ignores any unmatched fields.
+    struct_pattern: ($) =>
+      seq(
+        "{",
+        commaSep(choice($.field_pattern, $.rest_pattern)),
+        optional(","),
+        "}",
+      ),
+    rest_pattern: ($) => "..",
+    field_pattern: ($) =>
+      choice(
+        seq(
+          field("name", $.identifier),
+          ":",
+          field("pattern", $._pattern),
+        ),
+        field("name", $.identifier),
       ),
 
     anonymous_function: ($) =>
@@ -592,7 +762,7 @@ module.exports = grammar({
         optional(field("type_parameters", $.type_parameters)),
         field("parameters", $.parameter_list),
         optional(field("return_type", $._type)),
-        field("body", choice($.block, seq("=>", $.expression))),
+        field("body", $.block),
       ),
 
     argument_list: ($) =>
@@ -640,11 +810,38 @@ module.exports = grammar({
     _jsx_element_name: ($) =>
       choice($.identifier, $.type_identifier, $.member_expression),
 
-    // Attributes: id="main" OR onClick={handleClick}
+    // Attributes: id="main", onClick={handleClick}, aria-hidden={true}, @click="go"
+    //
+    // A plain name stays an `identifier`, including a keyword-spelled one like
+    // `type` or `for`. A compound name is its own token — see
+    // `compound_attribute_name`.
     jsx_attribute: ($) =>
       seq(
-        field("name", $.identifier),
+        field("name", choice($.identifier, $.compound_attribute_name)),
         optional(seq("=", field("value", choice($.string, $.jsx_expression)))),
+      ),
+
+    // A compound attribute name: an optional `@` or `:` sigil, an identifier, then
+    // any run of `-`, `.` or `:` segments. Covers ARIA (`aria-hidden`), data
+    // attributes (`data-sitekey`), SVG presentation attributes (`stroke-width`),
+    // and framework syntax (`x-data`, `@click.outside`, `:class`,
+    // `x-transition:enter`).
+    //
+    // One token, matching the compiler, which scans the whole name from raw source
+    // rather than assembling it from pieces — the name has to reach the renderer's
+    // attribute schema as a single string to be looked up in it.
+    //
+    // At least one sigil or separator is required, so a plain name cannot also match
+    // this. Without that the lexer would face a same-length tie between the two
+    // tokens on every ordinary attribute.
+    compound_attribute_name: ($) =>
+      token(
+        choice(
+          // Sigil-led: `@click`, `@click.outside`, `:class`, `:aria-expanded`.
+          /[@:][a-zA-Z_][a-zA-Z0-9_]*([-.:][a-zA-Z_][a-zA-Z0-9_]*)*/,
+          // Separated: `aria-hidden`, `stroke-width`, `x-transition:enter`.
+          /[a-zA-Z_][a-zA-Z0-9_]*([-.:][a-zA-Z_][a-zA-Z0-9_]*)+/,
+        ),
       ),
 
     // Inside a JSX tag, you can have text, nested JSX, or a Gloss expression
@@ -659,7 +856,12 @@ module.exports = grammar({
 
     // { user.name }
     jsx_expression: ($) =>
-      seq("{", repeat($._statement), optional($.expression), "}"),
+      seq(
+        "{",
+        repeat(seq($._statement, $._automatic_semicolon)),
+        optional(seq($.expression, optional($._automatic_semicolon))),
+        "}",
+      ),
 
     // Plain text: Matches anything that isn't a `<` or `{`
     jsx_text: ($) => /[^{<]+/,
@@ -672,20 +874,36 @@ module.exports = grammar({
     property_identifier: ($) => /[a-zA-Z_][a-zA-Z0-9_]*/,
     type_identifier: ($) => /[A-Z][a-zA-Z0-9_]*/,
 
+    // Interpolation opens with `${`, not a bare `{`.
+    //
+    // A bare brace has to stay literal: strings routinely carry markup for other
+    // languages that use braces — an Alpine `x-data="{ open: false }"`, a CSS rule —
+    // and making `{` special would break every one of them, or force escaping
+    // throughout. `${` occurs in none of them, and is the spelling JS template
+    // literals and shell already use.
+    //
+    // `\${` is a literal `${`, since the escape rule consumes the `$`.
     string: ($) =>
       seq(
         '"',
         repeat(
           choice(
-            // Normal text (anything that isn't a quote, backslash, or newline)
-            token.immediate(prec(1, /[^\\"\n]+/)),
+            // Normal text: anything that isn't a quote, backslash, newline, or `$`.
+            // `$` is split out so `${` can be recognized. A lone `$` matches the second
+            // alternative and stays literal — `${` wins by being the longer match, so
+            // `"costs $5"` needs no escaping.
+            token.immediate(prec(1, /[^\\"\n$]+/)),
+            token.immediate(prec(1, /\$/)),
 
-            // The escape sequence
             $.escape_sequence,
+            $.string_interpolation,
           ),
         ),
         '"',
       ),
+
+    string_interpolation: ($) =>
+      seq(token.immediate(prec(2, "${")), field("expression", $.expression), "}"),
 
     escape_sequence: ($) =>
       token.immediate(

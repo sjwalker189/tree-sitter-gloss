@@ -1,0 +1,19 @@
+// Host-provided declarations: no body, nothing emitted. The host supplies a
+// definition for each name.
+//
+// `extern struct T` with no body is opaque — known by name, with no readable fields,
+// so a template reaches it only through the functions below.
+
+extern struct Request
+
+extern struct RawProps {
+	html: string,
+}
+
+// An extern returning Element is a host-provided component, invoked as a JSX tag.
+extern fn Raw(props: RawProps) Element
+
+extern fn csrfToken(req: &Request) string
+extern fn currentPath(req: &Request) string
+extern fn pathIs(req: &Request, path: string) bool
+extern fn asset(path: string) string

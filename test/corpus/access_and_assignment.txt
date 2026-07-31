@@ -1,0 +1,79 @@
+==================
+Optional access and indexing
+==================
+
+fn f() {
+	let a = user?.name
+	let b = items[0]
+	let c = items?.[i]
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list)
+		body: (block
+			(variable_declaration
+				name: (identifier)
+				value: (optional_member_expression
+					object: (identifier)
+					property: (property_identifier)))
+			(variable_declaration
+				name: (identifier)
+				value: (index_expression
+					operand: (identifier)
+					index: (int_literal)))
+			(variable_declaration
+				name: (identifier)
+				value: (optional_index_expression
+					operand: (identifier)
+					index: (identifier))))))
+
+==================
+Compound assignment operators
+==================
+
+fn f() {
+	x += 1
+	x -= 1
+	x *= 2
+	x /= 2
+	x %= 2
+	x <<= 1
+	x >>= 1
+	x &= 1
+	x |= 1
+	x ^= 1
+	obj.field = 1
+	arr[0] = 2
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list)
+		body: (block
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement left: (identifier) right: (int_literal))
+			(assignment_statement
+				left: (member_expression
+					object: (identifier)
+					property: (property_identifier))
+				right: (int_literal))
+			(assignment_statement
+				left: (index_expression
+					operand: (identifier)
+					index: (int_literal))
+				right: (int_literal)))))

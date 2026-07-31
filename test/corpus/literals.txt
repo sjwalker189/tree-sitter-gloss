@@ -1,0 +1,105 @@
+==================
+Numeric literals
+==================
+
+const h = 0xFF
+const b = 0b1010
+const o = 0o17
+const d = 1_000
+const f1 = 1.0
+const f2 = .5
+const f3 = 1e10
+const f4 = 1.2e-5
+
+---
+
+(source_file
+	(constant_declaration name: (identifier) value: (int_literal))
+	(constant_declaration name: (identifier) value: (int_literal))
+	(constant_declaration name: (identifier) value: (int_literal))
+	(constant_declaration name: (identifier) value: (int_literal))
+	(constant_declaration name: (identifier) value: (float_literal))
+	(constant_declaration name: (identifier) value: (float_literal))
+	(constant_declaration name: (identifier) value: (float_literal))
+	(constant_declaration name: (identifier) value: (float_literal)))
+
+==================
+String escape sequences
+==================
+
+const s = "tab\\tnew\\nuni\\u00A9hex\\x1F"
+
+---
+
+(source_file
+	(constant_declaration
+		name: (identifier)
+		value: (string
+			(escape_sequence)
+			(escape_sequence)
+			(escape_sequence)
+			(escape_sequence))))
+
+==================
+Enum with string values
+==================
+
+enum State {
+	On = "on",
+	Off = "off",
+}
+
+---
+
+(source_file
+	(enum_declaration
+		name: (type_identifier)
+		body: (enum_body
+			(enum_variant
+				name: (type_identifier)
+				value: (string))
+			(enum_variant
+				name: (type_identifier)
+				value: (string)))))
+
+==============================
+String interpolation
+==============================
+
+fn f(name: string, n: int) string {
+	let greet = "Hello ${name}!"
+	let literal = "costs $5, {braces} stay put"
+	let escaped = "a \${b} c"
+	let call = "${total(n)} items"
+	return greet
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list
+			(parameter_declaration name: (identifier) type: (primitive_type))
+			(parameter_declaration name: (identifier) type: (primitive_type)))
+		return_type: (primitive_type)
+		body: (block
+			(variable_declaration
+				name: (identifier)
+				value: (string
+					(string_interpolation expression: (identifier))))
+			(variable_declaration
+				name: (identifier)
+				value: (string))
+			(variable_declaration
+				name: (identifier)
+				value: (string
+					(escape_sequence)))
+			(variable_declaration
+				name: (identifier)
+				value: (string
+					(string_interpolation
+						expression: (call_expression
+							function: (identifier)
+							arguments: (argument_list (identifier))))))
+			(return_statement (identifier)))))

@@ -1,0 +1,91 @@
+// Compound attribute names, and the schema that declares them.
+//
+// An attribute name may be compound: an optional `@` or `:` sigil, an identifier,
+// then any run of `-`, `.` or `:` segments. That covers ARIA, data attributes, SVG
+// presentation attributes, and framework syntax (Alpine here).
+//
+// A schema declares the names it accepts. Bare works for `-` and `.`; a name with an
+// internal `:` is quoted, because in field position a bare `:` introduces the type.
+
+struct Children {
+	children: Element,
+}
+
+struct Attrs {
+	id?: string,
+	class?: string,
+	draggable?: bool,
+
+	aria-label?: string,
+	aria-controls?: string,
+	aria-hidden?: bool,
+	aria-expanded?: bool,
+
+	x-data?: string,
+	x-show?: string,
+	x-collapse?: bool,
+	"x-transition:enter"?: string,
+	"x-transition:enter-start"?: string,
+	@click?: string,
+	@click.outside?: string,
+	@scroll.window?: string,
+	:class?: string,
+	:aria-expanded?: string,
+}
+
+struct SvgAttrs {
+	viewBox?: string,
+	fill?: string,
+	stroke-width?: string,
+	stroke-linecap?: string,
+	fill-rule?: string,
+}
+
+renderer Web {
+	element div: Attrs & Children
+	element button: Attrs & Children & { type?: string }
+	element span: Attrs & Children
+	element img: Attrs & { src: string, alt: string, width?: int, height?: int }
+	element svg: Attrs & SvgAttrs & Children
+	element path: Attrs & SvgAttrs & { d: string }
+}
+
+struct DisclosureProps {
+	label: string,
+	panelId: string,
+	children: Element,
+}
+
+fn Disclosure(props: DisclosureProps) Element {
+	<div x-data="{ open: false }">
+		<button
+			type="button"
+			aria-controls={props.panelId}
+			:aria-expanded="open ? 'true' : 'false'"
+			@click="open = !open"
+			@click.outside="open = false"
+		>
+			<span>{props.label}</span>
+			<svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" aria-hidden={true}>
+				<path d="M12 4.5v15m7.5-7.5h-15" fill-rule="evenodd" />
+			</svg>
+		</button>
+		<div
+			id={props.panelId}
+			x-show="open"
+			x-collapse
+			x-transition:enter="transition ease-out duration-150"
+			x-transition:enter-start="opacity-0"
+			:class="open ? 'block' : 'hidden'"
+		>
+			{props.children}
+		</div>
+	</div>
+}
+
+// A decorative image: `alt` is required by the schema, and empty is how a decorative
+// one is marked. `draggable` is enumerated, not a presence-boolean, so a bool there
+// emits the literal "false".
+fn Decoration() Element {
+	<img src="/static/img/mark.svg" alt="" width={40} height={40} draggable={false} />
+}

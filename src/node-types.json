@@ -16,6 +16,10 @@
         "named": true
       },
       {
+        "type": "renderer_declaration",
+        "named": true
+      },
+      {
         "type": "struct_declaration",
         "named": true
       },
@@ -33,6 +37,36 @@
       },
       {
         "type": "variable_declaration",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "_pattern",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "boolean",
+        "named": true
+      },
+      {
+        "type": "catch_all_pattern",
+        "named": true
+      },
+      {
+        "type": "enum_pattern",
+        "named": true
+      },
+      {
+        "type": "identifier",
+        "named": true
+      },
+      {
+        "type": "number",
+        "named": true
+      },
+      {
+        "type": "string",
         "named": true
       }
     ]
@@ -78,6 +112,10 @@
         "named": true
       },
       {
+        "type": "match_expression",
+        "named": true
+      },
+      {
         "type": "return_statement",
         "named": true
       },
@@ -117,6 +155,10 @@
       },
       {
         "type": "identifier",
+        "named": true
+      },
+      {
+        "type": "if_statement",
         "named": true
       },
       {
@@ -200,19 +242,11 @@
     "named": true,
     "fields": {
       "body": {
-        "multiple": true,
+        "multiple": false,
         "required": true,
         "types": [
           {
-            "type": "=>",
-            "named": false
-          },
-          {
             "type": "block",
-            "named": true
-          },
-          {
-            "type": "expression",
             "named": true
           }
         ]
@@ -241,6 +275,10 @@
           },
           {
             "type": "primitive_type",
+            "named": true
+          },
+          {
+            "type": "reference_type",
             "named": true
           },
           {
@@ -609,6 +647,10 @@
             "named": true
           },
           {
+            "type": "reference_type",
+            "named": true
+          },
+          {
             "type": "slice_type",
             "named": true
           },
@@ -638,6 +680,40 @@
         "types": [
           {
             "type": "visibility_modifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "element_declaration",
+    "named": true,
+    "fields": {
+      "attrs": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "intersection_type",
+            "named": true
+          },
+          {
+            "type": "record_type",
+            "named": true
+          },
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      },
+      "tag": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
             "named": true
           }
         ]
@@ -715,27 +791,11 @@
       "required": false,
       "types": [
         {
-          "type": "boolean",
+          "type": "_pattern",
           "named": true
         },
         {
-          "type": "catch_all_pattern",
-          "named": true
-        },
-        {
-          "type": "enum_pattern",
-          "named": true
-        },
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "number",
-          "named": true
-        },
-        {
-          "type": "string",
+          "type": "struct_pattern",
           "named": true
         }
       ]
@@ -776,8 +836,26 @@
         "required": true,
         "types": [
           {
+            "type": "compound_field_name",
+            "named": true
+          },
+          {
             "type": "identifier",
             "named": true
+          },
+          {
+            "type": "string",
+            "named": true
+          }
+        ]
+      },
+      "optional": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "?",
+            "named": false
           }
         ]
       },
@@ -798,6 +876,10 @@
             "named": true
           },
           {
+            "type": "reference_type",
+            "named": true
+          },
+          {
             "type": "slice_type",
             "named": true
           },
@@ -807,6 +889,32 @@
           },
           {
             "type": "type_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "field_pattern",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "pattern": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "_pattern",
             "named": true
           }
         ]
@@ -855,7 +963,7 @@
       },
       "index": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "identifier",
@@ -941,7 +1049,7 @@
     "fields": {
       "body": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "block",
@@ -955,6 +1063,10 @@
         "types": [
           {
             "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "type_identifier",
             "named": true
           }
         ]
@@ -983,6 +1095,10 @@
           },
           {
             "type": "primitive_type",
+            "named": true
+          },
+          {
+            "type": "reference_type",
             "named": true
           },
           {
@@ -1118,18 +1234,45 @@
     }
   },
   {
-    "type": "inline_struct_type",
+    "type": "intersection_type",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "field_declaration",
-          "named": true
-        }
-      ]
+    "fields": {
+      "left": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "intersection_type",
+            "named": true
+          },
+          {
+            "type": "record_type",
+            "named": true
+          },
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      },
+      "right": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "intersection_type",
+            "named": true
+          },
+          {
+            "type": "record_type",
+            "named": true
+          },
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -1140,6 +1283,10 @@
         "multiple": false,
         "required": true,
         "types": [
+          {
+            "type": "compound_attribute_name",
+            "named": true
+          },
           {
             "type": "identifier",
             "named": true
@@ -1412,27 +1559,7 @@
         "required": true,
         "types": [
           {
-            "type": "boolean",
-            "named": true
-          },
-          {
-            "type": "catch_all_pattern",
-            "named": true
-          },
-          {
-            "type": "enum_pattern",
-            "named": true
-          },
-          {
-            "type": "identifier",
-            "named": true
-          },
-          {
-            "type": "number",
-            "named": true
-          },
-          {
-            "type": "string",
+            "type": "_pattern",
             "named": true
           }
         ]
@@ -1603,6 +1730,10 @@
             "named": true
           },
           {
+            "type": "reference_type",
+            "named": true
+          },
+          {
             "type": "slice_type",
             "named": true
           },
@@ -1670,11 +1801,117 @@
     }
   },
   {
+    "type": "record_type",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "field_declaration",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "reference_type",
+    "named": true,
+    "fields": {
+      "inner": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "generic_type",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "primitive_type",
+            "named": true
+          },
+          {
+            "type": "reference_type",
+            "named": true
+          },
+          {
+            "type": "slice_type",
+            "named": true
+          },
+          {
+            "type": "tuple_type",
+            "named": true
+          },
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "renderer_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "element_declaration",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "renderer_declaration",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "renderer_body",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "visibility_modifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "return_statement",
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
@@ -1702,6 +1939,10 @@
           },
           {
             "type": "primitive_type",
+            "named": true
+          },
+          {
+            "type": "reference_type",
             "named": true
           },
           {
@@ -1757,8 +1998,28 @@
         {
           "type": "escape_sequence",
           "named": true
+        },
+        {
+          "type": "string_interpolation",
+          "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "string_interpolation",
+    "named": true,
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -1786,7 +2047,7 @@
     "fields": {
       "body": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "struct_body",
@@ -1827,6 +2088,40 @@
     }
   },
   {
+    "type": "struct_pattern",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "field_pattern",
+          "named": true
+        },
+        {
+          "type": "rest_pattern",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "struct_payload",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "field_declaration",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "tuple_expression",
     "named": true,
     "fields": {},
@@ -1836,6 +2131,45 @@
       "types": [
         {
           "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "tuple_payload",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "generic_type",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "primitive_type",
+          "named": true
+        },
+        {
+          "type": "reference_type",
+          "named": true
+        },
+        {
+          "type": "slice_type",
+          "named": true
+        },
+        {
+          "type": "tuple_type",
+          "named": true
+        },
+        {
+          "type": "type_identifier",
           "named": true
         }
       ]
@@ -1859,6 +2193,10 @@
         },
         {
           "type": "primitive_type",
+          "named": true
+        },
+        {
+          "type": "reference_type",
           "named": true
         },
         {
@@ -1894,6 +2232,10 @@
         },
         {
           "type": "primitive_type",
+          "named": true
+        },
+        {
+          "type": "reference_type",
           "named": true
         },
         {
@@ -1939,6 +2281,10 @@
           },
           {
             "type": "primitive_type",
+            "named": true
+          },
+          {
+            "type": "reference_type",
             "named": true
           },
           {
@@ -2092,52 +2438,6 @@
     }
   },
   {
-    "type": "union_payload",
-    "named": true,
-    "fields": {
-      "inline_struct": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "inline_struct_type",
-            "named": true
-          }
-        ]
-      },
-      "type": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "generic_type",
-            "named": true
-          },
-          {
-            "type": "identifier",
-            "named": true
-          },
-          {
-            "type": "primitive_type",
-            "named": true
-          },
-          {
-            "type": "slice_type",
-            "named": true
-          },
-          {
-            "type": "tuple_type",
-            "named": true
-          },
-          {
-            "type": "type_identifier",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
     "type": "union_variant",
     "named": true,
     "fields": {
@@ -2156,7 +2456,11 @@
         "required": false,
         "types": [
           {
-            "type": "union_payload",
+            "type": "struct_payload",
+            "named": true
+          },
+          {
+            "type": "tuple_payload",
             "named": true
           }
         ]
@@ -2240,6 +2544,10 @@
             "named": true
           },
           {
+            "type": "reference_type",
+            "named": true
+          },
+          {
             "type": "slice_type",
             "named": true
           },
@@ -2311,6 +2619,10 @@
   },
   {
     "type": "\"",
+    "named": false
+  },
+  {
+    "type": "${",
     "named": false
   },
   {
@@ -2442,6 +2754,10 @@
     "named": false
   },
   {
+    "type": "?",
+    "named": false
+  },
+  {
     "type": "?.",
     "named": false
   },
@@ -2479,12 +2795,24 @@
     "extra": true
   },
   {
+    "type": "compound_attribute_name",
+    "named": true
+  },
+  {
+    "type": "compound_field_name",
+    "named": true
+  },
+  {
     "type": "const",
     "named": false
   },
   {
     "type": "continue_statement",
     "named": true
+  },
+  {
+    "type": "element",
+    "named": false
   },
   {
     "type": "else",
@@ -2555,11 +2883,23 @@
     "named": false
   },
   {
+    "type": "mut",
+    "named": false
+  },
+  {
     "type": "nil",
     "named": false
   },
   {
     "type": "property_identifier",
+    "named": true
+  },
+  {
+    "type": "renderer",
+    "named": false
+  },
+  {
+    "type": "rest_pattern",
     "named": true
   },
   {

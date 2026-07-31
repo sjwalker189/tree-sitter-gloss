@@ -1,0 +1,34 @@
+==================
+Use and type declarations
+==================
+
+use "std/io"
+
+type Id int
+type Pair<T> (T, T)
+private type Name string
+extern type Bytes []int
+
+---
+
+(source_file
+	(use_declaration
+		module: (string))
+	(type_declaration
+		name: (type_identifier)
+		type: (primitive_type))
+	(type_declaration
+		name: (type_identifier)
+		type_parameters: (type_parameters
+			(type_identifier))
+		type: (tuple_type
+			(type_identifier)
+			(type_identifier)))
+	(type_declaration
+		(visibility_modifier)
+		name: (type_identifier)
+		type: (primitive_type))
+	(type_declaration
+		name: (type_identifier)
+		type: (slice_type
+			element: (primitive_type))))

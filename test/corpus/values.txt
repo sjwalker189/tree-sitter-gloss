@@ -41,3 +41,22 @@ fn main() {
 
   )
   )
+
+======
+Slice literal
+======
+
+const nums = []int{ 1, 2, 3 }
+
+---
+
+(source_file
+	(constant_declaration
+		name: (identifier)
+		value: (composite_literal
+			type: (slice_type
+				element: (primitive_type))
+			body: (literal_body
+				(int_literal)
+				(int_literal)
+				(int_literal)))))

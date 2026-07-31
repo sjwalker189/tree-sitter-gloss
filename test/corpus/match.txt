@@ -1,0 +1,106 @@
+=====
+Match patterns
+=====
+
+fn f() string {
+	match m {
+		On { value } => value
+		Move { x: a, y: b } => a
+		Config { x, .. } => x
+		Pair(a, b) => a
+		None => "x"
+		_ => "y"
+	}
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list)
+		return_type: (primitive_type)
+		body: (block
+			(match_expression
+				value: (identifier)
+				body: (match_body
+					(match_arm
+						pattern: (enum_pattern
+							name: (type_identifier)
+							(struct_pattern
+								(field_pattern
+									name: (identifier))))
+						value: (identifier))
+					(match_arm
+						pattern: (enum_pattern
+							name: (type_identifier)
+							(struct_pattern
+								(field_pattern
+									name: (identifier)
+									pattern: (identifier))
+								(field_pattern
+									name: (identifier)
+									pattern: (identifier))))
+						value: (identifier))
+					(match_arm
+						pattern: (enum_pattern
+							name: (type_identifier)
+							(struct_pattern
+								(field_pattern
+									name: (identifier))
+								(rest_pattern)))
+						value: (identifier))
+					(match_arm
+						pattern: (enum_pattern
+							name: (type_identifier)
+							(identifier)
+							(identifier))
+						value: (identifier))
+					(match_arm
+						pattern: (enum_pattern
+							name: (type_identifier))
+						value: (string))
+					(match_arm
+						pattern: (catch_all_pattern)
+						value: (string)))))))
+
+=====
+Literal patterns and block arms
+=====
+
+fn f() {
+	let x = match v {
+		1 => "one",
+		"x" => "ex",
+		true => "yes",
+		_ => { panic() }
+	}
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list)
+		body: (block
+			(variable_declaration
+				name: (identifier)
+				value: (match_expression
+					value: (identifier)
+					body: (match_body
+						(match_arm
+							pattern: (int_literal)
+							value: (string))
+						(match_arm
+							pattern: (string)
+							value: (string))
+						(match_arm
+							pattern: (boolean)
+							value: (string))
+						(match_arm
+							pattern: (catch_all_pattern)
+							value: (block
+								(call_expression
+									function: (identifier)
+									arguments: (argument_list))))))))))

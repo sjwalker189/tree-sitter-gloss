@@ -88,3 +88,42 @@ fn main() {
 		)
 	)
 )
+
+===================================
+For-in binds the value, or index and value
+===================================
+
+fn main() {
+	for card in cards {}
+	for i, card in cards {}
+	for c in deck.cards {}
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list)
+		body: (block
+			(for_in_statement
+				value: (identifier)
+				right: (identifier)
+				body: (block)
+			)
+			(for_in_statement
+				index: (identifier)
+				value: (identifier)
+				right: (identifier)
+				body: (block)
+			)
+			(for_in_statement
+				value: (identifier)
+				right: (member_expression
+					object: (identifier)
+					property: (property_identifier))
+				body: (block)
+			)
+		)
+	)
+)

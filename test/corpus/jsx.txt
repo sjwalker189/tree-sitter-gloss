@@ -1,0 +1,292 @@
+================
+Bare trailing JSX
+================
+
+fn banner() Element {
+	<div class="hero" />
+}
+
+---
+
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (type_identifier)
+    (block
+      (jsx_self_closing_element
+        (identifier)
+        (jsx_attribute
+          (identifier)
+          (string))))))
+
+================
+Trailing JSX after a statement
+================
+
+fn App() Element {
+	let count = getCount()
+
+	<div>
+		<Heading>Count is: {count}</Heading>
+	</div>
+}
+
+---
+
+(source_file
+  (function_declaration
+    (type_identifier)
+    (parameter_list)
+    (type_identifier)
+    (block
+      (variable_declaration
+        (identifier)
+        (call_expression
+          (identifier)
+          (argument_list)))
+      (jsx_element
+        (jsx_opening_element
+          (identifier))
+        (jsx_text)
+        (jsx_element
+          (jsx_opening_element
+            (type_identifier))
+          (jsx_text)
+          (jsx_expression
+            (identifier))
+          (jsx_closing_element
+            (type_identifier)))
+        (jsx_text)
+        (jsx_closing_element
+          (identifier))))))
+
+================
+Single-expression block JSX
+================
+
+fn v() Element {
+	<h1>{props.children}</h1>
+}
+
+---
+
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (type_identifier)
+    (block
+      (jsx_element
+        (jsx_opening_element
+          (identifier))
+        (jsx_expression
+          (member_expression
+            (identifier)
+            (property_identifier)))
+        (jsx_closing_element
+          (identifier))))))
+
+================
+Returned JSX still parses
+================
+
+fn v() Element {
+	return <div />
+}
+
+---
+
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (type_identifier)
+    (block
+      (return_statement
+        (jsx_self_closing_element
+          (identifier))))))
+
+================
+Multi-line intrinsic children
+================
+
+fn v() Element {
+	<div>
+		<hr />
+	</div>
+}
+
+---
+
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (type_identifier)
+    (block
+      (jsx_element
+        (jsx_opening_element
+          (identifier))
+        (jsx_text)
+        (jsx_self_closing_element
+          (identifier))
+        (jsx_text)
+        (jsx_closing_element
+          (identifier))))))
+
+================
+Fragment, member-name component, and expression attributes
+================
+
+fn v() Element {
+	<>
+		<UI.Button onClick={handler} disabled={true}>Hi</UI.Button>
+		<input value="x" />
+	</>
+}
+
+---
+
+(source_file
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (type_identifier)
+    body: (block
+      (jsx_fragment
+        (jsx_text)
+        (jsx_element
+          (jsx_opening_element
+            name: (member_expression
+              object: (type_identifier)
+              property: (property_identifier))
+            attribute: (jsx_attribute
+              name: (identifier)
+              value: (jsx_expression
+                (identifier)))
+            attribute: (jsx_attribute
+              name: (identifier)
+              value: (jsx_expression
+                (boolean))))
+          (jsx_text)
+          (jsx_closing_element
+            name: (member_expression
+              object: (type_identifier)
+              property: (property_identifier))))
+        (jsx_text)
+        (jsx_self_closing_element
+          name: (identifier)
+          attribute: (jsx_attribute
+            name: (identifier)
+            value: (string)))
+        (jsx_text)))))
+
+==========
+Compound attribute names
+==========
+
+fn V() Element {
+	<div aria-hidden={true} data-sitekey="k" x-data="{}" x-collapse>
+		<svg stroke-width="1.5" fill-rule="evenodd" />
+	</div>
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (type_identifier)
+		parameters: (parameter_list)
+		return_type: (type_identifier)
+		body: (block
+			(jsx_element
+				(jsx_opening_element
+					name: (identifier)
+					attribute: (jsx_attribute
+						name: (compound_attribute_name)
+						value: (jsx_expression
+							(boolean)))
+					attribute: (jsx_attribute
+						name: (compound_attribute_name)
+						value: (string))
+					attribute: (jsx_attribute
+						name: (compound_attribute_name)
+						value: (string))
+					attribute: (jsx_attribute
+						name: (compound_attribute_name)))
+				(jsx_text)
+				(jsx_self_closing_element
+					name: (identifier)
+					attribute: (jsx_attribute
+						name: (compound_attribute_name)
+						value: (string))
+					attribute: (jsx_attribute
+						name: (compound_attribute_name)
+						value: (string)))
+				(jsx_text)
+				(jsx_closing_element
+					name: (identifier))))))
+
+
+==========
+Framework attribute sigils and internal colons
+==========
+
+fn V() Element {
+	<div @click="go" @click.outside="stop" :class="c" x-transition:enter="a" />
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (type_identifier)
+		parameters: (parameter_list)
+		return_type: (type_identifier)
+		body: (block
+			(jsx_self_closing_element
+				name: (identifier)
+				attribute: (jsx_attribute
+					name: (compound_attribute_name)
+					value: (string))
+				attribute: (jsx_attribute
+					name: (compound_attribute_name)
+					value: (string))
+				attribute: (jsx_attribute
+					name: (compound_attribute_name)
+					value: (string))
+				attribute: (jsx_attribute
+					name: (compound_attribute_name)
+					value: (string))))))
+
+
+==========
+Keyword-spelled attributes stay identifiers
+==========
+
+fn V() Element {
+	<label for="x"><input type="text" /></label>
+}
+
+---
+
+(source_file
+	(function_declaration
+		name: (type_identifier)
+		parameters: (parameter_list)
+		return_type: (type_identifier)
+		body: (block
+			(jsx_element
+				(jsx_opening_element
+					name: (identifier)
+					attribute: (jsx_attribute
+						name: (identifier)
+						value: (string)))
+				(jsx_self_closing_element
+					name: (identifier)
+					attribute: (jsx_attribute
+						name: (identifier)
+						value: (string)))
+				(jsx_closing_element
+					name: (identifier))))))

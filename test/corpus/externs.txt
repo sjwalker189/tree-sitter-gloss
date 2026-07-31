@@ -1,0 +1,49 @@
+==========
+Extern struct, opaque and with fields
+==========
+
+extern struct Request
+
+extern struct RawProps {
+	html: string,
+}
+
+---
+
+(source_file
+	(struct_declaration
+		name: (type_identifier))
+	(struct_declaration
+		name: (type_identifier)
+		body: (struct_body
+			(field_declaration
+				name: (identifier)
+				type: (primitive_type)))))
+
+
+==========
+Extern fn without a body
+==========
+
+extern fn Raw(props: RawProps) Element
+
+extern fn csrfToken(req: &Request) string
+
+---
+
+(source_file
+	(function_declaration
+		name: (type_identifier)
+		parameters: (parameter_list
+			(parameter_declaration
+				name: (identifier)
+				type: (type_identifier)))
+		return_type: (type_identifier))
+	(function_declaration
+		name: (identifier)
+		parameters: (parameter_list
+			(parameter_declaration
+				name: (identifier)
+				type: (reference_type
+					inner: (type_identifier))))
+		return_type: (primitive_type)))
