@@ -1,0 +1,174 @@
+============================================
+integers in every radix, with separators
+============================================
+
+fn f() -> Int {
+    let a = 42;
+    let b = 0xFF_FF;
+    let c = 0b1010_1010;
+    let d = 0o755;
+    let e = 1_000_000;
+    a
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (integer_literal))
+      (let_statement
+        name: (identifier)
+        value: (integer_literal))
+      (let_statement
+        name: (identifier)
+        value: (integer_literal))
+      (let_statement
+        name: (identifier)
+        value: (integer_literal))
+      (let_statement
+        name: (identifier)
+        value: (integer_literal))
+      tail: (identifier))))
+
+==============================
+floats
+==============================
+
+fn f() -> Int {
+    let a = 1.5;
+    let b = 1_000.25;
+    let c = 6.02e23;
+    let d = 1e-9;
+    0
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (float_literal))
+      (let_statement
+        name: (identifier)
+        value: (float_literal))
+      (let_statement
+        name: (identifier)
+        value: (float_literal))
+      (let_statement
+        name: (identifier)
+        value: (float_literal))
+      tail: (integer_literal))))
+
+=======================================================================
+a dot followed by a digit is a fraction, a bare dot is field access
+=======================================================================
+
+fn f() -> Int {
+    let a = 1.5;
+    let b = x.max(2);
+    0
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (float_literal))
+      (let_statement
+        name: (identifier)
+        value: (call_expression
+          function: (field_expression
+            value: (identifier)
+            field: (identifier))
+          arguments: (argument_list
+            (integer_literal))))
+      tail: (integer_literal))))
+
+==============================
+booleans
+==============================
+
+fn f() -> Int {
+    let a = true;
+    let b = false;
+    0
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (boolean_literal))
+      (let_statement
+        name: (identifier)
+        value: (boolean_literal))
+      tail: (integer_literal))))
+
+==============================
+strings and escapes
+==============================
+
+fn f() -> Str {
+    "a\tb\nc\\d\"e"
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (string
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)))))
+
+==============================
+an empty string
+==============================
+
+fn f() -> Str {
+    ""
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (string))))

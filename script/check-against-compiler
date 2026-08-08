@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+#
+# Parse every real Gloss file in the compiler repo and fail if any of them produces an ERROR.
+#
+# This is the check that matters, and it is the one the previous grammar did not have. That
+# grammar drifted until it described a *different language* — `use "module"` where the
+# compiler had grown `package`/`import`, lowercase `int` where the compiler had `Int` — and
+# nothing said so, because its corpus tested it against itself. A corpus can only tell you the
+# grammar still agrees with what you wrote down; only the compiler's own files can tell you it
+# still agrees with the language.
+#
+# The examples are a good oracle for exactly the reason they exist: every one is executed by
+# the compiler's test suite, so they cannot rot into something the compiler would reject.
+#
+# Usage:  script/check-against-compiler [path-to-gloss-lang]
+
+set -uo pipefail
+
+repo="${1:-../gloss-lang}"
+
+if [ ! -d "$repo/examples" ]; then
+  echo "no compiler repo at '$repo'" >&2
+  echo "usage: $0 [path-to-gloss-lang]" >&2
+  exit 2
+fi
+
+pass=0
+fail=0
+failures=()
+
+while IFS= read -r file; do
+  if tree-sitter parse "$file" 2>/dev/null | tail -1 | grep -q ERROR; then
+    fail=$((fail + 1))
+    failures+=("$file")
+  else
+    pass=$((pass + 1))
+  fi
+done < <(find "$repo/examples" "$repo/crates/gloss-base/core" -name '*.gloss' | sort)
+
+echo "parsed $((pass + fail)) files from $repo"
+echo "  ok:     $pass"
+echo "  failed: $fail"
+
+if [ "$fail" -gt 0 ]; then
+  echo
+  echo "these no longer parse:"
+  for f in "${failures[@]}"; do
+    echo "  ${f#"$repo"/}"
+    tree-sitter parse "$f" 2>/dev/null | grep -m1 -oE '\(ERROR \[[0-9]+, [0-9]+\]' | sed 's/^/      /'
+  done
+  echo
+  echo "Either the language grew and this grammar has not, or the grammar is wrong."
+  echo "The compiler is the authority: crates/gloss-syntax/src/{kind.rs,parser.rs}."
+  exit 1
+fi
+
+# The error examples are *meant* not to compile, and are parsed above anyway: almost all of
+# them are rejected by the type checker rather than by the parser, so the syntax is valid and
+# this grammar should accept it. An editor that stops highlighting a file because it will not
+# compile is an editor doing the wrong thing.
+echo
+echo "all good — including the error examples, which are rejected after parsing, not during it"

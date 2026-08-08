@@ -1,0 +1,425 @@
+==============================
+if as a value
+==============================
+
+fn f() -> Int {
+    if a { 1 } else { 0 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (if_expression
+          condition: (identifier)
+          consequence: (block
+            tail: (integer_literal))
+          alternative: (block
+            tail: (integer_literal)))))))
+
+==============================
+if as a statement
+==============================
+
+fn f() -> Int {
+    if a { f(); }
+    0
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (if_expression
+          condition: (identifier)
+          consequence: (block
+            (expression_statement
+              (call_expression
+                function: (identifier)
+                arguments: (argument_list))))))
+      tail: (integer_literal))))
+
+==============================
+else-if ladder
+==============================
+
+fn f() -> Int {
+    if a { 1 } else if b { 2 } else { 3 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (if_expression
+          condition: (identifier)
+          consequence: (block
+            tail: (integer_literal))
+          alternative: (if_expression
+            condition: (identifier)
+            consequence: (block
+              tail: (integer_literal))
+            alternative: (block
+              tail: (integer_literal))))))))
+
+==============================
+match over constructors
+==============================
+
+fn f() -> Int {
+    match xs {
+        Nil => 0,
+        Cons(head, tail) => head,
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (path_pattern
+                (type_identifier))
+              value: (integer_literal))
+            (match_arm
+              pattern: (tuple_struct_pattern
+                type: (path_pattern
+                  (type_identifier))
+                (binding_pattern
+                  (identifier))
+                (binding_pattern
+                  (identifier)))
+              value: (identifier))))))))
+
+======================================
+match over literals and a wildcard
+======================================
+
+fn f() -> Int {
+    match n {
+        0 => 1,
+        1 => 2,
+        _ => 3,
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (literal_pattern
+                (integer_literal))
+              value: (integer_literal))
+            (match_arm
+              pattern: (literal_pattern
+                (integer_literal))
+              value: (integer_literal))
+            (match_arm
+              pattern: (wildcard_pattern)
+              value: (integer_literal))))))))
+
+==============================
+loop with carried values
+==============================
+
+fn f() -> Int {
+    loop (i = 0, total = 0) {
+        if i > 10 { break total } else { continue (i + 1, total + i) }
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (loop_expression
+          carried: (loop_header
+            (loop_binding
+              name: (identifier)
+              value: (integer_literal))
+            (loop_binding
+              name: (identifier)
+              value: (integer_literal)))
+          body: (block
+            tail: (if_expression
+              condition: (binary_expression
+                left: (identifier)
+                right: (integer_literal))
+              consequence: (block
+                tail: (break_expression
+                  (identifier)))
+              alternative: (block
+                tail: (continue_expression
+                  (binary_expression
+                    left: (identifier)
+                    right: (integer_literal))
+                  (binary_expression
+                    left: (identifier)
+                    right: (identifier)))))))))))
+
+========================================
+loop with an annotated carried value
+========================================
+
+fn f() -> Int {
+    loop (i = 0, xs: Array<Int> = Array::new()) {
+        if i == 3 { break xs.len() } else { continue (i + 1, xs.push(i)) }
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (loop_expression
+          carried: (loop_header
+            (loop_binding
+              name: (identifier)
+              value: (integer_literal))
+            (loop_binding
+              name: (identifier)
+              type: (named_type
+                name: (type_identifier)
+                type_arguments: (type_arguments
+                  (named_type
+                    name: (type_identifier))))
+              value: (call_expression
+                function: (path_expression
+                  qualifier: (type_identifier)
+                  name: (identifier))
+                arguments: (argument_list))))
+          body: (block
+            tail: (if_expression
+              condition: (binary_expression
+                left: (identifier)
+                right: (integer_literal))
+              consequence: (block
+                tail: (break_expression
+                  (call_expression
+                    function: (field_expression
+                      value: (identifier)
+                      field: (identifier))
+                    arguments: (argument_list))))
+              alternative: (block
+                tail: (continue_expression
+                  (binary_expression
+                    left: (identifier)
+                    right: (integer_literal))
+                  (call_expression
+                    function: (field_expression
+                      value: (identifier)
+                      field: (identifier))
+                    arguments: (argument_list
+                      (identifier))))))))))))
+
+==============================
+loop with no header
+==============================
+
+fn f() -> Int {
+    loop {
+        break 1
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (loop_expression
+          body: (block
+            tail: (break_expression
+              (integer_literal))))))))
+
+==============================
+break with no value
+==============================
+
+fn f() {
+    loop {
+        break
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (expression_statement
+        (loop_expression
+          body: (block
+            tail: (break_expression)))))))
+
+==============================
+nested loops
+==============================
+
+fn f() -> Int {
+    loop (i = 0) {
+        let inner = loop (j = 0) {
+            break j
+        };
+        break inner
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (loop_expression
+          carried: (loop_header
+            (loop_binding
+              name: (identifier)
+              value: (integer_literal)))
+          body: (block
+            (let_statement
+              name: (identifier)
+              value: (loop_expression
+                carried: (loop_header
+                  (loop_binding
+                    name: (identifier)
+                    value: (integer_literal)))
+                body: (block
+                  tail: (break_expression
+                    (identifier)))))
+            tail: (break_expression
+              (identifier))))))))
+
+==============================
+early return
+==============================
+
+fn f() -> Int {
+    if a { return 1; }
+    0
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (if_expression
+          condition: (identifier)
+          consequence: (block
+            (expression_statement
+              (return_expression
+                (integer_literal))))))
+      tail: (integer_literal))))
+
+==============================
+return with no value
+==============================
+
+fn f() {
+    return;
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (expression_statement
+        (return_expression)))))
+
+==============================
+a block is an expression
+==============================
+
+fn f() -> Int {
+    let x = { let y = 1; y + 1 };
+    x
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (block
+          (let_statement
+            name: (identifier)
+            value: (integer_literal))
+          tail: (binary_expression
+            left: (identifier)
+            right: (integer_literal))))
+      tail: (identifier))))

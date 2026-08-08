@@ -1,0 +1,586 @@
+==============================
+an element with text
+==============================
+
+view fn f<M: Html>(m: M) -> M {
+    <p>hello</p>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier))
+        children: (element_children
+          (element_text))
+        close: (element_close
+          name: (identifier))))))
+
+==============================
+a void element
+==============================
+
+view fn f<M: Html>(m: M) -> M {
+    <br/>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        (element_self_closing
+          name: (identifier))))))
+
+==============================
+attributes
+==============================
+
+view fn f<M: Html>(m: M) -> M {
+    <div class="card" id="main">x</div>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier)
+          (element_attribute
+            name: (identifier)
+            value: (string))
+          (element_attribute
+            name: (identifier)
+            value: (string)))
+        children: (element_children
+          (element_text))
+        close: (element_close
+          name: (identifier))))))
+
+==========================================
+a self-closing element with attributes
+==========================================
+
+view fn f<M: Html>(m: M) -> M {
+    <img src="a.png" alt="a"/>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        (element_self_closing
+          name: (identifier)
+          (element_attribute
+            name: (identifier)
+            value: (string))
+          (element_attribute
+            name: (identifier)
+            value: (string)))))))
+
+===================================
+an interpolated attribute value
+===================================
+
+view fn f<M: Html>(m: M) -> M {
+    <div class={name}>x</div>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier)
+          (element_attribute
+            name: (identifier)
+            value: (element_value
+              (identifier))))
+        children: (element_children
+          (element_text))
+        close: (element_close
+          name: (identifier))))))
+
+===============================
+an interpolation in content
+===============================
+
+view fn f<M: Html>(m: M) -> M {
+    <p>{title}</p>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier))
+        children: (element_children
+          (element_interpolation
+            (identifier)))
+        close: (element_close
+          name: (identifier))))))
+
+===================================
+text and interpolation together
+===================================
+
+view fn f<M: Html>(m: M) -> M {
+    <p>Hello, {name}!</p>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier))
+        children: (element_children
+          (element_text)
+          (element_interpolation
+            (identifier))
+          (element_text))
+        close: (element_close
+          name: (identifier))))))
+
+==============================
+nested elements
+==============================
+
+view fn f<M: Html>(m: M) -> M {
+    <div class="card"><h3>Title</h3><p>Body</p></div>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier)
+          (element_attribute
+            name: (identifier)
+            value: (string)))
+        children: (element_children
+          (element
+            open: (element_open
+              name: (identifier))
+            children: (element_children
+              (element_text))
+            close: (element_close
+              name: (identifier)))
+          (element
+            open: (element_open
+              name: (identifier))
+            children: (element_children
+              (element_text))
+            close: (element_close
+              name: (identifier))))
+        close: (element_close
+          name: (identifier))))))
+
+===============================
+an element with no children
+===============================
+
+view fn f<M: Html>(m: M) -> M {
+    <div></div>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier))
+        close: (element_close
+          name: (identifier))))))
+
+============================================================================
+whitespace between words is content, not trivia — one text node, not two
+============================================================================
+
+view fn f<M: Html>(m: M) -> M {
+    <p>a b</p>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier))
+        children: (element_children
+          (element_text))
+        close: (element_close
+          name: (identifier))))))
+
+========================================================================
+a URL in content does not become a comment: the closing tag survives
+========================================================================
+
+view fn f<M: Html>(m: M) -> M {
+    <p>http://example.com/x</p>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier))
+        children: (element_children
+          (element_text))
+        close: (element_close
+          name: (identifier))))))
+
+==========================================================
+an unmatched closing brace in content is ordinary text
+==========================================================
+
+view fn f<M: Html>(m: M) -> M {
+    <p>a } b</p>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier))
+        children: (element_children
+          (element_text))
+        close: (element_close
+          name: (identifier))))))
+
+=================================================================
+elements over several lines, where the indentation is content
+=================================================================
+
+view fn f<M: Html>(m: M) -> M {
+    <div>
+      <p>one</p>
+      <p>two</p>
+    </div>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier))
+        children: (element_children
+          (element_text)
+          (element
+            open: (element_open
+              name: (identifier))
+            children: (element_children
+              (element_text))
+            close: (element_close
+              name: (identifier)))
+          (element_text)
+          (element
+            open: (element_open
+              name: (identifier))
+            children: (element_children
+              (element_text))
+            close: (element_close
+              name: (identifier)))
+          (element_text))
+        close: (element_close
+          name: (identifier))))))
+
+=====================================
+an element as a nested expression
+=====================================
+
+view fn f<M: Html>(m: M) -> M {
+    if a { <p>y</p> } else { <p>n</p> }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (if_expression
+          condition: (identifier)
+          consequence: (block
+            tail: (element
+              open: (element_open
+                name: (identifier))
+              children: (element_children
+                (element_text))
+              close: (element_close
+                name: (identifier))))
+          alternative: (block
+            tail: (element
+              open: (element_open
+                name: (identifier))
+              children: (element_children
+                (element_text))
+              close: (element_close
+                name: (identifier)))))))))
+
+===================================
+an interpolation holding a call
+===================================
+
+view fn f<M: Html>(m: M) -> M {
+    <p>{fmt(n, 2)}</p>
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (named_type
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier))
+        children: (element_children
+          (element_interpolation
+            (call_expression
+              function: (identifier)
+              arguments: (argument_list
+                (identifier)
+                (integer_literal)))))
+        close: (element_close
+          name: (identifier))))))

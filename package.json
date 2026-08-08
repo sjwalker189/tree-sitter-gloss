@@ -1,0 +1,15 @@
+{
+  "name": "tree-sitter-gloss",
+  "version": "0.1.0",
+  "description": "Gloss grammar for tree-sitter",
+  "main": "bindings/node",
+  "keywords": ["parser", "lexer", "gloss"],
+  "files": ["grammar.js", "queries/*", "src/**"],
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "test": "tree-sitter test"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "^0.25.0"
+  }
+}

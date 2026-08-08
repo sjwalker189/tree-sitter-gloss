@@ -1,0 +1,469 @@
+=========================================================================
+precedence follows Rust, not C: comparison binds tighter than bitwise
+=========================================================================
+
+fn f() -> Int {
+    a & b == c
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (binary_expression
+        left: (identifier)
+        right: (binary_expression
+          left: (identifier)
+          right: (identifier))))))
+
+==============================
+arithmetic precedence
+==============================
+
+fn f() -> Int {
+    a + b * c - d / e % f
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (binary_expression
+        left: (binary_expression
+          left: (identifier)
+          right: (binary_expression
+            left: (identifier)
+            right: (identifier)))
+        right: (binary_expression
+          left: (binary_expression
+            left: (identifier)
+            right: (identifier))
+          right: (identifier))))))
+
+==============================
+shift and comparison
+==============================
+
+fn f() -> Int {
+    a << 2 > b >> 1
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (binary_expression
+        left: (binary_expression
+          left: (identifier)
+          right: (integer_literal))
+        right: (binary_expression
+          left: (identifier)
+          right: (integer_literal))))))
+
+===================================
+logical operators short-circuit
+===================================
+
+fn f() -> Int {
+    a && b || c && d
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (binary_expression
+        left: (binary_expression
+          left: (identifier)
+          right: (identifier))
+        right: (binary_expression
+          left: (identifier)
+          right: (identifier))))))
+
+==============================
+unary
+==============================
+
+fn f() -> Int {
+    -a + !b
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (binary_expression
+        left: (unary_expression
+          operand: (identifier))
+        right: (unary_expression
+          operand: (identifier))))))
+
+==============================
+parentheses
+==============================
+
+fn f() -> Int {
+    (a + b) * c
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (binary_expression
+        left: (parenthesized_expression
+          (binary_expression
+            left: (identifier)
+            right: (identifier)))
+        right: (identifier)))))
+
+==============================
+call
+==============================
+
+fn f() -> Int {
+    f(1, 2, 3)
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (call_expression
+        function: (identifier)
+        arguments: (argument_list
+          (integer_literal)
+          (integer_literal)
+          (integer_literal))))))
+
+==============================
+call with no arguments
+==============================
+
+fn f() -> Int {
+    f()
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (call_expression
+        function: (identifier)
+        arguments: (argument_list)))))
+
+==============================
+method chain
+==============================
+
+fn f() -> Int {
+    xs.push(1).push(2).len()
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (call_expression
+        function: (field_expression
+          value: (call_expression
+            function: (field_expression
+              value: (call_expression
+                function: (field_expression
+                  value: (identifier)
+                  field: (identifier))
+                arguments: (argument_list
+                  (integer_literal)))
+              field: (identifier))
+            arguments: (argument_list
+              (integer_literal)))
+          field: (identifier))
+        arguments: (argument_list)))))
+
+==============================
+field access
+==============================
+
+fn f() -> Int {
+    p.x + p.y
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (binary_expression
+        left: (field_expression
+          value: (identifier)
+          field: (identifier))
+        right: (field_expression
+          value: (identifier)
+          field: (identifier))))))
+
+==============================================
+path expressions of two and three segments
+==============================================
+
+fn f() -> Int {
+    Colour::Blue;
+    text::Found::One;
+    Array::new()
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (path_expression
+          qualifier: (type_identifier)
+          name: (type_identifier)))
+      (expression_statement
+        (path_expression
+          qualifier: (identifier)
+          name: (type_identifier)
+          name: (type_identifier)))
+      tail: (call_expression
+        function: (path_expression
+          qualifier: (type_identifier)
+          name: (identifier))
+        arguments: (argument_list)))))
+
+=================================
+a bare constructor is a value
+=================================
+
+fn f() -> Int {
+    Nil
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (type_identifier))))
+
+==============================
+struct literal
+==============================
+
+fn f() -> Int {
+    Point { x: 1, y: 2 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (struct_literal
+        type: (type_identifier)
+        body: (field_initializer_list
+          (field_initializer
+            name: (identifier)
+            value: (integer_literal))
+          (field_initializer
+            name: (identifier)
+            value: (integer_literal)))))))
+
+========================================
+struct literal with a qualified name
+========================================
+
+fn f() -> Int {
+    shapes::Point { x: 1 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (struct_literal
+        type: (path_expression
+          qualifier: (identifier)
+          name: (type_identifier))
+        body: (field_initializer_list
+          (field_initializer
+            name: (identifier)
+            value: (integer_literal)))))))
+
+==============================
+try propagates a Result
+==============================
+
+fn f() -> Int {
+    parse(s)?
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (try_expression
+        (call_expression
+          function: (identifier)
+          arguments: (argument_list
+            (identifier)))))))
+
+=======================================
+try binds tighter than any operator
+=======================================
+
+fn f() -> Int {
+    a? + b?
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (binary_expression
+        left: (try_expression
+          (identifier))
+        right: (try_expression
+          (identifier))))))
+
+==============================
+closure
+==============================
+
+fn f() -> Int {
+    let g = fn(x: Int) -> Int { x + 1 };
+    g(1)
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (lambda_expression
+          parameters: (parameter_list
+            (parameter
+              name: (identifier)
+              type: (named_type
+                name: (type_identifier))))
+          return_type: (named_type
+            name: (type_identifier))
+          body: (block
+            tail: (binary_expression
+              left: (identifier)
+              right: (integer_literal)))))
+      tail: (call_expression
+        function: (identifier)
+        arguments: (argument_list
+          (integer_literal))))))
+
+===============================
+closure with no return type
+===============================
+
+fn f() -> Int {
+    let g = fn(x: Int) { };
+    0
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (lambda_expression
+          parameters: (parameter_list
+            (parameter
+              name: (identifier)
+              type: (named_type
+                name: (type_identifier))))
+          body: (block)))
+      tail: (integer_literal))))

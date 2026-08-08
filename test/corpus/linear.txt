@@ -1,0 +1,220 @@
+==============================
+a linear declaration
+==============================
+
+linear struct Token {
+    id: Int,
+}
+
+---
+
+(source_file
+  (struct_item
+    name: (type_identifier)
+    body: (field_list
+      (field_declaration
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))))
+
+=================================
+one struct and impl per state
+=================================
+
+linear struct Idle { n: Int }
+linear struct Active { n: Int }
+
+impl Idle {
+    fn begin(self) -> Active {
+        Active { n: self.n }
+    }
+}
+
+impl Active {
+    fn commit(self) -> Idle {
+        Idle { n: self.n }
+    }
+}
+
+---
+
+(source_file
+  (struct_item
+    name: (type_identifier)
+    body: (field_list
+      (field_declaration
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)))))
+  (struct_item
+    name: (type_identifier)
+    body: (field_list
+      (field_declaration
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)))))
+  (impl_item
+    trait: (named_type
+      name: (type_identifier))
+    body: (impl_body
+      (function_item
+        name: (identifier)
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          name: (type_identifier))
+        body: (block
+          tail: (struct_literal
+            type: (type_identifier)
+            body: (field_initializer_list
+              (field_initializer
+                name: (identifier)
+                value: (field_expression
+                  value: (identifier)
+                  field: (identifier)))))))))
+  (impl_item
+    trait: (named_type
+      name: (type_identifier))
+    body: (impl_body
+      (function_item
+        name: (identifier)
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          name: (type_identifier))
+        body: (block
+          tail: (struct_literal
+            type: (type_identifier)
+            body: (field_initializer_list
+              (field_initializer
+                name: (identifier)
+                value: (field_expression
+                  value: (identifier)
+                  field: (identifier))))))))))
+
+==================================================================================
+the state as a type parameter, with a blanket impl for what every state shares
+==================================================================================
+
+struct Idle {}
+struct Active {}
+linear struct Conn<S> { n: Int }
+
+impl<S> Conn<S> {
+    fn tally(self) -> Int {
+        self.n
+    }
+}
+
+impl Conn<Idle> {
+    fn begin(self) -> Conn<Active> {
+        Conn { n: self.n }
+    }
+}
+
+---
+
+(source_file
+  (struct_item
+    name: (type_identifier)
+    body: (field_list))
+  (struct_item
+    name: (type_identifier)
+    body: (field_list))
+  (struct_item
+    name: (type_identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)))
+    body: (field_list
+      (field_declaration
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)))))
+  (impl_item
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)))
+    trait: (named_type
+      name: (type_identifier)
+      type_arguments: (type_arguments
+        (named_type
+          name: (type_identifier))))
+    body: (impl_body
+      (function_item
+        name: (identifier)
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          name: (type_identifier))
+        body: (block
+          tail: (field_expression
+            value: (identifier)
+            field: (identifier))))))
+  (impl_item
+    trait: (named_type
+      name: (type_identifier)
+      type_arguments: (type_arguments
+        (named_type
+          name: (type_identifier))))
+    body: (impl_body
+      (function_item
+        name: (identifier)
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          name: (type_identifier)
+          type_arguments: (type_arguments
+            (named_type
+              name: (type_identifier))))
+        body: (block
+          tail: (struct_literal
+            type: (type_identifier)
+            body: (field_initializer_list
+              (field_initializer
+                name: (identifier)
+                value: (field_expression
+                  value: (identifier)
+                  field: (identifier))))))))))
+
+================================
+a protocol as a method chain
+================================
+
+fn session() -> Int {
+    Conn::connect().begin().run(3).commit().close().total
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (field_expression
+        value: (call_expression
+          function: (field_expression
+            value: (call_expression
+              function: (field_expression
+                value: (call_expression
+                  function: (field_expression
+                    value: (call_expression
+                      function: (field_expression
+                        value: (call_expression
+                          function: (path_expression
+                            qualifier: (type_identifier)
+                            name: (identifier))
+                          arguments: (argument_list))
+                        field: (identifier))
+                      arguments: (argument_list))
+                    field: (identifier))
+                  arguments: (argument_list
+                    (integer_literal)))
+                field: (identifier))
+              arguments: (argument_list))
+            field: (identifier))
+          arguments: (argument_list))
+        field: (identifier)))))

@@ -1,0 +1,19 @@
+{
+  "grammars": [
+    {
+      "name": "gloss",
+      "camelcase": "Gloss",
+      "scope": "source.gloss",
+      "path": ".",
+      "file-types": ["gloss"],
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm",
+      "locals": "queries/locals.scm"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Gloss grammar for tree-sitter"
+  }
+}

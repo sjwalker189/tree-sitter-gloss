@@ -1,0 +1,243 @@
+==============================
+wildcard
+==============================
+
+fn f() -> Int {
+    match n { _ => 0 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (wildcard_pattern)
+              value: (integer_literal))))))))
+
+==============================
+binding
+==============================
+
+fn f() -> Int {
+    match n { v => v }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (binding_pattern
+                (identifier))
+              value: (identifier))))))))
+
+==============================
+literals
+==============================
+
+fn f() -> Int {
+    match n { 0 => 1, true => 2 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (literal_pattern
+                (integer_literal))
+              value: (integer_literal))
+            (match_arm
+              pattern: (literal_pattern
+                (boolean_literal))
+              value: (integer_literal))))))))
+
+==============================
+bare constructor
+==============================
+
+fn f() -> Int {
+    match c { Red => 1, Blue => 2 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (path_pattern
+                (type_identifier))
+              value: (integer_literal))
+            (match_arm
+              pattern: (path_pattern
+                (type_identifier))
+              value: (integer_literal))))))))
+
+==============================
+qualified constructor
+==============================
+
+fn f() -> Int {
+    match c { Colour::Red => 1, Colour::Blue => 2 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (path_pattern
+                (type_identifier)
+                (type_identifier))
+              value: (integer_literal))
+            (match_arm
+              pattern: (path_pattern
+                (type_identifier)
+                (type_identifier))
+              value: (integer_literal))))))))
+
+==============================
+constructor with fields
+==============================
+
+fn f() -> Int {
+    match xs { Cons(head, tail) => head, Nil => 0 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (tuple_struct_pattern
+                type: (path_pattern
+                  (type_identifier))
+                (binding_pattern
+                  (identifier))
+                (binding_pattern
+                  (identifier)))
+              value: (identifier))
+            (match_arm
+              pattern: (path_pattern
+                (type_identifier))
+              value: (integer_literal))))))))
+
+===========================================
+a package-qualified constructor pattern
+===========================================
+
+fn f() -> Int {
+    match r { text::Found::One(v) => v, text::Found::Nothing => 0 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (tuple_struct_pattern
+                type: (path_pattern
+                  (identifier)
+                  (type_identifier)
+                  (type_identifier))
+                (binding_pattern
+                  (identifier)))
+              value: (identifier))
+            (match_arm
+              pattern: (path_pattern
+                (identifier)
+                (type_identifier)
+                (type_identifier))
+              value: (integer_literal))))))))
+
+================================================================
+a float pattern, which the compiler refuses and this accepts
+================================================================
+
+fn f() -> Int {
+    match x { 1.5 => 1, _ => 0 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (literal_pattern
+                (float_literal))
+              value: (integer_literal))
+            (match_arm
+              pattern: (wildcard_pattern)
+              value: (integer_literal))))))))

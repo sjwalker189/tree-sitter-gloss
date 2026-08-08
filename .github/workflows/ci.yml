@@ -1,0 +1,31 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npx tree-sitter generate
+      # The corpus says the grammar still agrees with what was written down.
+      - run: npx tree-sitter test
+
+      # And this says it still agrees with the *language*, which is the check the previous
+      # grammar did not have and the reason it drifted into describing a different one.
+      - uses: actions/checkout@v4
+        with:
+          repository: sjwalker189/gloss_rust
+          path: gloss-lang
+        continue-on-error: true
+      - name: check against the compiler's own files
+        run: |
+          if [ -d gloss-lang/examples ]; then
+            script/check-against-compiler gloss-lang
+          else
+            echo "compiler repo unavailable; skipping"
+          fi
