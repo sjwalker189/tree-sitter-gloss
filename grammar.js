@@ -247,7 +247,22 @@ module.exports = grammar({
     type_parameter: ($) =>
       seq(field("name", $.type_identifier), optional(seq(":", field("bounds", $.bound_list)))),
 
-    bound_list: ($) => sep1($.named_type, "+"),
+    bound_list: ($) => sep1($.bound, "+"),
+
+    // `Iterator`, `html::Doc`, or `Iterator<Item = Int>` — a bound that also fixes one of the
+    // trait's associated types. The angle brackets are free here because the language has no
+    // generic traits, so an equation is the only thing that can stand in them.
+    bound: ($) =>
+      seq(
+        optional(seq(field("package", $.identifier), "::")),
+        field("name", $.type_identifier),
+        optional(field("assoc", $.assoc_bindings)),
+      ),
+
+    assoc_bindings: ($) => seq("<", commaSep1($.assoc_binding), optional(","), ">"),
+
+    assoc_binding: ($) =>
+      seq(field("name", $.type_identifier), "=", field("value", $._type)),
 
     type_arguments: ($) => seq("<", commaSep1($._type), ">"),
 

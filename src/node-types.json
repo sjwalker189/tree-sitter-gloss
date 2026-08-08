@@ -103,6 +103,51 @@
     }
   },
   {
+    "type": "assoc_binding",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "function_type",
+            "named": true
+          },
+          {
+            "type": "named_type",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "assoc_bindings",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "assoc_binding",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "associated_type",
     "named": true,
     "fields": {
@@ -596,6 +641,42 @@
     "fields": {}
   },
   {
+    "type": "bound",
+    "named": true,
+    "fields": {
+      "assoc": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "assoc_bindings",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      },
+      "package": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "bound_list",
     "named": true,
     "fields": {},
@@ -604,7 +685,7 @@
       "required": true,
       "types": [
         {
-          "type": "named_type",
+          "type": "bound",
           "named": true
         }
       ]

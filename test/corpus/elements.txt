@@ -15,7 +15,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -50,7 +50,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -81,7 +81,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -122,7 +122,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -159,7 +159,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -198,7 +198,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -234,7 +234,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -272,7 +272,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -323,7 +323,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -356,7 +356,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -391,7 +391,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -426,7 +426,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -464,7 +464,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -515,7 +515,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -562,7 +562,7 @@ view fn f<M: Html>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter

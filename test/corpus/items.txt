@@ -106,7 +106,7 @@ view fn card<M: Doc>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -377,9 +377,9 @@ trait Mjml: Html + Show {
   (trait_item
     name: (type_identifier)
     supertraits: (bound_list
-      (named_type
+      (bound
         name: (type_identifier))
-      (named_type
+      (bound
         name: (type_identifier)))
     body: (trait_body
       (method_signature
@@ -586,7 +586,7 @@ elements Mjml: Html {
   (elements_item
     name: (type_identifier)
     supertraits: (bound_list
-      (named_type
+      (bound
         name: (type_identifier)))
     (element_declaration
       name: (identifier)

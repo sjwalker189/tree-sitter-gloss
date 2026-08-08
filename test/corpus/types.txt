@@ -124,8 +124,8 @@ fn f<M: html::Doc>(m: M) -> M {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
-            qualifier: (identifier)
+          (bound
+            package: (identifier)
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -209,9 +209,9 @@ fn f<T: Show + Eq>(x: T) -> T {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier))
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -242,7 +242,7 @@ fn f<A, B: Show>(a: A, b: B) -> A {
       (type_parameter
         name: (type_identifier)
         bounds: (bound_list
-          (named_type
+          (bound
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
@@ -257,3 +257,37 @@ fn f<A, B: Show>(a: A, b: B) -> A {
       name: (type_identifier))
     body: (block
       tail: (identifier))))
+
+================================================================================
+a bound that fixes an associated type
+================================================================================
+
+fn total<I: Iterator<Item = Int>>(it: I) -> Int {
+    0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (bound
+            name: (type_identifier)
+            assoc: (assoc_bindings
+              (assoc_binding
+                name: (type_identifier)
+                value: (named_type
+                  name: (type_identifier))))))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (integer_literal))))

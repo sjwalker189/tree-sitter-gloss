@@ -54,6 +54,10 @@
 ; The qualifier in `html::Doc`. Only the lowercase form is a package: an uppercase one is
 ; `Self::Item`, a projection through a bound, and the type rule below already colours it.
 (named_type qualifier: (identifier) @module)
+(bound package: (identifier) @module)
+
+; `Iterator<Item = Int>` — the name on the left of the `=` is the trait's, not a type here.
+(assoc_binding name: (type_identifier) @property)
 
 ; --- calls -----------------------------------------------------------------------------
 
