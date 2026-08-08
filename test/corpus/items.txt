@@ -592,3 +592,62 @@ elements Mjml: Html {
       name: (identifier)
       spec: (element_spec
         (type_identifier)))))
+
+================================================================================
+trait with an associated type
+================================================================================
+
+trait Container {
+    type Item;
+    fn first(self) -> Self::Item;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (trait_item
+    name: (type_identifier)
+    body: (trait_body
+      (associated_type
+        name: (type_identifier))
+      (method_signature
+        name: (identifier)
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          qualifier: (type_identifier)
+          name: (type_identifier))))))
+
+================================================================================
+impl binding an associated type
+================================================================================
+
+impl Container for Bag {
+    type Item = Int;
+    fn first(self) -> Self::Item { self.a }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (impl_item
+    trait: (named_type
+      name: (type_identifier))
+    type: (named_type
+      name: (type_identifier))
+    body: (impl_body
+      (associated_type
+        name: (type_identifier)
+        value: (named_type
+          name: (type_identifier)))
+      (function_item
+        name: (identifier)
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          qualifier: (type_identifier)
+          name: (type_identifier))
+        body: (block
+          tail: (field_expression
+            value: (identifier)
+            field: (identifier)))))))

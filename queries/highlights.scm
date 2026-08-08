@@ -51,8 +51,9 @@
 (import_declaration alias: (identifier) @module)
 (import_declaration path: (string) @string.special.path)
 
-; The package qualifier in `html::Doc` or `text::Found::One`.
-(named_type package: (identifier) @module)
+; The qualifier in `html::Doc`. Only the lowercase form is a package: an uppercase one is
+; `Self::Item`, a projection through a bound, and the type rule below already colours it.
+(named_type qualifier: (identifier) @module)
 
 ; --- calls -----------------------------------------------------------------------------
 
@@ -90,6 +91,7 @@
   "struct"
   "enum"
   "trait"
+  "type"
   "impl"
   "elements"
   "element"

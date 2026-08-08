@@ -156,7 +156,23 @@ module.exports = grammar({
         field("body", $.trait_body),
       ),
 
-    trait_body: ($) => seq("{", repeat(choice($.method_signature, $.function_item)), "}"),
+    trait_body: ($) =>
+      seq(
+        "{",
+        repeat(choice($.method_signature, $.associated_type, $.function_item)),
+        "}",
+      ),
+
+    // `type Item;` in a trait, `type Item = Int;` in an impl. One rule for both, because the
+    // difference is only whether a value was written: the trait declares the name and the
+    // impl says what it stands for.
+    associated_type: ($) =>
+      seq(
+        "type",
+        field("name", $.type_identifier),
+        optional(seq("=", field("value", $._type))),
+        ";",
+      ),
 
     // `fn show(self) -> Str;` — no body. With one it is a *default*, and parses as an
     // ordinary `function_item`, because that is what it compiles to: a function generic over
@@ -183,7 +199,8 @@ module.exports = grammar({
         field("body", $.impl_body),
       ),
 
-    impl_body: ($) => seq("{", repeat($.function_item), "}"),
+    impl_body: ($) =>
+      seq("{", repeat(choice($.associated_type, $.function_item)), "}"),
 
     // `elements Html { element div: Children & { class: Str } }` — a vocabulary. It becomes a
     // trait and a struct per element; nothing downstream knows it was written this way.
@@ -238,11 +255,17 @@ module.exports = grammar({
 
     _type: ($) => choice($.named_type, $.function_type),
 
-    // `Int`, `Opt<Int>`, `html::Doc`. Primitives are ordinary names, resolved against a
-    // prelude, so there is no separate rule for them.
+    // `Int`, `Opt<Int>`, `html::Doc`, `Self::Item`. Primitives are ordinary names resolved
+    // against a prelude, so there is no separate rule for them.
+    //
+    // The qualifier is lowercase for a package and uppercase for an associated type's
+    // projection — `html::Doc` against `Self::Item` — and identifier case tells them apart
+    // with no lookahead, which is why one rule covers both.
     named_type: ($) =>
       seq(
-        optional(seq(field("package", $.identifier), "::")),
+        optional(
+          seq(field("qualifier", choice($.identifier, $.type_identifier)), "::"),
+        ),
         field("name", $.type_identifier),
         optional(field("type_arguments", $.type_arguments)),
       ),

@@ -125,7 +125,7 @@ fn f<M: html::Doc>(m: M) -> M {
         name: (type_identifier)
         bounds: (bound_list
           (named_type
-            package: (identifier)
+            qualifier: (identifier)
             name: (type_identifier)))))
     parameters: (parameter_list
       (parameter
