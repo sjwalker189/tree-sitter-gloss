@@ -126,7 +126,11 @@
   "return"
 ] @keyword.control
 
-"for" @keyword
+; `for` is two keywords wearing one spelling: the loop, and the `impl Show for Int` that has
+; nothing to do with control flow. The node says which, so neither has to guess.
+(for_expression "for" @keyword.control)
+(for_expression "in" @keyword.control)
+(impl_item "for" @keyword)
 
 ; --- operators and punctuation ----------------------------------------------------------
 

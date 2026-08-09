@@ -311,7 +311,13 @@ module.exports = grammar({
       choice(seq($._expression, ";"), prec(1, $._block_like_expression)),
 
     _block_like_expression: ($) =>
-      choice($.if_expression, $.match_expression, $.loop_expression, $.block),
+      choice(
+        $.if_expression,
+        $.match_expression,
+        $.loop_expression,
+        $.for_expression,
+        $.block,
+      ),
 
     // --- expressions -------------------------------------------------------------------
 
@@ -338,6 +344,7 @@ module.exports = grammar({
         $.if_expression,
         $.match_expression,
         $.loop_expression,
+        $.for_expression,
         $.break_expression,
         $.continue_expression,
         $.return_expression,
@@ -439,6 +446,19 @@ module.exports = grammar({
     // because nothing else can change. The header *is* the block's parameter list.
     loop_expression: ($) =>
       seq("loop", optional(field("carried", $.loop_header)), field("body", $.block)),
+
+    // `for (total = 0) x in xs.iter() { .. }`, and `for x in xs.iter() { .. }`. The header is
+    // the same one `loop` takes — the two forms are one idea, and a `for` carrying nothing is
+    // the one written for what its body does.
+    for_expression: ($) =>
+      seq(
+        "for",
+        optional(field("carried", $.loop_header)),
+        field("element", $.identifier),
+        "in",
+        field("iterator", $._expression),
+        field("body", $.block),
+      ),
 
     loop_header: ($) => seq("(", commaSep($.loop_binding), ")"),
 

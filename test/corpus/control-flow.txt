@@ -423,3 +423,82 @@ fn f() -> Int {
             left: (identifier)
             right: (integer_literal))))
       tail: (identifier))))
+
+================================================================================
+for with a carried value
+================================================================================
+
+fn f(xs: Array<Int>) -> Int {
+    for (total = 0) x in xs.iter() {
+        total + x
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)
+          type_arguments: (type_arguments
+            (named_type
+              name: (type_identifier))))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (for_expression
+          carried: (loop_header
+            (loop_binding
+              name: (identifier)
+              value: (integer_literal)))
+          element: (identifier)
+          iterator: (call_expression
+            function: (field_expression
+              value: (identifier)
+              field: (identifier))
+            arguments: (argument_list))
+          body: (block
+            tail: (binary_expression
+              left: (identifier)
+              right: (identifier))))))))
+
+================================================================================
+for with no carried value, as a statement
+================================================================================
+
+fn f(xs: Array<Int>) -> Int {
+    for x in xs.iter() {}
+    0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)
+          type_arguments: (type_arguments
+            (named_type
+              name: (type_identifier))))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (for_expression
+          element: (identifier)
+          iterator: (call_expression
+            function: (field_expression
+              value: (identifier)
+              field: (identifier))
+            arguments: (argument_list))
+          body: (block)))
+      tail: (integer_literal))))
