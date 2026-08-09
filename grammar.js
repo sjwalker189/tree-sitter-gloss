@@ -281,12 +281,19 @@ module.exports = grammar({
     // The qualifier is lowercase for a package and uppercase for an associated type's
     // projection — `html::Doc` against `Self::Item` — and identifier case tells them apart
     // with no lookahead, which is why one rule covers both.
+    //
+    // **The name may be lowercase**, which is the one place case is not decisive. The sized
+    // integers are written `i8` and `u32`, and they are ordinary names rather than keywords —
+    // `let u8 = 5;` binds a variable — so the only thing marking one as a type is standing in
+    // type position. The compiler's own parser accepts either case here and leaves the
+    // question to name resolution; matching that is what keeps a merely *unresolvable* type
+    // from also being a parse error, which would cost the whole file its highlighting.
     named_type: ($) =>
       seq(
         optional(
           seq(field("qualifier", choice($.identifier, $.type_identifier)), "::"),
         ),
-        field("name", $.type_identifier),
+        field("name", choice($.type_identifier, $.identifier)),
         optional(field("type_arguments", $.type_arguments)),
       ),
 

@@ -24,6 +24,13 @@
 ; thing to the lexer, so they are the same thing here.
 (type_identifier) @type
 
+; The exception to the case rule, and the only one: the sized integers are written `i8` and
+; `u32`. They are ordinary names rather than keywords — `let u8 = 5;` binds a variable — so
+; nothing lexical marks them, and what makes this one a type is that it stands in type
+; position. No *user* type can appear here in lowercase, because `struct`, `enum` and `trait`
+; all take an uppercase name, so anything this matches is one of the eight builtins.
+(named_type name: (identifier) @type.builtin)
+
 ; A constructor in a pattern or an expression is a value, and reads better as one.
 (path_pattern (type_identifier) @constructor .)
 (tuple_struct_pattern type: (path_pattern (type_identifier) @constructor .))

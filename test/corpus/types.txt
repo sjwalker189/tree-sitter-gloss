@@ -291,3 +291,58 @@ fn total<I: Iterator<Item = Int>>(it: I) -> Int {
       name: (type_identifier))
     body: (block
       tail: (integer_literal))))
+
+================================================================================
+a sized integer, which is a type written in lowercase
+================================================================================
+
+fn narrow(n: u8) -> i32 {
+    let x: u64 = 1;
+    0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (identifier))))
+    return_type: (named_type
+      name: (identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        type: (named_type
+          name: (identifier))
+        value: (integer_literal))
+      tail: (integer_literal))))
+
+================================================================================
+an inherent impl on a sized integer
+================================================================================
+
+impl u8 {
+    fn to_int(self) -> Int {
+        0
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (impl_item
+    trait: (named_type
+      name: (identifier))
+    body: (impl_body
+      (function_item
+        name: (identifier)
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          name: (type_identifier))
+        body: (block
+          tail: (integer_literal))))))
