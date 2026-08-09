@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+#
+# Re-indent every Gloss file in the compiler repo with `gg=G` and fail if any of them changes.
+#
+# `gloss fmt` normalizes indentation and is asserted round-trip-stable in the compiler's own
+# test suite, so a formatted file *is* the correct answer -- which makes this an exact oracle
+# rather than a matter of taste. `queries/indents.scm` is right exactly when re-indenting is a
+# no-op over all of them.
+#
+# The same shape as script/check-against-compiler, and for the same reason: a query tested only
+# against examples written to suit it will agree with itself forever. These files are written
+# by the formatter and executed by the compiler's test suite, so neither end can drift quietly.
+#
+# This needs a real Neovim with the parser installed, because `indentexpr` is nvim-treesitter's
+# rather than tree-sitter's -- there is no `tree-sitter indent` to call. It is therefore *not*
+# part of `tree-sitter test`, and CI runs it as its own step.
+#
+# Usage:  script/check-indents [path-to-gloss-lang]
+
+set -uo pipefail
+
+repo="${1:-../gloss-lang}"
+
+if [ ! -d "$repo/examples" ]; then
+  echo "no compiler repo at '$repo'" >&2
+  echo "usage: $0 [path-to-gloss-lang]" >&2
+  exit 2
+fi
+
+if ! command -v nvim >/dev/null 2>&1; then
+  echo "nvim not found -- this check needs nvim-treesitter's indentexpr" >&2
+  exit 2
+fi
+
+driver="$(mktemp -t check-indents.XXXXXX).lua"
+trap 'rm -f "$driver"' EXIT
+
+cat > "$driver" <<'LUA'
+-- Read each file, re-indent it, and compare. Nothing is written back: the buffer is
+-- reloaded with `edit!` between files, so a failure cannot leave the repo modified.
+local files = vim.fn.argv()
+local bad = {}
+
+for _, f in ipairs(files) do
+  vim.cmd('edit! ' .. vim.fn.fnameescape(f))
+  local before = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  vim.cmd('silent! normal! gg=G')
+  local after = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+  local diffs = {}
+  for i = 1, math.max(#before, #after) do
+    if before[i] ~= after[i] then
+      diffs[#diffs + 1] = string.format('      line %d\n        formatted: %s\n        indented:  %s',
+        i, vim.inspect(before[i]), vim.inspect(after[i]))
+      if #diffs >= 3 then
+        diffs[#diffs + 1] = '      ...'
+        break
+      end
+    end
+  end
+
+  if #diffs > 0 then
+    bad[#bad + 1] = '  ' .. f .. '\n' .. table.concat(diffs, '\n')
+  end
+  vim.cmd('edit!')
+end
+
+print(string.format('re-indented %d files from the compiler repo', #files))
+print(string.format('  unchanged: %d', #files - #bad))
+print(string.format('  changed:   %d', #bad))
+
+if #bad > 0 then
+  print('')
+  print('these do not survive `gg=G`:')
+  for _, b in ipairs(bad) do print(b) end
+  print('')
+  print('The formatter is the authority. Either queries/indents.scm is wrong, or the')
+  print('file was not formatted -- run `gloss fmt` on it and see which.')
+  vim.cmd('cquit 1')
+end
+
+vim.cmd('qa!')
+LUA
+
+# `while read` rather than `mapfile`, which is bash 4 and macOS ships 3.2 -- the same reason
+# script/check-against-compiler reads its list this way.
+files=()
+while IFS= read -r f; do
+  files+=("$f")
+done < <(find "$repo/examples" "$repo/crates/gloss-base/core" -name '*.gloss' | sort)
+
+if [ "${#files[@]:-0}" -eq 0 ]; then
+  echo "no .gloss files found under '$repo'" >&2
+  exit 2
+fi
+
+# Prefer the user's own config: it checks the indentation they actually get, parser
+# registration and all, rather than a setup nobody has. $GLOSS_TS_RUNTIME overrides it for CI,
+# where there is no user config -- it names a directory holding nvim-treesitter, and the
+# minimal config below registers this grammar against it and nothing else.
+config="${XDG_CONFIG_HOME:-$HOME/.config}/nvim/init.lua"
+
+if [ -n "${GLOSS_TS_RUNTIME:-}" ] || [ ! -f "$config" ]; then
+  runtime="${GLOSS_TS_RUNTIME:-}"
+  if [ -z "$runtime" ] || [ ! -d "$runtime" ]; then
+    echo "no nvim config at '$config', and \$GLOSS_TS_RUNTIME names no nvim-treesitter" >&2
+    echo "  set GLOSS_TS_RUNTIME to a checkout of nvim-treesitter to run this headless" >&2
+    exit 2
+  fi
+
+  config="$(mktemp -t check-indents-config.XXXXXX).lua"
+  trap 'rm -f "$driver" "$config"' EXIT
+
+  # `here` is this repo, resolved from the script rather than from $PWD, so the check can be
+  # run from anywhere.
+  here="$(cd "$(dirname "$0")/.." && pwd)"
+
+  cat > "$config" <<CONFIG
+vim.opt.runtimepath:prepend("$runtime")
+vim.opt.runtimepath:prepend("$here")
+-- Registered from the TSUpdate hook rather than assigned once, because install() calls
+-- reload_parsers() and rebuilds the table from scratch -- a plain assignment is discarded
+-- before the install reads it, and the run reports "skipping unsupported language: gloss".
+--
+-- No backticks anywhere in this block: the heredoc is unquoted so that $runtime and $here
+-- interpolate, which means a backtick would be command substitution.
+vim.api.nvim_create_autocmd("User", {
+  pattern = "TSUpdate",
+  callback = function()
+    require("nvim-treesitter.parsers").gloss = {
+      install_info = { path = "$here", queries = "queries", generate = true },
+      filetype = "gloss",
+    }
+  end,
+})
+require("nvim-treesitter").install({ "gloss" }):wait(300000)
+if not pcall(vim.treesitter.language.add, "gloss") then
+  io.stderr:write("gloss parser did not install\n")
+  vim.cmd("cquit 2")
+end
+vim.filetype.add({ extension = { gloss = "gloss" } })
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "gloss",
+  callback = function()
+    pcall(vim.treesitter.start)
+    vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    vim.bo.shiftwidth = 4
+    vim.bo.expandtab = true
+  end,
+})
+CONFIG
+fi
+
+nvim --headless -u "$config" "${files[@]}" -c "luafile $driver"

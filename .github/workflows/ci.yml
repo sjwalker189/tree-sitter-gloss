@@ -29,3 +29,23 @@ jobs:
           else
             echo "compiler repo unavailable; skipping"
           fi
+
+      # Indentation is nvim-treesitter's `indentexpr` rather than anything tree-sitter runs,
+      # so it needs a real editor and cannot go in `tree-sitter test`. The oracle is the
+      # compiler's formatter: `gloss fmt` output re-indented with `gg=G` must be unchanged.
+      - uses: rhysd/action-setup-vim@v1
+        if: hashFiles('gloss-lang/examples/**') != ''
+        with:
+          neovim: true
+          version: stable
+      - uses: actions/checkout@v4
+        if: hashFiles('gloss-lang/examples/**') != ''
+        with:
+          repository: nvim-treesitter/nvim-treesitter
+          ref: main
+          path: nvim-treesitter
+      - name: check indentation against the formatter
+        if: hashFiles('gloss-lang/examples/**') != ''
+        env:
+          GLOSS_TS_RUNTIME: ${{ github.workspace }}/nvim-treesitter
+        run: script/check-indents gloss-lang
