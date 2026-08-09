@@ -134,6 +134,35 @@
         {
           "type": "SYMBOL",
           "name": "elements_item"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "test_item"
+        }
+      ]
+    },
+    "test_item": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "test"
+        },
+        {
+          "type": "FIELD",
+          "name": "label",
+          "content": {
+            "type": "SYMBOL",
+            "name": "string"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "block"
+          }
         }
       ]
     },

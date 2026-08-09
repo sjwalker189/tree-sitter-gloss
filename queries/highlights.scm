@@ -96,6 +96,7 @@
   "enum"
   "trait"
   "type"
+  "test"
   "impl"
   "elements"
   "element"

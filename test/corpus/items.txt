@@ -651,3 +651,23 @@ impl Container for Bag {
           tail: (field_expression
             value: (identifier)
             field: (identifier)))))))
+
+================================================================================
+a test declaration
+================================================================================
+
+test "adds two numbers" {
+    1 + 1 == 2
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (test_item
+    label: (string)
+    body: (block
+      tail: (binary_expression
+        left: (binary_expression
+          left: (integer_literal)
+          right: (integer_literal))
+        right: (integer_literal)))))

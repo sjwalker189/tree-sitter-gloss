@@ -89,7 +89,12 @@ module.exports = grammar({
         $.trait_item,
         $.impl_item,
         $.elements_item,
+        $.test_item,
       ),
+
+    // `test "adds two numbers" { 1 + 1 == 2 }` — the label is prose, so it is a string rather
+    // than an identifier: it is read in a report, not called from anywhere.
+    test_item: ($) => seq("test", field("label", $.string), field("body", $.block)),
 
     // `view` marks a function as capability-free apart from its medium.
     function_item: ($) =>
