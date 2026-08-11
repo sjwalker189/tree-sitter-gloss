@@ -121,7 +121,9 @@
 [
   "pub"
   "view"
+  "pure"
   "linear"
+  "mut"
 ] @keyword.modifier
 
 [
@@ -129,6 +131,7 @@
   "else"
   "match"
   "loop"
+  "while"
   "break"
   "continue"
   "return"

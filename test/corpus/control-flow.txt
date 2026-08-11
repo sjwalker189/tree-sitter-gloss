@@ -502,3 +502,81 @@ fn f(xs: Array<Int>) -> Int {
             arguments: (argument_list))
           body: (block)))
       tail: (integer_literal))))
+
+================================================================================
+let mut, assignment, and while
+================================================================================
+
+fn f(n: Int) -> Int {
+    let mut i = 0;
+    while i < n {
+        i = i + 1;
+    }
+    i
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (integer_literal))
+      (expression_statement
+        (while_expression
+          condition: (binary_expression
+            left: (identifier)
+            right: (identifier))
+          body: (block
+            (assignment_statement
+              target: (identifier)
+              value: (binary_expression
+                left: (identifier)
+                right: (integer_literal))))))
+      tail: (identifier))))
+
+================================================================================
+a field assignment, which rebuilds
+================================================================================
+
+fn f(p: Point) -> Int {
+    let mut q = p;
+    q.inner.depth = 1;
+    q.x
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (identifier))
+      (assignment_statement
+        target: (field_expression
+          value: (field_expression
+            value: (identifier)
+            field: (identifier))
+          field: (identifier))
+        value: (integer_literal))
+      tail: (field_expression
+        value: (identifier)
+        field: (identifier)))))

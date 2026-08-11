@@ -96,20 +96,42 @@ module.exports = grammar({
     // than an identifier: it is read in a report, not called from anywhere.
     test_item: ($) => seq("test", field("label", $.string), field("body", $.block)),
 
-    // `view` marks a function as capability-free apart from its medium.
+    // The run of modifiers before a declaration.
+    //
+    // One rule for every item rather than a list per item, and deliberately permissive: which
+    // modifiers a given declaration *accepts* is the compiler's business, and it reports a
+    // wrong one as a diagnostic rather than as a parse error. `linear fn` therefore parses
+    // here and is rejected there, which is the right division — a parse error would replace
+    // "`linear` may not precede a function" with nothing.
+    //
+    // It is also what keeps this LR(1): a repeat per item makes `pub` ambiguous between them
+    // until the head keyword arrives.
+    _modifier: (_) => choice("pub", "pure", "view", "linear"),
+
+    _modifiers: ($) => repeat1($._modifier),
+
+    // `view` marks a function as emitting elements; `pure` marks it as reaching no ambient
+    // authority. The compiler scans the run of modifiers and dispatches on what it ends at, so
+    // any order of any subset parses and a repeat is a *diagnostic* rather than a parse error —
+    // this mirrors that, rather than enumerating the orders.
     function_item: ($) =>
       seq(
-        optional("pub"),
-        optional("view"),
+        optional($._modifiers),
         "fn",
-        field("name", $.identifier),
+        // Either case. Identifier case is semantic here, so a name is ordinarily lowercase —
+        // but a `view` may be capitalised, because a component is a thing rather than an action
+        // and because `<Card/>` will need the capital to tell a component from a tag. The
+        // compiler allows it only after `view`; accepting it here for any `fn` keeps this LR(1)
+        // and leaves the restriction where the message is.
+        field("name", choice($.identifier, $.type_identifier)),
         optional(field("type_parameters", $.type_parameters)),
         field("parameters", $.parameter_list),
         optional(seq("->", field("return_type", $._type))),
         field("body", $.block),
       ),
 
-    parameter_list: ($) => seq("(", commaSep(choice($.self_parameter, $.parameter)), ")"),
+    parameter_list: ($) =>
+      seq("(", commaSep(choice($.self_parameter, $.parameter)), optional(","), ")"),
 
     // A bare `self`, which needs no annotation because the impl block says what it is.
     self_parameter: (_) => "self",
@@ -123,8 +145,7 @@ module.exports = grammar({
 
     struct_item: ($) =>
       seq(
-        optional("pub"),
-        optional("linear"),
+        optional($._modifiers),
         "struct",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
@@ -137,8 +158,7 @@ module.exports = grammar({
 
     enum_item: ($) =>
       seq(
-        optional("pub"),
-        optional("linear"),
+        optional($._modifiers),
         "enum",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
@@ -150,11 +170,11 @@ module.exports = grammar({
     variant: ($) =>
       seq(field("name", $.type_identifier), optional(field("payload", $.variant_payload))),
 
-    variant_payload: ($) => seq("(", commaSep1($._type), ")"),
+    variant_payload: ($) => seq("(", commaSep1($._type), optional(","), ")"),
 
     trait_item: ($) =>
       seq(
-        optional("pub"),
+        optional($._modifiers),
         "trait",
         field("name", $.type_identifier),
         optional(seq(":", field("supertraits", $.bound_list))),
@@ -184,6 +204,7 @@ module.exports = grammar({
     // `Self`, bounded by this trait.
     method_signature: ($) =>
       seq(
+        optional($._modifiers),
         "fn",
         field("name", $.identifier),
         field("parameters", $.parameter_list),
@@ -196,7 +217,7 @@ module.exports = grammar({
     // than guessing, which is what lets a trait be package-qualified and a self type generic.
     impl_item: ($) =>
       seq(
-        optional("pub"),
+        optional($._modifiers),
         "impl",
         optional(field("type_parameters", $.type_parameters)),
         field("trait", $._type),
@@ -209,15 +230,31 @@ module.exports = grammar({
 
     // `elements Html { element div: Children & { class: Str } }` — a vocabulary. It becomes a
     // trait and a struct per element; nothing downstream knows it was written this way.
+    // A `pure` vocabulary generates `pure` methods, so no medium implementing it may reach
+    // the world — which is what makes `pure view fn` writable.
+    //
+    // A vocabulary may also write its methods' bodies inline, against a supertrait of its own
+    // design. Those are `function_item`s, because that is what they compile to. A body ends
+    // itself, so the comma after one is optional — hence the trailing-comma-per-member shape
+    // rather than `commaSep`.
     elements_item: ($) =>
       seq(
-        optional("pub"),
+        optional($._modifiers),
         "elements",
         field("name", $.type_identifier),
         optional(seq(":", field("supertraits", $.bound_list))),
         "{",
-        commaSep(choice($.text_declaration, $.element_declaration)),
-        optional(","),
+        repeat(
+          seq(
+            choice(
+              $.text_declaration,
+              $.element_declaration,
+              $.function_item,
+              $.method_signature,
+            ),
+            optional(","),
+          ),
+        ),
         "}",
       ),
 
@@ -247,7 +284,7 @@ module.exports = grammar({
 
     // --- generics ----------------------------------------------------------------------
 
-    type_parameters: ($) => seq("<", commaSep1($.type_parameter), ">"),
+    type_parameters: ($) => seq("<", commaSep1($.type_parameter), optional(","), ">"),
 
     type_parameter: ($) =>
       seq(field("name", $.type_identifier), optional(seq(":", field("bounds", $.bound_list)))),
@@ -269,7 +306,7 @@ module.exports = grammar({
     assoc_binding: ($) =>
       seq(field("name", $.type_identifier), "=", field("value", $._type)),
 
-    type_arguments: ($) => seq("<", commaSep1($._type), ">"),
+    type_arguments: ($) => seq("<", commaSep1($._type), optional(","), ">"),
 
     // --- types -------------------------------------------------------------------------
 
@@ -306,11 +343,22 @@ module.exports = grammar({
 
     block: ($) => seq("{", repeat($._statement), optional(field("tail", $._expression)), "}"),
 
-    _statement: ($) => choice($.let_statement, $.expression_statement),
+    _statement: ($) =>
+      choice($.let_statement, $.assignment_statement, $.expression_statement),
+
+    // `x = e;` and `p.f = e;`. The compiler decides this *after* parsing the left side, by a
+    // checkpoint, and keeps `=` out of the operator table on purpose — an assignment is a
+    // statement, so `a = b = c` and `f(x = 1)` do not parse. The target is a place there and an
+    // ordinary expression here, because whether it is one is a question for the checker.
+    assignment_statement: ($) =>
+      seq(field("target", $._expression), "=", field("value", $._expression), ";"),
 
     let_statement: ($) =>
       seq(
         "let",
+        // On the binding rather than on the type: what it describes is whether this *name* may
+        // be made to mean something else later.
+        optional("mut"),
         field("name", choice($.identifier, "_")),
         optional(seq(":", field("type", $._type))),
         "=",
@@ -327,6 +375,7 @@ module.exports = grammar({
         $.if_expression,
         $.match_expression,
         $.loop_expression,
+        $.while_expression,
         $.for_expression,
         $.block,
       ),
@@ -408,7 +457,7 @@ module.exports = grammar({
     call_expression: ($) =>
       prec(PREC.postfix, seq(field("function", $._expression), field("arguments", $.argument_list))),
 
-    argument_list: ($) => seq("(", commaSep($._expression), ")"),
+    argument_list: ($) => seq("(", commaSep($._expression), optional(","), ")"),
 
     field_expression: ($) =>
       prec(PREC.postfix, seq(field("value", $._expression), ".", field("field", $.identifier))),
@@ -459,6 +508,12 @@ module.exports = grammar({
     loop_expression: ($) =>
       seq("loop", optional(field("carried", $.loop_header)), field("body", $.block)),
 
+    // `while cond { body }`. No header, unlike `loop`: what varies is whatever mutable local the
+    // body assigns, and the compiler infers that set. `Unit`, so `loop` stays the form that
+    // produces a value.
+    while_expression: ($) =>
+      seq("while", field("condition", $._expression), field("body", $.block)),
+
     // `for (total = 0) x in xs.iter() { .. }`, and `for x in xs.iter() { .. }`. The header is
     // the same one `loop` takes — the two forms are one idea, and a `for` carrying nothing is
     // the one written for what its body does.
@@ -505,12 +560,17 @@ module.exports = grammar({
         $.element_self_closing,
       ),
 
-    element_open: ($) => seq("<", field("name", $.identifier), repeat($.element_attribute), ">"),
+    // A lowercase name is a tag the vocabulary declares; an uppercase one is a **component** — a
+    // `view` called here, whose attributes are its parameters. Identifier case is semantic in this
+    // language, and this is the second place it decides a meaning rather than a colour.
+    _tag_name: ($) => choice($.identifier, $.type_identifier),
+
+    element_open: ($) => seq("<", field("name", $._tag_name), repeat($.element_attribute), ">"),
 
     element_self_closing: ($) =>
-      seq("<", field("name", $.identifier), repeat($.element_attribute), "/>"),
+      seq("<", field("name", $._tag_name), repeat($.element_attribute), "/>"),
 
-    element_close: ($) => seq("</", field("name", $.identifier), ">"),
+    element_close: ($) => seq("</", field("name", $._tag_name), ">"),
 
     // A bare attribute name is not shorthand for anything: every attribute is typed, so
     // there would be nothing for it to mean.

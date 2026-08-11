@@ -671,3 +671,156 @@ test "adds two numbers" {
           left: (integer_literal)
           right: (integer_literal))
         right: (integer_literal)))))
+
+================================================================================
+pure, and modifiers in any order
+================================================================================
+
+pure fn sum(xs: Array<Int>) -> Int {
+    0
+}
+
+pub pure view fn card<M: Html>(m: M) -> M {
+    m
+}
+
+view pure fn other<M: Html>(m: M) -> M {
+    m
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)
+          type_arguments: (type_arguments
+            (named_type
+              name: (type_identifier))))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (integer_literal)))
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (bound
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (identifier)))
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (bound
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (identifier))))
+
+================================================================================
+a pure trait method obliges every impl of it
+================================================================================
+
+trait Render {
+    pure fn render(self) -> Str;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (trait_item
+    name: (type_identifier)
+    body: (trait_body
+      (method_signature
+        name: (identifier)
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          name: (type_identifier))))))
+
+================================================================================
+a trailing comma, which every list here tolerates
+================================================================================
+
+fn f(a: Int,) -> Int {
+    g(a, a,)
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (call_expression
+        function: (identifier)
+        arguments: (argument_list
+          (identifier)
+          (identifier))))))
+
+================================================================================
+a view names its vocabulary, and may be capitalised
+================================================================================
+
+view fn Card(title: Str, children: Html) -> Html {
+    <div class="card">{title}</div>
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (type_identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)))
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier)
+          (element_attribute
+            name: (identifier)
+            value: (string)))
+        children: (element_children
+          (element_interpolation
+            (identifier)))
+        close: (element_close
+          name: (identifier))))))
