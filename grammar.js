@@ -62,12 +62,29 @@ module.exports = grammar({
     // binary expression whose left operand is a block. The compiler settles this with a
     // `no_braced_value` flag; here the two readings are declared and lookahead decides.
     [$._block_like_expression, $._expression],
+    // `use io::{println}` — at the `::` the parser cannot yet know whether a name, a
+    // `*` or a `{` follows, so it cannot decide whether the path is finished. One token of
+    // lookahead past the `::` settles it, which is what declaring the conflict buys.
+    [$.use_path],
   ],
 
   rules: {
     source_file: ($) =>
-      seq(optional($.package_declaration), repeat($.import_declaration), repeat($._item)),
+      // A `use` may sit anywhere among the items, which is what the compiler's parser accepts
+      // and is worth keeping: `use Colour::*;` written directly under the enum it globs reads
+      // better than the same line hoisted to the top away from what it refers to. A package
+      // is one scope regardless of order, so nothing depends on where it went.
+      seq(
+        optional($.package_declaration),
+        repeat(choice($.use_declaration, $._item)),
+      ),
 
+    // One token for both kinds. `/// what it does` is a *doc* comment — the compiler's item
+    // lowering attaches it to the declaration below — and this grammar deliberately does not
+    // split it out: a separate token would have to beat `//.*` in the lexer, and lexical
+    // precedence in tree-sitter overrides longest match, which makes `//// a rule` a doc
+    // comment followed by wreckage. The distinction is one character of prefix and belongs in
+    // a query predicate, where it costs nothing to be exact.
     comment: (_) => token(seq("//", /.*/)),
 
     // --- items -------------------------------------------------------------------------
@@ -76,10 +93,48 @@ module.exports = grammar({
     // the wrong place is an error rather than a silent change of meaning.
     package_declaration: ($) => seq("package", field("name", $.identifier), ";"),
 
-    // `import "../html";` or `import s "core/strings";` — a relative path to a directory,
-    // because a package *is* a directory.
-    import_declaration: ($) =>
-      seq("import", optional(field("alias", $.identifier)), field("path", $.string), ";"),
+    // `use io;`, `use io::{println};`, `use Option::*;`, `use super::text as t;`
+    //
+    // A package is a *directory*, and the path names one: `self` is the file's own package and
+    // `super` its parent, repeatable, and every other root is a package that ships with the
+    // compiler. There is no manifest and so no project root to name, which is why that is the
+    // whole list of roots — and why a leading name outside it is an error rather than an
+    // implicit `self`.
+    //
+    // **Where the package prefix ends is decided lexically** — at the first uppercase name, at
+    // a `{`, or at a `*` — and never by consulting what directories exist. That is why an item
+    // with a lowercase name needs the braces of `use io::{println};`: both a directory and a
+    // function are lowercase names, and the braces are the only thing telling them apart.
+    // Nothing in this grammar has to know which is which, and neither does the reader.
+    use_declaration: ($) => seq("use", field("tree", $.use_tree), ";"),
+
+    use_tree: ($) =>
+      seq(
+        field("path", $.use_path),
+        optional(choice($.use_glob, field("group", $.use_group))),
+        optional(field("alias", $.use_alias)),
+      ),
+
+    use_path: ($) =>
+      seq(
+        choice($.identifier, $.type_identifier, "self", "super"),
+        repeat(seq("::", choice($.identifier, $.type_identifier, "self", "super"))),
+      ),
+
+    use_glob: (_) => seq("::", "*"),
+
+    // Flat: a member is a name and an optional alias, never another path.
+    use_group: ($) =>
+      seq("::", "{", commaSep($.use_tree_member), optional(","), "}"),
+
+    use_tree_member: ($) =>
+      seq(
+        field("name", choice($.identifier, $.type_identifier)),
+        optional(field("alias", $.use_alias)),
+      ),
+
+    use_alias: ($) =>
+      seq("as", field("name", choice($.identifier, $.type_identifier))),
 
     _item: ($) =>
       choice(
@@ -90,11 +145,33 @@ module.exports = grammar({
         $.impl_item,
         $.elements_item,
         $.test_item,
+        $.const_item,
       ),
 
     // `test "adds two numbers" { 1 + 1 == 2 }` — the label is prose, so it is a string rather
     // than an identifier: it is read in a report, not called from anywhere.
     test_item: ($) => seq("test", field("label", $.string), field("body", $.block)),
+
+    // `const MAX_DEPTH: Int = 10;`
+    //
+    // The name is a `type_identifier` because it is **uppercase**, and that is not a convention
+    // here: identifier case is semantic, so an uppercase segment is where a package path stops.
+    // A constant therefore lexes exactly as a type name does and sits in the same namespace as
+    // a nullary constructor — which is the other uppercase name that denotes a value.
+    //
+    // The annotation is not optional in the compiler either. A constant is a signature, and
+    // signatures are written down rather than inferred.
+    const_item: ($) =>
+      seq(
+        optional($._modifiers),
+        "const",
+        field("name", $.type_identifier),
+        ":",
+        field("type", $._type),
+        "=",
+        field("value", $._expression),
+        ";",
+      ),
 
     // The run of modifiers before a declaration.
     //
@@ -149,7 +226,11 @@ module.exports = grammar({
         "struct",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
-        field("body", $.field_list),
+        // `struct Idle;` — a marker, carrying nothing. The braced form asserts there is
+        // nothing between the braces; the terminator says the same in one character. Nothing
+        // downstream tells them apart: a struct is a one-constructor algebraic type either
+        // way, and the bare literal `Idle` is that constructor applied to no fields.
+        choice(field("body", $.field_list), ";"),
       ),
 
     field_list: ($) => seq("{", commaSep($.field_declaration), optional(","), "}"),
@@ -327,9 +408,10 @@ module.exports = grammar({
     // from also being a parse error, which would cost the whole file its highlighting.
     named_type: ($) =>
       seq(
-        optional(
-          seq(field("qualifier", choice($.identifier, $.type_identifier)), "::"),
-        ),
+        // Repeated, because a package path can be more than one segment deep:
+        // `io::Conn`, `super::text::Slug`. `self` and `super` need no rule of their own
+        // — `identifier` already matches them, and what makes one a root is where it sits.
+        repeat(seq(field("qualifier", $._path_segment), "::")),
         field("name", choice($.type_identifier, $.identifier)),
         optional(field("type_arguments", $.type_arguments)),
       ),
@@ -420,6 +502,10 @@ module.exports = grammar({
         repeat1(seq("::", field("name", $._path_segment))),
       ),
 
+    // `self` and `super` are keywords and are path segments all the same: they are *roots*,
+    // and a root is the first thing a path can be. `io::println(..)` and
+    // `super::text::slug(..)` are writable wherever a name is, so the `use` grammar and the
+    // expression grammar are one grammar — a `use` abbreviates a path rather than enabling it.
     _path_segment: ($) => choice($.type_identifier, $.identifier),
 
     parenthesized_expression: ($) => seq("(", $._expression, ")"),
@@ -466,17 +552,36 @@ module.exports = grammar({
     // `Result::Ok` and `Result::Err` by name, so the compiler holds no table of lang items.
     try_expression: ($) => prec(PREC.postfix, seq($._expression, "?")),
 
+    // `Point { x: 1 }`, and `Conn<Active> { ..c }`.
+    //
+    // The type arguments are what a generic struct whose parameter appears in no field needs —
+    // the typestate encoding — since neither a field value nor the expected type can say what
+    // such a parameter is. They are also the only place in an expression where a `<` opens
+    // something rather than comparing: `A < B > c` is a chain of comparisons and
+    // `A < B > { .. }` is a literal, and the token after the `>` is the whole of the
+    // difference. The compiler decides it with a lookahead scan; here the conflict declared
+    // above lets lookahead reach the same answer.
     struct_literal: ($) =>
       seq(
         field("type", choice($.type_identifier, $.path_expression)),
+        optional(field("type_arguments", $.type_arguments)),
         field("body", $.field_initializer_list),
       ),
 
     field_initializer_list: ($) =>
-      seq("{", commaSep($.field_initializer), optional(","), "}"),
+      seq(
+        "{",
+        commaSep(choice($.field_initializer, $.struct_base)),
+        optional(","),
+        "}",
+      ),
 
     field_initializer: ($) =>
       seq(field("name", $.identifier), ":", field("value", $._expression)),
+
+    // `..base` — every field the literal does not write comes from there. Accepted anywhere in
+    // the list, because a written field wins regardless: the base supplies only what is absent.
+    struct_base: ($) => seq("..", field("value", $._expression)),
 
     // `fn(x: Int) -> Int { x + 1 }`. Parameters are annotated, as in a declaration.
     lambda_expression: ($) =>

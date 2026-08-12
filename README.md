@@ -30,6 +30,13 @@ primitive keywords: `Int` and `Str` are ordinary names resolved against a prelud
 `highlights.scm` colours every uppercase name as a type without needing a keyword list, and
 never has to guess from context what a name is.
 
+The rule reaches further than it looks. A `const` takes an *uppercase* name — `const MAX_DEPTH:
+Int = 10;` — because an uppercase segment is where a package path stops, so `io::MAX_LINE` needs
+no braces where `io::{println}` does. A constant therefore lexes exactly as a type does, and this
+grammar cannot tell a use of one from a type at all: `MAX` is coloured as a type and the language
+server corrects it, the same arrangement a program declaring its own `Str` gets. Only the
+*declaration* is distinguishable, and `highlights.scm` captures that one as a constant.
+
 **`<` in expression position is always an element.** A `<` cannot begin a binary operator, so
 where a value is expected it is unambiguously `<div>` and where an operand is expected it is
 unambiguously less-than. The compiler's parser needs no lookahead for this and neither does

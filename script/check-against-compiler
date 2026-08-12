@@ -24,16 +24,33 @@ if [ ! -d "$repo/examples" ]; then
   exit 2
 fi
 
-# The one file that is *meant* not to parse. `errors/11-syntax.gloss` documents what a parse
-# error does to everything after it — `let x = 1` with no semicolon — so a clean parse of it
-# would mean this grammar had grown an automatic-semicolon rule the language deliberately does
-# not have. It is checked for the opposite outcome rather than skipped.
-expected_to_fail="errors/11-syntax.gloss"
+# The files that are *meant* not to parse, checked for the opposite outcome rather than skipped:
+# a clean parse of one of these would mean this grammar had grown a rule the language does not
+# have, which is the drift this whole script exists to catch.
+#
+#   errors/11-syntax.gloss     what a parse error does to everything after it — `let x = 1` with
+#                              no semicolon, so accepting it means an automatic-semicolon rule.
+#   errors/32-annotations.gloss  a `let` annotation whose `:` was typed as `=`. The compiler
+#                              recovers it into the annotation it was meant to be; a grammar has
+#                              nowhere to put that, and should say the file is malformed.
+expected_to_fail=(
+  "errors/11-syntax.gloss"
+  "errors/32-annotations.gloss"
+)
+
+# Whether $1 is one of them.
+is_expected_to_fail() {
+  local candidate
+  for candidate in "${expected_to_fail[@]}"; do
+    [ "$1" = "$candidate" ] && return 0
+  done
+  return 1
+}
 
 pass=0
 fail=0
 failures=()
-unexpected_pass=""
+unexpected_passes=()
 
 while IFS= read -r file; do
   relative="${file#"$repo"/examples/}"
@@ -48,14 +65,14 @@ while IFS= read -r file; do
   # `MISSING` rather than `ERROR`, so looking only for the latter passes a file with a hole in
   # it. That is how a missing semicolon went unnoticed the first time this was written.
   if printf '%s' "$output" | grep -qE '\(ERROR|\(MISSING'; then
-    if [ "$relative" = "$expected_to_fail" ]; then
+    if is_expected_to_fail "$relative"; then
       pass=$((pass + 1))
     else
       fail=$((fail + 1))
       failures+=("$file")
     fi
-  elif [ "$relative" = "$expected_to_fail" ]; then
-    unexpected_pass="$file"
+  elif is_expected_to_fail "$relative"; then
+    unexpected_passes+=("$relative")
     fail=$((fail + 1))
   else
     pass=$((pass + 1))
@@ -66,10 +83,13 @@ echo "parsed $((pass + fail)) files from $repo"
 echo "  ok:     $pass"
 echo "  failed: $fail"
 
-if [ -n "$unexpected_pass" ]; then
+if [ ${#unexpected_passes[@]} -gt 0 ]; then
   echo
-  echo "$expected_to_fail parsed cleanly, and it must not:"
-  echo "  it is the language's parse-error example, so accepting it means this grammar"
+  echo "these parsed cleanly, and must not:"
+  for f in "${unexpected_passes[@]}"; do
+    echo "  $f"
+  done
+  echo "  each documents input the compiler rejects, so accepting one means this grammar"
   echo "  has grown a rule the language does not have."
 fi
 

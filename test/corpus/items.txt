@@ -11,20 +11,64 @@ package html;
     name: (identifier)))
 
 ==============================
-import, plain and aliased
+use, in every shape it takes
 ==============================
 
-import "../text";
-import s "core/strings";
+use io;
+use super::text as t;
+use io::{println, print as p};
+use io::*;
+use Option::*;
+use Option::{Some, None};
+use self::helpers;
 
 ---
 
 (source_file
-  (import_declaration
-    path: (string))
-  (import_declaration
-    alias: (identifier)
-    path: (string)))
+  (use_declaration
+    tree: (use_tree
+      path: (use_path
+        (identifier))))
+  (use_declaration
+    tree: (use_tree
+      path: (use_path
+        (identifier))
+      alias: (use_alias
+        name: (identifier))))
+  (use_declaration
+    tree: (use_tree
+      path: (use_path
+        (identifier))
+      group: (use_group
+        (use_tree_member
+          name: (identifier))
+        (use_tree_member
+          name: (identifier)
+          alias: (use_alias
+            name: (identifier))))))
+  (use_declaration
+    tree: (use_tree
+      path: (use_path
+        (identifier))
+      (use_glob)))
+  (use_declaration
+    tree: (use_tree
+      path: (use_path
+        (type_identifier))
+      (use_glob)))
+  (use_declaration
+    tree: (use_tree
+      path: (use_path
+        (type_identifier))
+      group: (use_group
+        (use_tree_member
+          name: (type_identifier))
+        (use_tree_member
+          name: (type_identifier)))))
+  (use_declaration
+    tree: (use_tree
+      path: (use_path
+        (identifier)))))
 
 ==============================
 function
@@ -824,3 +868,97 @@ view fn Card(title: Str, children: Html) -> Html {
             (identifier)))
         close: (element_close
           name: (identifier))))))
+
+==============================
+marker struct
+==============================
+
+struct Idle;
+pub linear struct Token;
+struct Wrapper<T>;
+struct Point { x: Int }
+
+---
+
+(source_file
+  (struct_item
+    name: (type_identifier))
+  (struct_item
+    name: (type_identifier))
+  (struct_item
+    name: (type_identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier))))
+  (struct_item
+    name: (type_identifier)
+    body: (field_list
+      (field_declaration
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))))
+
+==============================
+doc comments are comments
+==============================
+
+/// Adds one.
+fn f(x: Int) -> Int { x }
+
+//// a ruled line, which is not documentation
+fn g() {}
+
+---
+
+(source_file
+  (comment)
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (identifier)))
+  (comment)
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block)))
+
+==============================
+a constant, whose name is uppercase
+==============================
+
+const MAX_DEPTH: Int = 10;
+pub const GREETING: Str = "hi" + "!";
+const ABSENT: Option<Int> = Option::None;
+
+---
+
+(source_file
+  (const_item
+    name: (type_identifier)
+    type: (named_type
+      name: (type_identifier))
+    value: (integer_literal))
+  (const_item
+    name: (type_identifier)
+    type: (named_type
+      name: (type_identifier))
+    value: (binary_expression
+      left: (string)
+      right: (string)))
+  (const_item
+    name: (type_identifier)
+    type: (named_type
+      name: (type_identifier)
+      type_arguments: (type_arguments
+        (named_type
+          name: (type_identifier))))
+    value: (path_expression
+      qualifier: (type_identifier)
+      name: (type_identifier))))

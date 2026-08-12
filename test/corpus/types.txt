@@ -346,3 +346,28 @@ impl u8 {
           name: (type_identifier))
         body: (block
           tail: (integer_literal))))))
+
+==============================
+a type reached through a rooted path
+==============================
+
+fn f(s: super::text::Slug, c: ctx::Limits) {}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          qualifier: (identifier)
+          qualifier: (identifier)
+          name: (type_identifier)))
+      (parameter
+        name: (identifier)
+        type: (named_type
+          qualifier: (identifier)
+          name: (type_identifier))))
+    body: (block)))

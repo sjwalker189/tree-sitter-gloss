@@ -15,6 +15,13 @@
 # rather than tree-sitter's -- there is no `tree-sitter indent` to call. It is therefore *not*
 # part of `tree-sitter test`, and CI runs it as its own step.
 #
+# **It re-installs from this directory, and nvim-treesitter caches that by revision.** After a
+# grammar change the installed parser can be the *previous* one, and then every file using the
+# new form parses to an ERROR -- which flattens the indentation of everything after it and
+# reports queries/indents.scm as broken when it is not. That is exactly what happened when
+# `const` was added: two files "did not survive gg=G" and the queries needed no change at all.
+# The install is forced below to stop this from being a thing anyone has to remember.
+#
 # Usage:  script/check-indents [path-to-gloss-lang]
 
 set -uo pipefail
@@ -82,10 +89,30 @@ end
 vim.cmd('qa!')
 LUA
 
+# The files that are *meant* not to parse, skipped here rather than checked for the opposite
+# outcome the way script/check-against-compiler does it. The difference is that this check has
+# no answer for them: indentation comes from the tree, a file with no tree gets no indentation,
+# and `gg=G` flattening `let n = Option<T> = Option::None;` to column zero says nothing about
+# whether queries/indents.scm is right. The list is the same one, and lives in both scripts
+# because each is meant to be runnable on its own.
+skip=(
+  "errors/11-syntax.gloss"
+  "errors/32-annotations.gloss"
+)
+
+is_skipped() {
+  local candidate
+  for candidate in "${skip[@]}"; do
+    [ "$1" = "$candidate" ] && return 0
+  done
+  return 1
+}
+
 # `while read` rather than `mapfile`, which is bash 4 and macOS ships 3.2 -- the same reason
 # script/check-against-compiler reads its list this way.
 files=()
 while IFS= read -r f; do
+  is_skipped "${f#"$repo"/examples/}" && continue
   files+=("$f")
 done < <(find "$repo/examples" "$repo/crates/gloss-base/core" -name '*.gloss' | sort)
 
@@ -133,7 +160,9 @@ vim.api.nvim_create_autocmd("User", {
     }
   end,
 })
-require("nvim-treesitter").install({ "gloss" }):wait(300000)
+-- `force = true`: see the note at the top. A cached parser from before a grammar change makes
+-- this check report the queries as wrong, which is worse than the seconds a rebuild costs.
+require("nvim-treesitter").install({ "gloss" }, { force = true }):wait(300000)
 if not pcall(vim.treesitter.language.add, "gloss") then
   io.stderr:write("gloss parser did not install\n")
   vim.cmd("cquit 2")

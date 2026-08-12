@@ -356,6 +356,111 @@ fn f() -> Int {
             name: (identifier)
             value: (integer_literal)))))))
 
+========================================
+struct literal with type arguments
+========================================
+
+fn f() -> Int {
+    Conn<Active> { fd: 1 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (struct_literal
+        type: (type_identifier)
+        type_arguments: (type_arguments
+          (named_type
+            name: (type_identifier)))
+        body: (field_initializer_list
+          (field_initializer
+            name: (identifier)
+            value: (integer_literal)))))))
+
+========================================
+struct literal with a base
+========================================
+
+fn f() -> Int {
+    Conn<Active> { fd: 1, ..c }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (struct_literal
+        type: (type_identifier)
+        type_arguments: (type_arguments
+          (named_type
+            name: (type_identifier)))
+        body: (field_initializer_list
+          (field_initializer
+            name: (identifier)
+            value: (integer_literal))
+          (struct_base
+            value: (identifier)))))))
+
+========================================
+a base written first
+========================================
+
+fn f() -> Int {
+    Conn { ..c, fd: 1 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (struct_literal
+        type: (type_identifier)
+        body: (field_initializer_list
+          (struct_base
+            value: (identifier))
+          (field_initializer
+            name: (identifier)
+            value: (integer_literal)))))))
+
+========================================
+angle brackets not followed by a brace are comparisons
+========================================
+
+fn f() -> Bool {
+    A < B > c
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (binary_expression
+        left: (binary_expression
+          left: (type_identifier)
+          right: (type_identifier))
+        right: (identifier)))))
+
 ==============================
 try propagates a Result
 ==============================
@@ -467,3 +572,42 @@ fn f() -> Int {
                 name: (type_identifier))))
           body: (block)))
       tail: (integer_literal))))
+
+==============================
+a path written out from a root
+==============================
+
+fn f() {
+    io::println("x");
+    super::text::slug("a");
+    self::helper();
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block
+      (expression_statement
+        (call_expression
+          function: (path_expression
+            qualifier: (identifier)
+            name: (identifier))
+          arguments: (argument_list
+            (string))))
+      (expression_statement
+        (call_expression
+          function: (path_expression
+            qualifier: (identifier)
+            name: (identifier)
+            name: (identifier))
+          arguments: (argument_list
+            (string))))
+      (expression_statement
+        (call_expression
+          function: (path_expression
+            qualifier: (identifier)
+            name: (identifier))
+          arguments: (argument_list))))))
