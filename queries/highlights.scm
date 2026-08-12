@@ -154,6 +154,13 @@
   "/>"
 ] @tag.delimiter
 
+; --- attributes ------------------------------------------------------------------------
+;
+; `@derive(Eq, Ord)`. The name reads as an attribute rather than as a function, and its arguments
+; are trait names — which the rule above has already coloured as types, correctly: `Eq` *is* one.
+(attribute "@" @attribute)
+(attribute name: (identifier) @attribute)
+
 ; --- keywords --------------------------------------------------------------------------
 
 [

@@ -136,8 +136,13 @@ module.exports = grammar({
     use_alias: ($) =>
       seq("as", field("name", choice($.identifier, $.type_identifier))),
 
+    // An attribute is a *sibling* of the declaration it applies to rather than its parent, which
+    // is the shape the compiler's parser produces and the reason every item rule is unchanged: an
+    // item does not know whether anything preceded it, and the AST layer reads an attribute by
+    // looking backwards from a declaration.
     _item: ($) =>
       choice(
+        $.attribute,
         $.function_item,
         $.struct_item,
         $.enum_item,
@@ -151,6 +156,21 @@ module.exports = grammar({
     // `test "adds two numbers" { 1 + 1 == 2 }` — the label is prose, so it is a string rather
     // than an identifier: it is read in a report, not called from anywhere.
     test_item: ($) => seq("test", field("label", $.string), field("body", $.block)),
+
+    // `@derive(Eq, Ord)`
+    //
+    // `@` rather than `#[..]`, matching the `@inline` and `@specialize` the foundations write —
+    // and it needs no closing bracket, the arguments being parenthesised. The arguments are names
+    // and nothing else: an attribute taking a value would be a second shape, and neither attribute
+    // the language plans takes one.
+    attribute: ($) =>
+      seq(
+        "@",
+        field("name", $.identifier),
+        optional(
+          seq("(", commaSep(choice($.type_identifier, $.identifier)), optional(","), ")"),
+        ),
+      ),
 
     // `const MAX_DEPTH: Int = 10;`
     //

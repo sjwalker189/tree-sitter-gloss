@@ -962,3 +962,37 @@ const ABSENT: Option<Int> = Option::None;
     value: (path_expression
       qualifier: (type_identifier)
       name: (type_identifier))))
+
+==============================
+an attribute before a declaration
+==============================
+
+@derive(Eq, Ord)
+struct P { x: Int }
+
+@inline
+fn f() -> Int { 1 }
+
+---
+
+(source_file
+  (attribute
+    name: (identifier)
+    (type_identifier)
+    (type_identifier))
+  (struct_item
+    name: (type_identifier)
+    body: (field_list
+      (field_declaration
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)))))
+  (attribute
+    name: (identifier))
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (integer_literal))))
