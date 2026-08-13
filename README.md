@@ -5,7 +5,7 @@ A [tree-sitter](https://tree-sitter.github.io) grammar for
 reference-counted language for building web applications.
 
 ```console
-$ tree-sitter test                        # 95 corpus tests
+$ tree-sitter test                        # 122 corpus tests
 $ script/check-against-compiler ../gloss-lang   # every real file in the compiler repo
 ```
 
