@@ -154,6 +154,11 @@
   "/>"
 ] @tag.delimiter
 
+; A hole in a string is code, not string content — so its punctuation reads as punctuation and
+; whatever is inside it is highlighted by every rule in this file. Without this the braces take the
+; string colour and a reader cannot see where the text stops.
+(string_interpolation ["{" "}"] @punctuation.special)
+
 ; --- attributes ------------------------------------------------------------------------
 ;
 ; `@derive(Eq, Ord)`. The name reads as an attribute rather than as a function, and its arguments

@@ -777,9 +777,23 @@ module.exports = grammar({
 
     // A deliberately small escape set. A language that accepts `\u{...}` has to decide what
     // it means for every target, and there is no reason to decide that yet.
-    string: ($) => seq('"', repeat(choice($.escape_sequence, /[^"\\\n]+/)), '"'),
+    //
+    // **A `{` opens a hole**, so it is excluded from the content and a literal brace is `\{`. The
+    // compiler accepts that escape in every string rather than only in one with holes, because the
+    // same text has to mean the same thing either way — and a string with no hole is still just
+    // this rule with no `string_interpolation` in it. A `}` is ordinary content: only `{` opens.
+    string: ($) =>
+      seq(
+        '"',
+        repeat(choice($.escape_sequence, $.string_interpolation, /[^"{\\\n]+/)),
+        '"',
+      ),
 
-    escape_sequence: (_) => token.immediate(/\\[nrt0\\"]/),
+    // `{n}`, holding an ordinary expression — the compiler parses one with the ordinary expression
+    // parser, so there is nothing narrower to say here either.
+    string_interpolation: ($) => seq("{", $._expression, "}"),
+
+    escape_sequence: (_) => token.immediate(/\\[nrt0\\"{}]/),
   },
 });
 

@@ -127,6 +127,25 @@ fi
 # minimal config below registers this grammar against it and nothing else.
 config="${XDG_CONFIG_HOME:-$HOME/.config}/nvim/init.lua"
 
+# **Refuse to run against a parser older than the grammar**, because the alternative is what
+# happened twice: the check reported `queries/indents.scm` as broken while the queries were
+# untouched, the real cause being that Neovim was still loading the grammar from before the last
+# change. Every file using the new syntax then parses to an ERROR, which flattens the indentation of
+# everything after it.
+#
+# It cannot fix this itself. Where a user config exists this script uses *theirs* — deliberately, so
+# that what is checked is the indentation they actually get — and the install lives in
+# `mise run install:parser`. So the honest thing is to say so and stop. `-nt` on the generated
+# `parser.c` rather than on `grammar.js`, since that is what nvim-treesitter compiles.
+installed="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/parser/gloss.so"
+here_dir="$(cd "$(dirname "$0")/.." && pwd)"
+if [ -f "$config" ] && [ -f "$installed" ] && [ "$here_dir/src/parser.c" -nt "$installed" ]; then
+  echo "the installed parser is older than the grammar it should have been built from:" >&2
+  echo "  $installed" >&2
+  echo "run \`mise run install:parser\` (or delete that file) and try again" >&2
+  exit 2
+fi
+
 if [ -n "${GLOSS_TS_RUNTIME:-}" ] || [ ! -f "$config" ]; then
   runtime="${GLOSS_TS_RUNTIME:-}"
   if [ -z "$runtime" ] || [ ! -d "$runtime" ]; then
@@ -160,8 +179,20 @@ vim.api.nvim_create_autocmd("User", {
     }
   end,
 })
--- `force = true`: see the note at the top. A cached parser from before a grammar change makes
--- this check report the queries as wrong, which is worse than the seconds a rebuild costs.
+-- The installed artifacts are **deleted** rather than reinstalled over, and that is not belt and
+-- braces: `{ force = true }` was tried and does not force this. nvim-treesitter decides whether to
+-- build by comparing a stored revision, and for a local path the revision does not move when
+-- `grammar.js` does — so the second grammar change in a day ran against the parser from the first,
+-- and the check reported `queries/indents.scm` as broken when the queries were untouched. Twice.
+--
+-- Removing the `.so` and the revision file is what makes the install unconditional. Seconds, against
+-- an hour of chasing a query that was already correct.
+for _, p in ipairs({
+  vim.fn.stdpath("data") .. "/site/parser/gloss.so",
+  vim.fn.stdpath("data") .. "/site/parser-info/gloss.revision",
+}) do
+  vim.fn.delete(p)
+end
 require("nvim-treesitter").install({ "gloss" }, { force = true }):wait(300000)
 if not pcall(vim.treesitter.language.add, "gloss") then
   io.stderr:write("gloss parser did not install\n")

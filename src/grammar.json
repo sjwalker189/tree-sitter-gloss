@@ -4243,8 +4243,12 @@
                 "name": "escape_sequence"
               },
               {
+                "type": "SYMBOL",
+                "name": "string_interpolation"
+              },
+              {
                 "type": "PATTERN",
-                "value": "[^\"\\\\\\n]+"
+                "value": "[^\"{\\\\\\n]+"
               }
             ]
           }
@@ -4255,11 +4259,28 @@
         }
       ]
     },
+    "string_interpolation": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_expression"
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
     "escape_sequence": {
       "type": "IMMEDIATE_TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "\\\\[nrt0\\\\\"]"
+        "value": "\\\\[nrt0\\\\\"{}]"
       }
     }
   },

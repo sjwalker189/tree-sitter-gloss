@@ -611,3 +611,44 @@ fn f() {
             qualifier: (identifier)
             name: (identifier))
           arguments: (argument_list))))))
+
+==============================
+an interpolated string
+==============================
+
+fn f(n: Int) -> Str {
+    "count: {n}, sum: {n + 1}"
+}
+
+fn g() -> Str {
+    "a \{ brace"
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (string
+        (string_interpolation
+          (identifier))
+        (string_interpolation
+          (binary_expression
+            left: (identifier)
+            right: (integer_literal))))))
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (string
+        (escape_sequence)))))
