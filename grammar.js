@@ -439,7 +439,7 @@ module.exports = grammar({
     function_type: ($) =>
       seq("fn", field("parameters", $.parameter_type_list), optional(seq("->", $._type))),
 
-    parameter_type_list: ($) => seq("(", commaSep($._type), ")"),
+    parameter_type_list: ($) => seq("(", commaSep($._type), optional(","), ")"),
 
     // --- statements --------------------------------------------------------------------
 
@@ -593,6 +593,7 @@ module.exports = grammar({
         "{",
         commaSep(choice($.field_initializer, $.struct_base)),
         optional(","),
+        optional(","),
         "}",
       ),
 
@@ -652,7 +653,7 @@ module.exports = grammar({
         field("body", $.block),
       ),
 
-    loop_header: ($) => seq("(", commaSep($.loop_binding), ")"),
+    loop_header: ($) => seq("(", commaSep($.loop_binding), optional(","), ")"),
 
     loop_binding: ($) =>
       seq(
@@ -665,7 +666,9 @@ module.exports = grammar({
     break_expression: ($) => prec.right(seq("break", optional($._expression))),
 
     continue_expression: ($) =>
-      prec.right(seq("continue", optional(seq("(", commaSep($._expression), ")")))),
+      prec.right(
+        seq("continue", optional(seq("(", commaSep($._expression), optional(","), ")"))),
+      ),
 
     return_expression: ($) => prec.right(seq("return", optional($._expression))),
 
@@ -741,7 +744,7 @@ module.exports = grammar({
     // compiler rather than compiled, because code generation extracts fields with no test of
     // its own. It is a grammar the parser accepts and the checker refuses.
     tuple_struct_pattern: ($) =>
-      seq(field("type", $.path_pattern), "(", commaSep($._pattern), ")"),
+      seq(field("type", $.path_pattern), "(", commaSep($._pattern), optional(","), ")"),
 
     // --- tokens ------------------------------------------------------------------------
 
@@ -797,6 +800,12 @@ module.exports = grammar({
   },
 });
 
+// **A trailing comma is allowed everywhere the compiler allows one**, which is everywhere: its
+// list loops consume a comma and then test for the closing delimiter, so `(a, b,)` parses. Five
+// rules here forbade it — a parameter type list, a struct literal's fields, a `loop` header, a
+// `continue`'s arguments and a tuple-struct pattern — and `script/check-against-compiler` found the
+// lot through *one* file in the standard library that the formatter had wrapped. A corpus written to
+// suit the grammar would never have covered it.
 function commaSep(rule) {
   return optional(commaSep1(rule));
 }

@@ -652,3 +652,70 @@ fn g() -> Str {
     body: (block
       tail: (string
         (escape_sequence)))))
+
+==============================
+a trailing comma, in each list that takes one
+==============================
+
+fn f(g: fn(Int, Int,) -> Int) -> Int {
+    loop (a = 0, b = 1,) {
+        continue (a + 1, b,)
+    }
+}
+
+fn h(p: P) -> P {
+    P { x: 1, y: 2, }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (function_type
+          parameters: (parameter_type_list
+            (named_type
+              name: (type_identifier))
+            (named_type
+              name: (type_identifier)))
+          (named_type
+            name: (type_identifier)))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (loop_expression
+        carried: (loop_header
+          (loop_binding
+            name: (identifier)
+            value: (integer_literal))
+          (loop_binding
+            name: (identifier)
+            value: (integer_literal)))
+        body: (block
+          tail: (continue_expression
+            (binary_expression
+              left: (identifier)
+              right: (integer_literal))
+            (identifier))))))
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (struct_literal
+        type: (type_identifier)
+        body: (field_initializer_list
+          (field_initializer
+            name: (identifier)
+            value: (integer_literal))
+          (field_initializer
+            name: (identifier)
+            value: (integer_literal)))))))

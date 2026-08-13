@@ -33,6 +33,12 @@
   (type_arguments)
   (assoc_bindings)
   (loop_header)
+  ;; `continue (a, b,)` wrapped over lines. Its parentheses are not a named list the way an
+  ;; argument list is, so nothing gave the values inside a level and the formatter gave them one —
+  ;; a disagreement found by `script/check-indents` on the first file in the library to wrap one.
+  ;; The node spans the closing paren, so the branch rule below dedents it back out, exactly as it
+  ;; does for an element.
+  (continue_expression)
 ] @indent.begin
 
 ; A binary expression wrapped over several lines hangs its continuations one level in. The
