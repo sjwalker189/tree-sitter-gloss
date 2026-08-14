@@ -180,6 +180,10 @@
   "impl"
   "elements"
   "element"
+  ; Contextual in the compiler's lexer, and highlighted unconditionally here — the grammar only
+  ; admits it in the one position where it is the keyword, so a variable named `where` is not
+  ; this token.
+  "where"
 ] @keyword
 
 ; `text_declaration` *is* the `text` token — the rule has no other content — so it is captured

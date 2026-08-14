@@ -39,6 +39,11 @@
   ;; The node spans the closing paren, so the branch rule below dedents it back out, exactly as it
   ;; does for an element.
   (continue_expression)
+  ;; A `where` clause indents its predicates, and it is the one container here with no delimiter
+  ;; at all — the `{` that follows belongs to the body, not to the clause. So the node has to be
+  ;; the clause itself, and it ends at the last predicate rather than spanning that brace, which
+  ;; is why the brace needs no dedent: nothing put it inside anything.
+  (where_clause)
 ] @indent.begin
 
 ; A binary expression wrapped over several lines hangs its continuations one level in. The
@@ -46,6 +51,16 @@
 ; the author's -- but it is the convention every file in the repo uses, and without this rule
 ; `=` flattens all of them.
 (binary_expression) @indent.begin
+
+; A method chain wrapped over lines hangs its continuations one level in, for the same reason and
+; by the same authority: `Builder::new()` ends a line with `)`, which the formatter does not treat
+; as a terminator, so it indents what follows. Nothing here did, so a chain came back four columns
+; short.
+;
+; `field_expression` rather than `call_expression`, because the receiver is what the `.` hangs off
+; and it is the node that spans every line of the chain. Arguments are unaffected: they get their
+; level from `argument_list`, and a chain on one line has no interior line to indent.
+(field_expression) @indent.begin
 
 ; An element's children indent between the tags.
 ;

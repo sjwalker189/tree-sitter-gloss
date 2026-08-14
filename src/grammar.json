@@ -684,6 +684,22 @@
           ]
         },
         {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "where_clause",
+              "content": {
+                "type": "SYMBOL",
+                "name": "where_clause"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
           "type": "FIELD",
           "name": "body",
           "content": {
@@ -859,6 +875,22 @@
           "members": [
             {
               "type": "FIELD",
+              "name": "where_clause",
+              "content": {
+                "type": "SYMBOL",
+                "name": "where_clause"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
               "name": "body",
               "content": {
                 "type": "SYMBOL",
@@ -992,6 +1024,22 @@
               "content": {
                 "type": "SYMBOL",
                 "name": "type_parameters"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "where_clause",
+              "content": {
+                "type": "SYMBOL",
+                "name": "where_clause"
               }
             },
             {
@@ -1415,6 +1463,22 @@
                   }
                 }
               ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "where_clause",
+              "content": {
+                "type": "SYMBOL",
+                "name": "where_clause"
+              }
             },
             {
               "type": "BLANK"
@@ -1851,6 +1915,77 @@
                 "name": "bound"
               }
             ]
+          }
+        }
+      ]
+    },
+    "where_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "where"
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "where_predicate"
+            },
+            {
+              "type": "REPEAT",
+              "content": {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": ","
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "where_predicate"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": ","
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "where_predicate": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "SYMBOL",
+            "name": "type_identifier"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "FIELD",
+          "name": "bounds",
+          "content": {
+            "type": "SYMBOL",
+            "name": "bound_list"
           }
         }
       ]

@@ -1934,6 +1934,16 @@
             "named": true
           }
         ]
+      },
+      "where_clause": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "where_clause",
+            "named": true
+          }
+        ]
       }
     }
   },
@@ -2547,6 +2557,16 @@
             "named": true
           }
         ]
+      },
+      "where_clause": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "where_clause",
+            "named": true
+          }
+        ]
       }
     }
   },
@@ -2779,6 +2799,16 @@
         "types": [
           {
             "type": "type_parameters",
+            "named": true
+          }
+        ]
+      },
+      "where_clause": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "where_clause",
             "named": true
           }
         ]
@@ -4187,6 +4217,16 @@
             "named": true
           }
         ]
+      },
+      "where_clause": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "where_clause",
+            "named": true
+          }
+        ]
       }
     }
   },
@@ -4858,6 +4898,47 @@
     }
   },
   {
+    "type": "where_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "where_predicate",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "where_predicate",
+    "named": true,
+    "fields": {
+      "bounds": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "bound_list",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "while_expression",
     "named": true,
     "fields": {
@@ -5275,6 +5356,10 @@
   },
   {
     "type": "view",
+    "named": false
+  },
+  {
+    "type": "where",
     "named": false
   },
   {

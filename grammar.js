@@ -224,6 +224,7 @@ module.exports = grammar({
         optional(field("type_parameters", $.type_parameters)),
         field("parameters", $.parameter_list),
         optional(seq("->", field("return_type", $._type))),
+        optional(field("where_clause", $.where_clause)),
         field("body", $.block),
       ),
 
@@ -246,6 +247,7 @@ module.exports = grammar({
         "struct",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
+        optional(field("where_clause", $.where_clause)),
         // `struct Idle;` — a marker, carrying nothing. The braced form asserts there is
         // nothing between the braces; the terminator says the same in one character. Nothing
         // downstream tells them apart: a struct is a one-constructor algebraic type either
@@ -263,6 +265,7 @@ module.exports = grammar({
         "enum",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
+        optional(field("where_clause", $.where_clause)),
         field("body", $.variant_list),
       ),
 
@@ -323,6 +326,7 @@ module.exports = grammar({
         optional(field("type_parameters", $.type_parameters)),
         field("trait", $._type),
         optional(seq("for", field("type", $._type))),
+        optional(field("where_clause", $.where_clause)),
         field("body", $.impl_body),
       ),
 
@@ -391,6 +395,18 @@ module.exports = grammar({
       seq(field("name", $.type_identifier), optional(seq(":", field("bounds", $.bound_list)))),
 
     bound_list: ($) => sep1($.bound, "+"),
+
+    // `where T: Show, U: Eq + Hash` — the same bounds, written after the header instead of
+    // inside the angle brackets. Purely a second spelling: the compiler folds each predicate
+    // into the parameter it names, and a test there compares the signatures the two forms build.
+    //
+    // `where` is contextual in the compiler's lexer — it is an ordinary name everywhere else —
+    // and it is a plain string here for the same reason the other contextual keywords are: this
+    // is the only position it can appear in, so no conflict arises.
+    where_clause: ($) => seq("where", commaSep1($.where_predicate), optional(",")),
+
+    where_predicate: ($) =>
+      seq(field("name", $.type_identifier), ":", field("bounds", $.bound_list)),
 
     // `Iterator`, `html::Doc`, or `Iterator<Item = Int>` — a bound that also fixes one of the
     // trait's associated types. The angle brackets are free here because the language has no
