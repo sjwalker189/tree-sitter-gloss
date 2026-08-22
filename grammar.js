@@ -203,7 +203,7 @@ module.exports = grammar({
     //
     // It is also what keeps this LR(1): a repeat per item makes `pub` ambiguous between them
     // until the head keyword arrives.
-    _modifier: (_) => choice("pub", "pure", "view", "linear"),
+    _modifier: (_) => choice("pub", "pure", "view", "linear", "client"),
 
     _modifiers: ($) => repeat1($._modifier),
 
@@ -519,6 +519,7 @@ module.exports = grammar({
         $.try_expression,
         $.struct_literal,
         $.lambda_expression,
+        $.client_lambda_expression,
         $.element,
         $.if_expression,
         $.match_expression,
@@ -619,6 +620,24 @@ module.exports = grammar({
     // `..base` — every field the literal does not write comes from there. Accepted anywhere in
     // the list, because a written field wins regardless: the base supplies only what is absent.
     struct_base: ($) => seq("..", field("value", $._expression)),
+
+    // `client fn(e: InputEvent) { .. }` — not a closure. The compiler folds its body to directive
+    // text rather than compiling it (`docs/design/09-live.md` §3).
+    //
+    // The marker is an **identifier**, not the string `"client"`, and that is the whole subtlety.
+    // `client` is contextual — `core/net` binds a value called `client` — and a bare string makes
+    // it a keyword everywhere an expression may start, which broke that file. Matching a name and
+    // letting `fn` disambiguate accepts the slightly wider `anything fn(..) { .. }`, which is
+    // exactly the trade `function_item` above already makes for a capitalised name: accept more
+    // here, and leave the restriction where the message is.
+    client_lambda_expression: ($) =>
+      seq(
+        field("marker", alias($.identifier, $.client)),
+        "fn",
+        field("parameters", $.parameter_list),
+        optional(seq("->", field("return_type", $._type))),
+        field("body", $.block),
+      ),
 
     // `fn(x: Int) -> Int { x + 1 }`. Parameters are annotated, as in a declaration.
     lambda_expression: ($) =>

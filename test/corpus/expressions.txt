@@ -719,3 +719,85 @@ fn h(p: P) -> P {
           (field_initializer
             name: (identifier)
             value: (integer_literal)))))))
+
+================================================================================
+a client closure, whose body becomes directive text
+================================================================================
+
+fn f() -> Int {
+    let h = client fn(e: InputEvent) { mirror.set(e.value); };
+    0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (client_lambda_expression
+          marker: (client)
+          parameters: (parameter_list
+            (parameter
+              name: (identifier)
+              type: (named_type
+                name: (type_identifier))))
+          body: (block
+            (expression_statement
+              (call_expression
+                function: (field_expression
+                  value: (identifier)
+                  field: (identifier))
+                arguments: (argument_list
+                  (field_expression
+                    value: (identifier)
+                    field: (identifier))))))))
+      tail: (integer_literal))))
+
+================================================================================
+`client` is contextual, so it is still a name
+================================================================================
+
+fn f() -> Int {
+    match g() {
+        Result::Ok(client) => client,
+        Result::Err(e) => 0,
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (call_expression
+            function: (identifier)
+            arguments: (argument_list))
+          body: (match_arm_list
+            (match_arm
+              pattern: (tuple_struct_pattern
+                type: (path_pattern
+                  (type_identifier)
+                  (type_identifier))
+                (binding_pattern
+                  (identifier)))
+              value: (identifier))
+            (match_arm
+              pattern: (tuple_struct_pattern
+                type: (path_pattern
+                  (type_identifier)
+                  (type_identifier))
+                (binding_pattern
+                  (identifier)))
+              value: (integer_literal))))))))
