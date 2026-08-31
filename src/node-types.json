@@ -442,7 +442,7 @@
         "required": true,
         "types": [
           {
-            "type": "identifier",
+            "type": "attribute_name",
             "named": true
           }
         ]
@@ -476,6 +476,32 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "attrs_group",
+    "named": true,
+    "fields": {
+      "attributes": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_record",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_identifier",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -1560,14 +1586,14 @@
         "required": true,
         "types": [
           {
-            "type": "identifier",
+            "type": "attribute_name",
             "named": true
           }
         ]
       },
       "value": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "element_value",
@@ -1980,6 +2006,10 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "attrs_group",
+          "named": true
+        },
         {
           "type": "element_declaration",
           "named": true
@@ -5361,6 +5391,14 @@
   },
   {
     "type": "as",
+    "named": false
+  },
+  {
+    "type": "attribute_name",
+    "named": true
+  },
+  {
+    "type": "attrs",
     "named": false
   },
   {

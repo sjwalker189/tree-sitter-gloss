@@ -353,6 +353,7 @@ module.exports = grammar({
           seq(
             choice(
               $.text_declaration,
+              $.attrs_group,
               $.element_declaration,
               $.function_item,
               $.method_signature,
@@ -367,6 +368,17 @@ module.exports = grammar({
     // contextual: the compiler matches them by spelling here and lexes them as ordinary
     // identifiers everywhere else, so neither is reserved.
     text_declaration: (_) => "text",
+
+    // `attrs Global { id?: Str, class?: Str }` — a named list of attributes an element may take
+    // by naming it, instead of writing the same eighteen out 120 times.
+    //
+    // It declares no type. The group is spliced into each element's generated attribute struct
+    // as ordinary fields, so a medium reads `a.class` whether the field came from a group or from
+    // the element's own record, and nothing downstream knows a group existed. That is why an
+    // element names one through `element_spec`'s ordinary `type_identifier` arm and there is no
+    // rule here for the reference.
+    attrs_group: ($) =>
+      seq("attrs", field("name", $.type_identifier), field("attributes", $.attribute_record)),
 
     element_declaration: ($) =>
       seq(
@@ -385,7 +397,31 @@ module.exports = grammar({
     // `class?: Str` is a field of type `Option<Str>`, generated the way anyone would write
     // it — the `?` is the whole of what optional means.
     attribute_declaration: ($) =>
-      seq(field("name", $.identifier), optional("?"), ":", field("type", $._type)),
+      seq(field("name", $.attribute_name), optional("?"), ":", field("type", $._type)),
+
+    // `class`, `aria-label`, `http-equiv`, `type` — an attribute's name as written.
+    //
+    // Not an `identifier`, and the two reasons are the same two the compiler gives. HTML's names
+    // hold hyphens, and they collide with keywords: `<input type="text">` and `<label for="n">`
+    // are most of a form, so accepting them was not optional. Both are unambiguous *here* and
+    // nowhere else, because no expression can appear in attribute-name position — so a `-` between
+    // two names can only be part of one.
+    //
+    // **One token, where the compiler keeps the run of tokens it lexed.** The compiler has to: its
+    // tree reproduces its source byte for byte, and the field name is mangled from those tokens by
+    // `attribute_field_name`. This grammar exists to highlight, and a name that is one thing should
+    // be one colour — the alternative colours the hyphen of `aria-label` as an operator, which is
+    // the bug that sent me here.
+    //
+    // A token rather than a rule is also what lets a keyword through. Tree-sitter extracts keywords
+    // from the `word` token, so `type` becomes the `"type"` keyword only in a state where that
+    // token is valid; in attribute-name position it is not, and this matches instead. Listing the
+    // keywords here would be a second copy of a list the compiler already has, which is the way
+    // this grammar has drifted before.
+    //
+    // The one thing the compiler accepts and this does not is `aria - label`, spaced — it is the
+    // same attribute written strangely, and no file writes it.
+    attribute_name: (_) => token(/[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*/),
 
     // --- generics ----------------------------------------------------------------------
 
@@ -735,10 +771,17 @@ module.exports = grammar({
 
     element_close: ($) => seq("</", field("name", $._tag_name), ">"),
 
-    // A bare attribute name is not shorthand for anything: every attribute is typed, so
-    // there would be nothing for it to mean.
+    // `class="card"`, `class={expr}`, or a bare `disabled`.
+    //
+    // **A bare attribute means `={true}`** — HTML's own boolean shorthand, and the one place a
+    // name on its own has something to mean. This rule used to require the value and carried a
+    // comment saying a bare name could not mean anything; `<input type="text" name="n" required/>`
+    // is in the examples, so it did.
     element_attribute: ($) =>
-      seq(field("name", $.identifier), "=", field("value", choice($.string, $.element_value))),
+      seq(
+        field("name", $.attribute_name),
+        optional(seq("=", field("value", choice($.string, $.element_value)))),
+      ),
 
     element_value: ($) => seq("{", $._expression, "}"),
 

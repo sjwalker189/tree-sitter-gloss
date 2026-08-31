@@ -95,10 +95,10 @@ view fn f<M: Html>(m: M) -> M {
         open: (element_open
           name: (identifier)
           (element_attribute
-            name: (identifier)
+            name: (attribute_name)
             value: (string))
           (element_attribute
-            name: (identifier)
+            name: (attribute_name)
             value: (string)))
         children: (element_children
           (element_text))
@@ -136,10 +136,10 @@ view fn f<M: Html>(m: M) -> M {
         (element_self_closing
           name: (identifier)
           (element_attribute
-            name: (identifier)
+            name: (attribute_name)
             value: (string))
           (element_attribute
-            name: (identifier)
+            name: (attribute_name)
             value: (string)))))))
 
 ===================================
@@ -173,7 +173,7 @@ view fn f<M: Html>(m: M) -> M {
         open: (element_open
           name: (identifier)
           (element_attribute
-            name: (identifier)
+            name: (attribute_name)
             value: (element_value
               (identifier))))
         children: (element_children
@@ -286,7 +286,7 @@ view fn f<M: Html>(m: M) -> M {
         open: (element_open
           name: (identifier)
           (element_attribute
-            name: (identifier)
+            name: (attribute_name)
             value: (string)))
         children: (element_children
           (element
@@ -616,10 +616,88 @@ view fn Page<M: Html>(m: M) -> M {
         open: (element_open
           name: (type_identifier)
           (element_attribute
-            name: (identifier)
+            name: (attribute_name)
             value: (string)))
         children: (element_children
           (element_interpolation
             (identifier)))
         close: (element_close
           name: (type_identifier))))))
+
+================================================================================
+an attribute group, and names that are hyphenated or keywords
+================================================================================
+
+elements Html {
+    attrs Global { class?: Str, aria-label?: Str },
+    element input: Global & { type?: Str, for?: Str },
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (elements_item
+    name: (type_identifier)
+    (attrs_group
+      name: (type_identifier)
+      attributes: (attribute_record
+        (attribute_declaration
+          name: (attribute_name)
+          type: (named_type
+            name: (type_identifier)))
+        (attribute_declaration
+          name: (attribute_name)
+          type: (named_type
+            name: (type_identifier)))))
+    (element_declaration
+      name: (identifier)
+      spec: (element_spec
+        (type_identifier)
+        (attribute_record
+          (attribute_declaration
+            name: (attribute_name)
+            type: (named_type
+              name: (type_identifier)))
+          (attribute_declaration
+            name: (attribute_name)
+            type: (named_type
+              name: (type_identifier))))))))
+
+================================================================================
+a bare attribute, which means `={true}`
+================================================================================
+
+view fn Field<M: Html>(m: M) -> M {
+    <input type="text" aria-label="name" required/>
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (type_identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (bound_list
+          (bound
+            name: (type_identifier)))))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        (element_self_closing
+          name: (identifier)
+          (element_attribute
+            name: (attribute_name)
+            value: (string))
+          (element_attribute
+            name: (attribute_name)
+            value: (string))
+          (element_attribute
+            name: (attribute_name)))))))

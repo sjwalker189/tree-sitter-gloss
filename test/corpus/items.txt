@@ -596,7 +596,7 @@ elements Html {
         (type_identifier)
         (attribute_record
           (attribute_declaration
-            name: (identifier)
+            name: (attribute_name)
             type: (named_type
               name: (type_identifier))))))
     (element_declaration
@@ -608,11 +608,11 @@ elements Html {
       spec: (element_spec
         (attribute_record
           (attribute_declaration
-            name: (identifier)
+            name: (attribute_name)
             type: (named_type
               name: (type_identifier)))
           (attribute_declaration
-            name: (identifier)
+            name: (attribute_name)
             type: (named_type
               name: (type_identifier))))))))
 
@@ -861,7 +861,7 @@ view fn Card(title: Str, children: Html) -> Html {
         open: (element_open
           name: (identifier)
           (element_attribute
-            name: (identifier)
+            name: (attribute_name)
             value: (string)))
         children: (element_children
           (element_interpolation

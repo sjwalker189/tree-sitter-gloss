@@ -69,7 +69,12 @@
 (field_initializer name: (identifier) @property)
 (field_expression field: (identifier) @property)
 
-(attribute_declaration name: (identifier) @property)
+; An attribute name is a field — a declared group is spliced into each element's generated
+; attribute struct as ordinary fields, and a medium reads `a.class` — so it takes the colour every
+; other field does. The node is `attribute_name` rather than `identifier` because the name may hold
+; hyphens and may be a keyword; capturing the whole node is what keeps `aria-label` one colour
+; instead of two names with an operator between them.
+(attribute_declaration name: (attribute_name) @property)
 
 (type_parameter name: (type_identifier) @type.definition)
 
@@ -143,7 +148,7 @@
 (element_open name: (identifier) @tag)
 (element_close name: (identifier) @tag)
 (element_self_closing name: (identifier) @tag)
-(element_attribute name: (identifier) @tag.attribute)
+(element_attribute name: (attribute_name) @tag.attribute)
 
 (element_text) @none
 
@@ -180,6 +185,10 @@
   "impl"
   "elements"
   "element"
+  ; Contextual in the compiler, and contextual here for free: tree-sitter extracts keywords from
+  ; the `word` token, so this is only this token where the grammar admits it — `let attrs = 1` is
+  ; an ordinary binding in both.
+  "attrs"
   ; Contextual in the compiler's lexer, and highlighted unconditionally here — the grammar only
   ; admits it in the one position where it is the keyword, so a variable named `where` is not
   ; this token.

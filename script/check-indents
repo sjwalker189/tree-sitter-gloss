@@ -135,11 +135,25 @@ config="${XDG_CONFIG_HOME:-$HOME/.config}/nvim/init.lua"
 #
 # It cannot fix this itself. Where a user config exists this script uses *theirs* — deliberately, so
 # that what is checked is the indentation they actually get — and the install lives in
-# `mise run install:parser`. So the honest thing is to say so and stop. `-nt` on the generated
-# `parser.c` rather than on `grammar.js`, since that is what nvim-treesitter compiles.
+# `mise run install:parser`. So the honest thing is to say so and stop.
+#
+# **Against the hand-written sources, not the generated ones.** This compared `src/parser.c`,
+# reasoning that it is what nvim-treesitter compiles — true, and it made the check unpassable:
+# `tree-sitter generate` rewrites `parser.c` whether or not anything changed, and `mise run
+# grammar` runs `generate` as its *first* step and this as its last, so the task invalidated its
+# own guard every time. It always ended "the installed parser is older than the grammar", however
+# recently the parser had been installed.
+#
+# `grammar.js` and `src/scanner.c` are the two files a person edits; everything else in `src/` is
+# derived from them. So they are what the parser must be newer than — the same rule
+# `install:parser` checks after installing, rather than a second answer to one question.
 installed="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/parser/gloss.so"
 here_dir="$(cd "$(dirname "$0")/.." && pwd)"
-if [ -f "$config" ] && [ -f "$installed" ] && [ "$here_dir/src/parser.c" -nt "$installed" ]; then
+stale=""
+for source in "$here_dir/grammar.js" "$here_dir/src/scanner.c"; do
+  [ -f "$source" ] && [ "$source" -nt "$installed" ] && stale="$source"
+done
+if [ -f "$config" ] && [ -f "$installed" ] && [ -n "$stale" ]; then
   echo "the installed parser is older than the grammar it should have been built from:" >&2
   echo "  $installed" >&2
   echo "run \`mise run install:parser\` (or delete that file) and try again" >&2
