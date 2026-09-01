@@ -52,6 +52,29 @@
 ; `=` flattens all of them.
 (binary_expression) @indent.begin
 
+; A declaration whose value is written on the line *after* the `=` hangs it one level in.
+;
+; A `type` alias needs no restriction: its value is a type, and the only one long enough to wrap
+; in this repo is a union, whose members all sit at one level. So the item is the only node that
+; contributes, and every continuation line gets exactly the level the formatter gives it.
+(type_alias_item) @indent.begin
+
+; A `let` does need one, and the shape it needs it for is the thing to know about this file.
+; `@indent.begin` counts once per *start row*, so a rule on the whole statement is harmless where
+; the value opens on the same row — `let x = match n {` gives the arms one level, not two,
+; because the statement and the `match_arm_list` begin together. It is `if`/`else` that breaks
+; it: the `else` block begins on a *later* row than the `let`, so both count and the branch comes
+; back one level too deep. That was measured rather than reasoned — the reasoning above said it
+; would be fine, and `script/check-indents` produced three files saying otherwise.
+;
+; So the rule is restricted to a value that is not block-like, which is the only case where the
+; statement is the one thing that could supply the level. A call is what the repo actually wraps;
+; a chain is already covered below by `field_expression`.
+;
+; `const_item` has the identical shape and is deliberately absent: no file here wraps one, so the
+; oracle cannot confirm it, and the formatter is the authority rather than the symmetry.
+(let_statement value: (call_expression)) @indent.begin
+
 ; A method chain wrapped over lines hangs its continuations one level in, for the same reason and
 ; by the same authority: `Builder::new()` ends a line with `)`, which the formatter does not treat
 ; as a terminator, so it indents what follows. Nothing here did, so a chain came back four columns
