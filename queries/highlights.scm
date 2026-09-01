@@ -78,6 +78,11 @@
 
 (type_parameter name: (type_identifier) @type.definition)
 
+; An alias's *declaration*. A use of one cannot be told from any other type name without
+; resolving it — an alias is transparent, so `Slug` and `Str` are the same thing — and the rule
+; above already colours it as a type, which is what it is.
+(type_alias_item name: (type_identifier) @type.definition)
+
 (package_declaration name: (identifier) @module)
 
 ; A `use` path names directories, and the alias it binds is another name for one. The

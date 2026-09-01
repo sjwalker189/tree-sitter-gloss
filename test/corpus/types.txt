@@ -371,3 +371,65 @@ fn f(s: super::text::Slug, c: ctx::Limits) {}
           qualifier: (identifier)
           name: (type_identifier))))
     body: (block)))
+
+==============================
+a union of string literals
+==============================
+
+type Method = "get" | "post" | "dialog";
+
+---
+
+(source_file
+  (type_alias_item
+    name: (type_identifier)
+    value: (union_type
+      (literal_type
+        (string))
+      (literal_type
+        (string))
+      (literal_type
+        (string)))))
+
+==============================
+a union of numbers, one of them negative
+==============================
+
+type Level = -1 | 0 | 1;
+
+---
+
+(source_file
+  (type_alias_item
+    name: (type_identifier)
+    value: (union_type
+      (literal_type
+        (integer_literal))
+      (literal_type
+        (integer_literal))
+      (literal_type
+        (integer_literal)))))
+
+==============================
+a union written inline at a parameter
+==============================
+
+fn route(m: "get" | "post") -> Int { 0 }
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (union_type
+          (literal_type
+            (string))
+          (literal_type
+            (string)))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (integer_literal))))

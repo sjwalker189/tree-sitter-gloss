@@ -1104,3 +1104,37 @@ fn total<I>(it: I) -> Int where I: Iterator<Item = Int> { 0 }
             assoc: (assoc_bindings
               (assoc_binding name: (type_identifier) value: (named_type name: (type_identifier))))))))
     body: (block tail: (integer_literal))))
+
+==============================
+a type alias
+==============================
+
+pub type Slug = Str;
+
+---
+
+(source_file
+  (type_alias_item
+    name: (type_identifier)
+    value: (named_type
+      name: (type_identifier))))
+
+==============================
+a generic type alias
+==============================
+
+type Rows<T> = Array<T>;
+
+---
+
+(source_file
+  (type_alias_item
+    name: (type_identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)))
+    value: (named_type
+      name: (type_identifier)
+      type_arguments: (type_arguments
+        (named_type
+          name: (type_identifier))))))

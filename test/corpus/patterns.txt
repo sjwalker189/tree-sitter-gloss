@@ -241,3 +241,40 @@ fn f() -> Int {
             (match_arm
               pattern: (wildcard_pattern)
               value: (integer_literal))))))))
+
+==============================
+a string pattern, which is only complete over a union
+==============================
+
+fn f(m: "a" | "b") -> Int {
+    match m { "a" => 1, "b" => 2 }
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (union_type
+          (literal_type
+            (string))
+          (literal_type
+            (string)))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (literal_pattern
+                (string))
+              value: (integer_literal))
+            (match_arm
+              pattern: (literal_pattern
+                (string))
+              value: (integer_literal))))))))

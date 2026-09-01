@@ -151,6 +151,7 @@ module.exports = grammar({
         $.elements_item,
         $.test_item,
         $.const_item,
+        $.type_alias_item,
       ),
 
     // `test "adds two numbers" { 1 + 1 == 2 }` — the label is prose, so it is a string rather
@@ -190,6 +191,26 @@ module.exports = grammar({
         field("type", $._type),
         "=",
         field("value", $._expression),
+        ";",
+      ),
+
+    // `type Slug = Str;`, `type Rows<T> = Array<T>;`
+    //
+    // The same keyword as an associated type and a different item, told apart by where it is
+    // written: an associated one appears only inside a `trait` or an `impl` body. Unlike `const`
+    // this needed no contextual trick — `type` was already a keyword, spent on the associated
+    // form, so a top-level alias takes no identifier out of circulation that was not gone.
+    //
+    // An alias is **transparent**: it stands for what follows the `=` and never becomes a type of
+    // its own, which is why it needs no shape here beyond a name and a type.
+    type_alias_item: ($) =>
+      seq(
+        optional($._modifiers),
+        "type",
+        field("name", $.type_identifier),
+        optional(field("type_parameters", $.type_parameters)),
+        "=",
+        field("value", $._type),
         ";",
       ),
 
@@ -463,7 +484,28 @@ module.exports = grammar({
 
     // --- types -------------------------------------------------------------------------
 
-    _type: ($) => choice($.named_type, $.function_type),
+    _type: ($) => choice($.union_type, $._type_term),
+
+    // `"get" | "post"`, `1 | 2 | 3` — a union of literal types.
+    //
+    // Members are literals of one base type, and that is a *checking* rule rather than a grammar
+    // one: `Int | Str` parses here and is refused with a message pointing at `enum`, because
+    // whether a member is a literal is a question about what a name resolved to.
+    //
+    // A `function_type`'s return is a `_type_term`, so `fn() -> A | B` reads as two members of one
+    // union rather than as a function returning a union. Neither is more useful than the other — a
+    // union member has to be a literal, so a function type can never be one.
+    union_type: ($) => prec.left(seq($._type_term, repeat1(seq("|", $._type_term)))),
+
+    _type_term: ($) => choice($.named_type, $.function_type, $.literal_type),
+
+    // `"get"`, `3`, `-1`, `true` in type position — a type inhabited by exactly one value.
+    //
+    // A decimal number is refused for the reason it is refused as a *pattern*: deciding whether
+    // one member covers another needs equality on doubles, and `NaN` makes that a question with
+    // no good answer.
+    literal_type: ($) =>
+      choice($.string, $.integer_literal, $.boolean_literal, seq("-", $.integer_literal)),
 
     // `Int`, `Opt<Int>`, `html::Doc`, `Self::Item`. Primitives are ordinary names resolved
     // against a prelude, so there is no separate rule for them.
@@ -489,7 +531,11 @@ module.exports = grammar({
       ),
 
     function_type: ($) =>
-      seq("fn", field("parameters", $.parameter_type_list), optional(seq("->", $._type))),
+      seq(
+        "fn",
+        field("parameters", $.parameter_type_list),
+        optional(seq("->", $._type_term)),
+      ),
 
     parameter_type_list: ($) => seq("(", commaSep($._type), optional(","), ")"),
 
@@ -808,7 +854,12 @@ module.exports = grammar({
     // means deciding equality on them, and `NaN` makes that a question with no good answer —
     // but it is accepted here on purpose. This grammar exists to highlight code, and a file
     // should not stop being highlightable because one line of it will not compile.
-    literal_pattern: ($) => choice($.integer_literal, $.float_literal, $.boolean_literal),
+    // A string is one now, and only where the scrutinee is a *union*: `Str` has more values than
+    // anyone will write down, so a set of string arms over one can never be complete. Which it is
+    // is a question about types, so the grammar accepts both and the compiler decides. A float is
+    // still accepted here and still refused there, for the `NaN` reason.
+    literal_pattern: ($) =>
+      choice($.integer_literal, $.float_literal, $.boolean_literal, $.string),
 
     // `Nothing`, `Colour::Blue`, `text::Found::One`. A lowercase first segment is a package
     // here rather than a new binding, which is why this arm is tried before `binding_pattern`.
