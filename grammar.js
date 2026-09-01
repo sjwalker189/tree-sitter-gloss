@@ -721,13 +721,21 @@ module.exports = grammar({
         field("body", $.block),
       ),
 
-    // `fn(x: Int) -> Int { x + 1 }`. Parameters are annotated, as in a declaration.
+    // `fn(x: Int) -> Int { x + 1 }`, and `fn(x) => x + 1`. Parameters may be annotated, as in a
+    // declaration, or left for the type expected of the closure to supply.
+    //
+    // Two spellings of one thing, and the arrow is the one that costs nothing here for the same
+    // reason it costs nothing in the compiler: **`fn` has already said a closure starts**. Without
+    // the keyword, `m => e` and `(a, b) => e` would have to be told apart from a name and from a
+    // parenthesized expression by lookahead past both — and `=>` is already a `match` arm's
+    // separator, so the two would collide. With it, an arm whose body is a closure and a closure
+    // whose body is a `match` each nest without a rule of their own.
     lambda_expression: ($) =>
       seq(
         "fn",
         field("parameters", $.parameter_list),
         optional(seq("->", field("return_type", $._type))),
-        field("body", $.block),
+        field("body", choice($.block, seq("=>", $._expression))),
       ),
 
     if_expression: ($) =>

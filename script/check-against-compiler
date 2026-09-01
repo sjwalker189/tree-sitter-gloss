@@ -98,7 +98,16 @@ if [ ${#failures[@]} -gt 0 ]; then
   echo "these no longer parse:"
   for f in "${failures[@]}"; do
     echo "  ${f#"$repo"/}"
-    tree-sitter parse "$f" 2>/dev/null | grep -m1 -oE '\((ERROR|MISSING)[^]]*\]' | sed 's/^/      /'
+    # Every ERROR and MISSING in the file, not the first. A file with two problems reported as
+    # one looks fixed after the first is fixed, and the real count is only visible after fixing
+    # them all — which is the loop this is meant to shorten. `sort -u` because a nested ERROR
+    # repeats its parent's span, and `head` because a file the grammar has lost entirely
+    # produces one per node.
+    tree-sitter parse "$f" 2>/dev/null |
+      grep -oE '\((ERROR|MISSING)[^]]*\]' |
+      sort -u |
+      head -20 |
+      sed 's/^/      /'
   done
 fi
 

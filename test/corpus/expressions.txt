@@ -801,3 +801,163 @@ fn f() -> Int {
                 (binding_pattern
                   (identifier)))
               value: (integer_literal))))))))
+
+=================================================
+a closure whose body is an arrow and one expression
+=================================================
+
+fn f() -> Int {
+    let g = fn(x) => x + 1;
+    g(1)
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (lambda_expression
+          parameters: (parameter_list
+            (parameter
+              name: (identifier)))
+          body: (binary_expression
+            left: (identifier)
+            right: (integer_literal))))
+      tail: (call_expression
+        function: (identifier)
+        arguments: (argument_list
+          (integer_literal))))))
+
+=================================================
+an arrow closure still takes an annotation and a return type
+=================================================
+
+fn f() -> Int {
+    let g = fn(x: Int) -> Int => x + 1;
+    g(1)
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (lambda_expression
+          parameters: (parameter_list
+            (parameter
+              name: (identifier)
+              type: (named_type
+                name: (type_identifier))))
+          return_type: (named_type
+            name: (type_identifier))
+          body: (binary_expression
+            left: (identifier)
+            right: (integer_literal))))
+      tail: (call_expression
+        function: (identifier)
+        arguments: (argument_list
+          (integer_literal))))))
+
+=================================================
+the shape the arrow exists for: a closure as an argument
+=================================================
+
+fn f() -> Int {
+    iter::fold(xs.iter(), 0, fn(a, b) => a + b)
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (call_expression
+        function: (path_expression
+          qualifier: (identifier)
+          name: (identifier))
+        arguments: (argument_list
+          (call_expression
+            function: (field_expression
+              value: (identifier)
+              field: (identifier))
+            arguments: (argument_list))
+          (integer_literal)
+          (lambda_expression
+            parameters: (parameter_list
+              (parameter
+                name: (identifier))
+              (parameter
+                name: (identifier)))
+            body: (binary_expression
+              left: (identifier)
+              right: (identifier))))))))
+
+=================================================
+an arrow closure as a match arm's value, and a match as a closure's body
+=================================================
+
+fn f() -> Int {
+    let pick = match n {
+        0 => fn(x) => x + 1,
+        _ => fn(x) => match x { 0 => 1, _ => 0 },
+    };
+    0
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (literal_pattern
+                (integer_literal))
+              value: (lambda_expression
+                parameters: (parameter_list
+                  (parameter
+                    name: (identifier)))
+                body: (binary_expression
+                  left: (identifier)
+                  right: (integer_literal))))
+            (match_arm
+              pattern: (wildcard_pattern)
+              value: (lambda_expression
+                parameters: (parameter_list
+                  (parameter
+                    name: (identifier)))
+                body: (match_expression
+                  value: (identifier)
+                  body: (match_arm_list
+                    (match_arm
+                      pattern: (literal_pattern
+                        (integer_literal))
+                      value: (integer_literal))
+                    (match_arm
+                      pattern: (wildcard_pattern)
+                      value: (integer_literal)))))))))
+      tail: (integer_literal))))
