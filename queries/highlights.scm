@@ -95,6 +95,10 @@
 ; `Self::Item`, a projection through a bound, and the type rule below already colours it.
 (named_type qualifier: (identifier) @module)
 (bound package: (identifier) @module)
+; And the same qualifier in expression position — `io::println(..)`. The `use` grammar and the
+; expression grammar are one grammar, so `io` is the same package in both and had colour in only
+; one of them. Lowercase for the reason above: `Ordering::Less` qualifies with a type.
+(path_expression qualifier: (identifier) @module)
 
 ; `Iterator<Item = Int>` — the name on the left of the `=` is the trait's, not a type here.
 (assoc_binding name: (type_identifier) @property)
@@ -144,6 +148,10 @@
 ;
 ; Element syntax is markup, and highlighting it as markup rather than as calls is the whole
 ; point of it having syntax at all.
+
+; The declaration too, not only the uses. `element input:` names the same tag `<input>` does, and
+; it was falling through to the catch-all — which is how the fallback came to be noticed at all.
+(element_declaration name: (identifier) @tag)
 
 (element_open name: (identifier) @tag)
 (element_close name: (identifier) @tag)
@@ -272,5 +280,15 @@
 
 (wildcard_pattern) @character.special
 
-; Ordinary value names, last so that everything above wins.
-(identifier) @variable
+; Ordinary value names — the fallback for an identifier nothing above claimed.
+;
+; **Last *and* lower priority, because the two engines that read this file break ties in opposite
+; directions.** The tree-sitter CLI takes the first pattern that matches, so being last is what
+; makes it a fallback there. Neovim takes the *last*, so being last made it beat every specific
+; rule above: a tag name captured `tag > variable` and rendered as a variable, and so did every
+; parameter, field and function call.
+;
+; A priority below the default 100 says "only where nothing else applies" to Neovim, which is the
+; thing the position was already trying to say. The CLI ignores the directive and gets the same
+; answer from the ordering, so one line makes both agree rather than picking one to be wrong.
+((identifier) @variable (#set! priority 90))
