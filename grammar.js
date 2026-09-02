@@ -106,7 +106,10 @@ module.exports = grammar({
     // with a lowercase name needs the braces of `use io::{println};`: both a directory and a
     // function are lowercase names, and the braces are the only thing telling them apart.
     // Nothing in this grammar has to know which is which, and neither does the reader.
-    use_declaration: ($) => seq("use", field("tree", $.use_tree), ";"),
+    // `pub use` re-exports: the name is brought into scope *and* handed on. A plain `use` does
+    // not, which is the whole of the rule — bringing a name into scope and passing it on are two
+    // things, and the keyword is what separates them.
+    use_declaration: ($) => seq(optional("pub"), "use", field("tree", $.use_tree), ";"),
 
     use_tree: ($) =>
       seq(
@@ -246,7 +249,14 @@ module.exports = grammar({
         field("parameters", $.parameter_list),
         optional(seq("->", field("return_type", $._type))),
         optional(field("where_clause", $.where_clause)),
-        field("body", $.block),
+        // A body, or a `;` and none. The second is what an `@intrinsic` declaration is: the
+        // runtime supplies the body and the declaration supplies only the type.
+        //
+        // Accepted for *any* function, exactly as the compiler's parser accepts it, and for the
+        // same reason — which declarations may go without a body is a question about the
+        // attribute, and an attribute is the item's *sibling* rather than part of it. So neither
+        // parser can tell from here, and the rule is stated where the answer is known.
+        field("body", choice($.block, ";")),
       ),
 
     parameter_list: ($) =>
@@ -327,15 +337,21 @@ module.exports = grammar({
     // `fn show(self) -> Str;` — no body. With one it is a *default*, and parses as an
     // ordinary `function_item`, because that is what it compiles to: a function generic over
     // `Self`, bounded by this trait.
+    //
+    // The precedence is what tells the two apart inside a trait body, and it is needed because a
+    // top-level `fn` may *also* end in a `;` now — that is an `@intrinsic` declaration, whose
+    // body the runtime supplies. The two forms are identical to look at, so the tie is broken by
+    // where they are: inside a trait, a body-less `fn` is a method signature and nothing else,
+    // because an intrinsic is a top-level declaration and a trait's members are not items.
     method_signature: ($) =>
-      seq(
+      prec(1, seq(
         optional($._modifiers),
         "fn",
         field("name", $.identifier),
         field("parameters", $.parameter_list),
         optional(seq("->", field("return_type", $._type))),
         ";",
-      ),
+      )),
 
     // `impl Show for Int`, or `impl<T> Array<T>` for an inherent block. Both start with a
     // type and the `for` decides which was which — the compiler parses one and looks, rather
@@ -351,8 +367,15 @@ module.exports = grammar({
         field("body", $.impl_body),
       ),
 
+    // An **associated constant** — `impl Int { const MAX: Int = ..; }` — is an ordinary
+    // `const_item` written inside the block, which is what the compiler's parser does with it:
+    // one `const_item` rule, reached from the item loop and from an impl's member loop.
     impl_body: ($) =>
-      seq("{", repeat(choice($.associated_type, $.function_item)), "}"),
+      seq(
+        "{",
+        repeat(choice($.associated_type, $.const_item, $.function_item)),
+        "}",
+      ),
 
     // `elements Html { element div: Children & { class: Str } }` — a vocabulary. It becomes a
     // trait and a struct per element; nothing downstream knows it was written this way.
@@ -404,7 +427,7 @@ module.exports = grammar({
     element_declaration: ($) =>
       seq(
         "element",
-        field("name", $.identifier),
+        field("name", $._hyphenated_name),
         optional(seq(":", field("spec", $.element_spec))),
       ),
 
@@ -816,7 +839,17 @@ module.exports = grammar({
     // A lowercase name is a tag the vocabulary declares; an uppercase one is a **component** — a
     // `view` called here, whose attributes are its parameters. Identifier case is semantic in this
     // language, and this is the second place it decides a meaning rather than a colour.
-    _tag_name: ($) => choice($.identifier, $.type_identifier),
+    //
+    // A lowercase tag may hold hyphens — `<sl-button>`, `<mj-section>` — which is what a web
+    // component is called, and what MJML's elements are called. Written as a *sequence* rather
+    // than as a token regex the way `attribute_name` is, because a token here would collide with
+    // `identifier` and with `type_identifier` in the lexer — and, more to the point, because it is
+    // what the compiler's parser does: the run is left flat rather than wrapped in a node of its
+    // own, since nothing in tag position is an expression and the enclosing node is therefore
+    // already enough to say a `-` here can only be continuing a name.
+    _tag_name: ($) => choice($._hyphenated_name, $.type_identifier),
+
+    _hyphenated_name: ($) => seq($.identifier, repeat(seq("-", $.identifier))),
 
     element_open: ($) => seq("<", field("name", $._tag_name), repeat($.element_attribute), ">"),
 

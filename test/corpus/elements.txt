@@ -701,3 +701,42 @@ view fn Field<M: Html>(m: M) -> M {
             value: (string))
           (element_attribute
             name: (attribute_name)))))))
+
+==============================
+a tag name with hyphens in it
+==============================
+
+elements Web {
+    element sl-button: Children,
+}
+
+view fn Bar() -> Web {
+    <sl-button variant="primary"></sl-button>
+}
+
+---
+
+(source_file
+  (elements_item
+    name: (type_identifier)
+    (element_declaration
+      name: (identifier)
+      name: (identifier)
+      spec: (element_spec
+        (type_identifier))))
+  (function_item
+    name: (type_identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      tail: (element
+        open: (element_open
+          name: (identifier)
+          name: (identifier)
+          (element_attribute
+            name: (attribute_name)
+            value: (string)))
+        close: (element_close
+          name: (identifier)
+          name: (identifier))))))

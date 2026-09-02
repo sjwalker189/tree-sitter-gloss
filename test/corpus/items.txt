@@ -1138,3 +1138,120 @@ type Rows<T> = Array<T>;
       type_arguments: (type_arguments
         (named_type
           name: (type_identifier))))))
+
+==============================
+an intrinsic declaration, which has no body
+==============================
+
+@intrinsic
+pure fn str_len(s: Str) -> Int;
+
+---
+
+(source_file
+  (attribute
+    name: (identifier))
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))))
+
+==============================
+a generic intrinsic taking a closure
+==============================
+
+@intrinsic
+fn ctx_within<T>(denied: Int, body: fn() -> T) -> T;
+
+---
+
+(source_file
+  (attribute
+    name: (identifier))
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)))
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)))
+      (parameter
+        name: (identifier)
+        type: (function_type
+          parameters: (parameter_type_list)
+          (named_type
+            name: (type_identifier)))))
+    return_type: (named_type
+      name: (type_identifier))))
+
+==============================
+and a body-less fn in a trait is still a method signature
+==============================
+
+trait Show {
+    fn to_str(self) -> Str;
+}
+
+---
+
+(source_file
+  (trait_item
+    name: (type_identifier)
+    body: (trait_body
+      (method_signature
+        name: (identifier)
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          name: (type_identifier))))))
+
+==============================
+an associated constant, inside an impl
+==============================
+
+pub impl Int {
+    const MAX: Int = 4611686018427387903;
+}
+
+---
+
+(source_file
+  (impl_item
+    trait: (named_type
+      name: (type_identifier))
+    body: (impl_body
+      (const_item
+        name: (type_identifier)
+        type: (named_type
+          name: (type_identifier))
+        value: (integer_literal)))))
+
+==============================
+`pub use` hands a name on
+==============================
+
+pub use html::{Html};
+use io;
+
+---
+
+(source_file
+  (use_declaration
+    tree: (use_tree
+      path: (use_path
+        (identifier))
+      group: (use_group
+        (use_tree_member
+          name: (type_identifier)))))
+  (use_declaration
+    tree: (use_tree
+      path: (use_path
+        (identifier)))))

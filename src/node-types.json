@@ -1675,9 +1675,13 @@
     "named": true,
     "fields": {
       "name": {
-        "multiple": false,
+        "multiple": true,
         "required": true,
         "types": [
+          {
+            "type": "-",
+            "named": false
+          },
           {
             "type": "identifier",
             "named": true
@@ -1695,9 +1699,13 @@
     "named": true,
     "fields": {
       "name": {
-        "multiple": false,
+        "multiple": true,
         "required": true,
         "types": [
+          {
+            "type": "-",
+            "named": false
+          },
           {
             "type": "identifier",
             "named": true
@@ -1832,9 +1840,13 @@
     "named": true,
     "fields": {
       "name": {
-        "multiple": false,
+        "multiple": true,
         "required": true,
         "types": [
+          {
+            "type": "-",
+            "named": false
+          },
           {
             "type": "identifier",
             "named": true
@@ -1862,9 +1874,13 @@
     "named": true,
     "fields": {
       "name": {
-        "multiple": false,
+        "multiple": true,
         "required": true,
         "types": [
+          {
+            "type": "-",
+            "named": false
+          },
           {
             "type": "identifier",
             "named": true
@@ -2697,6 +2713,10 @@
         "required": true,
         "types": [
           {
+            "type": ";",
+            "named": false
+          },
+          {
             "type": "block",
             "named": true
           }
@@ -2950,6 +2970,10 @@
       "types": [
         {
           "type": "associated_type",
+          "named": true
+        },
+        {
+          "type": "const_item",
           "named": true
         },
         {

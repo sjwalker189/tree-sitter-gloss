@@ -73,7 +73,15 @@
 ;
 ; `const_item` has the identical shape and is deliberately absent: no file here wraps one, so the
 ; oracle cannot confirm it, and the formatter is the authority rather than the symmetry.
+;
+; Three value shapes rather than one, and the list grows by what the oracle can *confirm* rather
+; than by what looks symmetrical — which is the whole reason this is a list and not
+; `(let_statement value: (_))`. An `if`/`else` written as a value is the shape that rule broke: its
+; `}` ends a line and the formatter treats that as a terminator, so a blanket rule indented three
+; files by one level too many. A `{` that closes is a terminator and a `)` or a `"` is not.
 (let_statement value: (call_expression)) @indent.begin
+(let_statement value: (string)) @indent.begin
+(let_statement value: (for_expression)) @indent.begin
 
 ; A method chain wrapped over lines hangs its continuations one level in, for the same reason and
 ; by the same authority: `Builder::new()` ends a line with `)`, which the formatter does not treat
