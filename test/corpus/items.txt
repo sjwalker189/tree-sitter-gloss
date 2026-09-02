@@ -1015,22 +1015,36 @@ where
   (function_item
     name: (identifier)
     type_parameters: (type_parameters
-      (type_parameter name: (type_identifier))
-      (type_parameter name: (type_identifier)))
+      (type_parameter
+        name: (type_identifier))
+      (type_parameter
+        name: (type_identifier)))
     parameters: (parameter_list
-      (parameter name: (identifier) type: (named_type name: (type_identifier)))
-      (parameter name: (identifier) type: (named_type name: (type_identifier))))
-    return_type: (named_type name: (type_identifier))
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)))
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
     where_clause: (where_clause
       (where_predicate
         name: (type_identifier)
-        bounds: (bound_list (bound name: (type_identifier))))
+        bounds: (bound_list
+          (bound
+            name: (type_identifier))))
       (where_predicate
         name: (type_identifier)
         bounds: (bound_list
-          (bound name: (type_identifier))
-          (bound name: (type_identifier)))))
-    body: (block tail: (integer_literal))))
+          (bound
+            name: (type_identifier))
+          (bound
+            name: (type_identifier)))))
+    body: (block
+      tail: (integer_literal))))
 
 ================================================================================
 a where clause on a struct, an enum and an impl
@@ -1047,38 +1061,63 @@ impl<T> Ranked<T> where T: Scored { fn get(self) -> T { self.held } }
 (source_file
   (struct_item
     name: (type_identifier)
-    type_parameters: (type_parameters (type_parameter name: (type_identifier)))
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)))
     where_clause: (where_clause
       (where_predicate
         name: (type_identifier)
-        bounds: (bound_list (bound name: (type_identifier)))))
+        bounds: (bound_list
+          (bound
+            name: (type_identifier)))))
     body: (field_list
-      (field_declaration name: (identifier) type: (named_type name: (type_identifier)))))
+      (field_declaration
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)))))
   (enum_item
     name: (type_identifier)
-    type_parameters: (type_parameters (type_parameter name: (type_identifier)))
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)))
     where_clause: (where_clause
       (where_predicate
         name: (type_identifier)
-        bounds: (bound_list (bound name: (type_identifier)))))
+        bounds: (bound_list
+          (bound
+            name: (type_identifier)))))
     body: (variant_list
-      (variant name: (type_identifier) payload: (variant_payload (named_type name: (type_identifier))))))
+      (variant
+        name: (type_identifier)
+        payload: (variant_payload
+          (named_type
+            name: (type_identifier))))))
   (impl_item
-    type_parameters: (type_parameters (type_parameter name: (type_identifier)))
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)))
     trait: (named_type
       name: (type_identifier)
-      type_arguments: (type_arguments (named_type name: (type_identifier))))
+      type_arguments: (type_arguments
+        (named_type
+          name: (type_identifier))))
     where_clause: (where_clause
       (where_predicate
         name: (type_identifier)
-        bounds: (bound_list (bound name: (type_identifier)))))
+        bounds: (bound_list
+          (bound
+            name: (type_identifier)))))
     body: (impl_body
       (function_item
         name: (identifier)
-        parameters: (parameter_list (self_parameter))
-        return_type: (named_type name: (type_identifier))
+        parameters: (parameter_list
+          (self_parameter))
+        return_type: (named_type
+          name: (type_identifier))
         body: (block
-          tail: (field_expression value: (identifier) field: (identifier)))))))
+          tail: (field_expression
+            value: (identifier)
+            field: (identifier)))))))
 
 ================================================================================
 a where clause with an associated type equation
@@ -1091,10 +1130,16 @@ fn total<I>(it: I) -> Int where I: Iterator<Item = Int> { 0 }
 (source_file
   (function_item
     name: (identifier)
-    type_parameters: (type_parameters (type_parameter name: (type_identifier)))
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)))
     parameters: (parameter_list
-      (parameter name: (identifier) type: (named_type name: (type_identifier))))
-    return_type: (named_type name: (type_identifier))
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
     where_clause: (where_clause
       (where_predicate
         name: (type_identifier)
@@ -1102,8 +1147,12 @@ fn total<I>(it: I) -> Int where I: Iterator<Item = Int> { 0 }
           (bound
             name: (type_identifier)
             assoc: (assoc_bindings
-              (assoc_binding name: (type_identifier) value: (named_type name: (type_identifier))))))))
-    body: (block tail: (integer_literal))))
+              (assoc_binding
+                name: (type_identifier)
+                value: (named_type
+                  name: (type_identifier))))))))
+    body: (block
+      tail: (integer_literal))))
 
 ==============================
 a type alias
@@ -1255,3 +1304,36 @@ use io;
     tree: (use_tree
       path: (use_path
         (identifier)))))
+
+============================================
+an extern function, with its two attributes
+============================================
+
+@link(m) @symbol(fabs)
+extern fn magnitude(x: Float) -> Float;
+
+extern fn getpid() -> i32;
+
+---
+
+(source_file
+  (attribute
+    name: (identifier)
+    (identifier))
+  (attribute
+    name: (identifier)
+    (identifier))
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier)))
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (identifier))))

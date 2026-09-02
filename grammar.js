@@ -227,7 +227,7 @@ module.exports = grammar({
     //
     // It is also what keeps this LR(1): a repeat per item makes `pub` ambiguous between them
     // until the head keyword arrives.
-    _modifier: (_) => choice("pub", "pure", "view", "linear", "client"),
+    _modifier: (_) => choice("pub", "pure", "view", "linear", "client", "extern"),
 
     _modifiers: ($) => repeat1($._modifier),
 
@@ -528,7 +528,13 @@ module.exports = grammar({
     // one member covers another needs equality on doubles, and `NaN` makes that a question with
     // no good answer.
     literal_type: ($) =>
-      choice($.string, $.integer_literal, $.boolean_literal, seq("-", $.integer_literal)),
+      choice(
+        $.string,
+        $.char_literal,
+        $.integer_literal,
+        $.boolean_literal,
+        seq("-", $.integer_literal),
+      ),
 
     // `Int`, `Opt<Int>`, `html::Doc`, `Self::Item`. Primitives are ordinary names resolved
     // against a prelude, so there is no separate rule for them.
@@ -610,6 +616,7 @@ module.exports = grammar({
         $.integer_literal,
         $.float_literal,
         $.string,
+        $.char_literal,
         $.boolean_literal,
         $.identifier,
         // A nullary constructor used as a value — `Nil`, `Point`, `Red`. Uppercase, because
@@ -900,7 +907,7 @@ module.exports = grammar({
     // is a question about types, so the grammar accepts both and the compiler decides. A float is
     // still accepted here and still refused there, for the `NaN` reason.
     literal_pattern: ($) =>
-      choice($.integer_literal, $.float_literal, $.boolean_literal, $.string),
+      choice($.integer_literal, $.float_literal, $.boolean_literal, $.string, $.char_literal),
 
     // `Nothing`, `Colour::Blue`, `text::Found::One`. A lowercase first segment is a package
     // here rather than a new binding, which is why this arm is tried before `binding_pattern`.
@@ -966,7 +973,13 @@ module.exports = grammar({
     // parser, so there is nothing narrower to say here either.
     string_interpolation: ($) => seq("{", $._expression, "}"),
 
-    escape_sequence: (_) => token.immediate(/\\[nrt0\\"{}]/),
+    // `'a'`, `'\n'`, `'\u{1F600}'` — one character. The compiler counts; the grammar takes what
+    // is between the quotes, as it does for a string, so `'ab'` parses here and errors there.
+    char_literal: ($) => seq("'", choice($.escape_sequence, /[^'\\\n]/), "'"),
+
+    // `\u{..}` names a scalar value in one to six hex digits; the rest are the single-character
+    // escapes. `'` and `"` are both accepted in both literal kinds, so there is one escape set.
+    escape_sequence: (_) => token.immediate(/\\([nrt0\\"'{}]|u\{[0-9a-fA-F]{1,6}\})/),
   },
 });
 

@@ -19,6 +19,7 @@
 (comment) @comment @spell
 
 (string) @string
+(char_literal) @character
 (escape_sequence) @string.escape
 (integer_literal) @number
 (float_literal) @number.float
@@ -221,6 +222,7 @@
   "pub"
   "view"
   "pure"
+  "extern"
   "linear"
   "mut"
 ] @keyword.modifier

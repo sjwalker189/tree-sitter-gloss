@@ -172,3 +172,83 @@ fn f() -> Str {
       name: (type_identifier))
     body: (block
       tail: (string))))
+
+============================================
+character literals, escaped and unicode
+============================================
+
+fn f() -> Char {
+    let a = 'x';
+    let b = '\n';
+    let c = '\u{1F600}';
+    let d = '"';
+    a
+}
+
+---
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (let_statement
+        name: (identifier)
+        value: (char_literal))
+      (let_statement
+        name: (identifier)
+        value: (char_literal
+          (escape_sequence)))
+      (let_statement
+        name: (identifier)
+        value: (char_literal
+          (escape_sequence)))
+      (let_statement
+        name: (identifier)
+        value: (char_literal))
+      tail: (identifier))))
+
+============================================
+a union of character literals, and a match over one
+============================================
+
+type Digit = '0' | '1';
+
+fn f(d: Digit) -> Int {
+    match d { '0' => 0, '1' => 1 }
+}
+
+---
+
+(source_file
+  (type_alias_item
+    name: (type_identifier)
+    value: (union_type
+      (literal_type
+        (char_literal))
+      (literal_type
+        (char_literal))))
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_arm_list
+            (match_arm
+              pattern: (literal_pattern
+                (char_literal))
+              value: (integer_literal))
+            (match_arm
+              pattern: (literal_pattern
+                (char_literal))
+              value: (integer_literal))))))))

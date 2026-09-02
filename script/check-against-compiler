@@ -33,9 +33,14 @@ fi
 #   errors/32-annotations.gloss  a `let` annotation whose `:` was typed as `=`. The compiler
 #                              recovers it into the annotation it was meant to be; a grammar has
 #                              nowhere to put that, and should say the file is malformed.
+#   errors/45-char-literals.gloss  `'ab'` and `'\q'`. The compiler lexes the whole `'..'` span as
+#                              one token and counts characters in the parser; a grammar takes
+#                              one character between the quotes, and should say the file is
+#                              malformed.
 expected_to_fail=(
   "errors/11-syntax.gloss"
   "errors/32-annotations.gloss"
+  "errors/45-char-literals.gloss"
 )
 
 # Whether $1 is one of them.
