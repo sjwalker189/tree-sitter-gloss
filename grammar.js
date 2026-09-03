@@ -106,16 +106,12 @@ module.exports = grammar({
     // with a lowercase name needs the braces of `use io::{println};`: both a directory and a
     // function are lowercase names, and the braces are the only thing telling them apart.
     // Nothing in this grammar has to know which is which, and neither does the reader.
-    // `pub use` re-exports: the name is brought into scope *and* handed on. A plain `use` does
-    // not, which is the whole of the rule — bringing a name into scope and passing it on are two
-    // things, and the keyword is what separates them.
-    use_declaration: ($) => seq(optional("pub"), "use", field("tree", $.use_tree), ";"),
+    use_declaration: ($) => seq("use", field("tree", $.use_tree), ";"),
 
     use_tree: ($) =>
       seq(
         field("path", $.use_path),
         optional(choice($.use_glob, field("group", $.use_group))),
-        optional(field("alias", $.use_alias)),
       ),
 
     use_path: ($) =>
@@ -126,18 +122,11 @@ module.exports = grammar({
 
     use_glob: (_) => seq("::", "*"),
 
-    // Flat: a member is a name and an optional alias, never another path.
+    // Flat: a member is a name, never another path.
     use_group: ($) =>
       seq("::", "{", commaSep($.use_tree_member), optional(","), "}"),
 
-    use_tree_member: ($) =>
-      seq(
-        field("name", choice($.identifier, $.type_identifier)),
-        optional(field("alias", $.use_alias)),
-      ),
-
-    use_alias: ($) =>
-      seq("as", field("name", choice($.identifier, $.type_identifier))),
+    use_tree_member: ($) => field("name", choice($.identifier, $.type_identifier)),
 
     // An attribute is a *sibling* of the declaration it applies to rather than its parent, which
     // is the shape the compiler's parser produces and the reason every item rule is unchanged: an
@@ -248,7 +237,6 @@ module.exports = grammar({
         optional(field("type_parameters", $.type_parameters)),
         field("parameters", $.parameter_list),
         optional(seq("->", field("return_type", $._type))),
-        optional(field("where_clause", $.where_clause)),
         // A body, or a `;` and none. The second is what an `@intrinsic` declaration is: the
         // runtime supplies the body and the declaration supplies only the type.
         //
@@ -278,7 +266,6 @@ module.exports = grammar({
         "struct",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
-        optional(field("where_clause", $.where_clause)),
         // `struct Idle;` — a marker, carrying nothing. The braced form asserts there is
         // nothing between the braces; the terminator says the same in one character. Nothing
         // downstream tells them apart: a struct is a one-constructor algebraic type either
@@ -296,7 +283,6 @@ module.exports = grammar({
         "enum",
         field("name", $.type_identifier),
         optional(field("type_parameters", $.type_parameters)),
-        optional(field("where_clause", $.where_clause)),
         field("body", $.variant_list),
       ),
 
@@ -363,7 +349,6 @@ module.exports = grammar({
         optional(field("type_parameters", $.type_parameters)),
         field("trait", $._type),
         optional(seq("for", field("type", $._type))),
-        optional(field("where_clause", $.where_clause)),
         field("body", $.impl_body),
       ),
 
@@ -476,17 +461,6 @@ module.exports = grammar({
 
     bound_list: ($) => sep1($.bound, "+"),
 
-    // `where T: Show, U: Eq + Hash` — the same bounds, written after the header instead of
-    // inside the angle brackets. Purely a second spelling: the compiler folds each predicate
-    // into the parameter it names, and a test there compares the signatures the two forms build.
-    //
-    // `where` is contextual in the compiler's lexer — it is an ordinary name everywhere else —
-    // and it is a plain string here for the same reason the other contextual keywords are: this
-    // is the only position it can appear in, so no conflict arises.
-    where_clause: ($) => seq("where", commaSep1($.where_predicate), optional(",")),
-
-    where_predicate: ($) =>
-      seq(field("name", $.type_identifier), ":", field("bounds", $.bound_list)),
 
     // `Iterator`, `html::Doc`, or `Iterator<Item = Int>` — a bound that also fixes one of the
     // trait's associated types. The angle brackets are free here because the language has no
@@ -751,21 +725,15 @@ module.exports = grammar({
         field("body", $.block),
       ),
 
-    // `fn(x: Int) -> Int { x + 1 }`, and `fn(x) => x + 1`. Parameters may be annotated, as in a
-    // declaration, or left for the type expected of the closure to supply.
-    //
-    // Two spellings of one thing, and the arrow is the one that costs nothing here for the same
-    // reason it costs nothing in the compiler: **`fn` has already said a closure starts**. Without
-    // the keyword, `m => e` and `(a, b) => e` would have to be told apart from a name and from a
-    // parenthesized expression by lookahead past both — and `=>` is already a `match` arm's
-    // separator, so the two would collide. With it, an arm whose body is a closure and a closure
-    // whose body is a `match` each nest without a rule of their own.
+    // `fn(x: Int) -> Int { x + 1 }`. Parameters may be annotated, as in a declaration, or left
+    // for the type expected of the closure to supply. The body is a block and only a block; the
+    // keyword is what keeps a closure and a `match` arm's `=>` apart without lookahead.
     lambda_expression: ($) =>
       seq(
         "fn",
         field("parameters", $.parameter_list),
         optional(seq("->", field("return_type", $._type))),
-        field("body", choice($.block, seq("=>", $._expression))),
+        field("body", $.block),
       ),
 
     if_expression: ($) =>

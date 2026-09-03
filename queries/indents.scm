@@ -39,11 +39,6 @@
   ;; The node spans the closing paren, so the branch rule below dedents it back out, exactly as it
   ;; does for an element.
   (continue_expression)
-  ;; A `where` clause indents its predicates, and it is the one container here with no delimiter
-  ;; at all — the `{` that follows belongs to the body, not to the clause. So the node has to be
-  ;; the clause itself, and it ends at the last predicate rather than spanning that brace, which
-  ;; is why the brace needs no dedent: nothing put it inside anything.
-  (where_clause)
 ] @indent.begin
 
 ; A binary expression wrapped over several lines hangs its continuations one level in. The

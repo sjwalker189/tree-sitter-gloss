@@ -15,8 +15,8 @@ use, in every shape it takes
 ==============================
 
 use io;
-use super::text as t;
-use io::{println, print as p};
+use super::text;
+use io::{println, print};
 use io::*;
 use Option::*;
 use Option::{Some, None};
@@ -32,9 +32,7 @@ use self::helpers;
   (use_declaration
     tree: (use_tree
       path: (use_path
-        (identifier))
-      alias: (use_alias
-        name: (identifier))))
+        (identifier))))
   (use_declaration
     tree: (use_tree
       path: (use_path
@@ -43,9 +41,7 @@ use self::helpers;
         (use_tree_member
           name: (identifier))
         (use_tree_member
-          name: (identifier)
-          alias: (use_alias
-            name: (identifier))))))
+          name: (identifier)))))
   (use_declaration
     tree: (use_tree
       path: (use_path
@@ -997,163 +993,6 @@ fn f() -> Int { 1 }
     body: (block
       tail: (integer_literal))))
 
-================================================================================
-a where clause on a function
-================================================================================
-
-fn pair<A, B>(a: A, b: B) -> Int
-where
-    A: Show,
-    B: Eq + Hash,
-{
-    0
-}
-
---------------------------------------------------------------------------------
-
-(source_file
-  (function_item
-    name: (identifier)
-    type_parameters: (type_parameters
-      (type_parameter
-        name: (type_identifier))
-      (type_parameter
-        name: (type_identifier)))
-    parameters: (parameter_list
-      (parameter
-        name: (identifier)
-        type: (named_type
-          name: (type_identifier)))
-      (parameter
-        name: (identifier)
-        type: (named_type
-          name: (type_identifier))))
-    return_type: (named_type
-      name: (type_identifier))
-    where_clause: (where_clause
-      (where_predicate
-        name: (type_identifier)
-        bounds: (bound_list
-          (bound
-            name: (type_identifier))))
-      (where_predicate
-        name: (type_identifier)
-        bounds: (bound_list
-          (bound
-            name: (type_identifier))
-          (bound
-            name: (type_identifier)))))
-    body: (block
-      tail: (integer_literal))))
-
-================================================================================
-a where clause on a struct, an enum and an impl
-================================================================================
-
-struct Ranked<T> where T: Scored { held: T }
-
-enum Maybe<T> where T: Show { One(T) }
-
-impl<T> Ranked<T> where T: Scored { fn get(self) -> T { self.held } }
-
---------------------------------------------------------------------------------
-
-(source_file
-  (struct_item
-    name: (type_identifier)
-    type_parameters: (type_parameters
-      (type_parameter
-        name: (type_identifier)))
-    where_clause: (where_clause
-      (where_predicate
-        name: (type_identifier)
-        bounds: (bound_list
-          (bound
-            name: (type_identifier)))))
-    body: (field_list
-      (field_declaration
-        name: (identifier)
-        type: (named_type
-          name: (type_identifier)))))
-  (enum_item
-    name: (type_identifier)
-    type_parameters: (type_parameters
-      (type_parameter
-        name: (type_identifier)))
-    where_clause: (where_clause
-      (where_predicate
-        name: (type_identifier)
-        bounds: (bound_list
-          (bound
-            name: (type_identifier)))))
-    body: (variant_list
-      (variant
-        name: (type_identifier)
-        payload: (variant_payload
-          (named_type
-            name: (type_identifier))))))
-  (impl_item
-    type_parameters: (type_parameters
-      (type_parameter
-        name: (type_identifier)))
-    trait: (named_type
-      name: (type_identifier)
-      type_arguments: (type_arguments
-        (named_type
-          name: (type_identifier))))
-    where_clause: (where_clause
-      (where_predicate
-        name: (type_identifier)
-        bounds: (bound_list
-          (bound
-            name: (type_identifier)))))
-    body: (impl_body
-      (function_item
-        name: (identifier)
-        parameters: (parameter_list
-          (self_parameter))
-        return_type: (named_type
-          name: (type_identifier))
-        body: (block
-          tail: (field_expression
-            value: (identifier)
-            field: (identifier)))))))
-
-================================================================================
-a where clause with an associated type equation
-================================================================================
-
-fn total<I>(it: I) -> Int where I: Iterator<Item = Int> { 0 }
-
---------------------------------------------------------------------------------
-
-(source_file
-  (function_item
-    name: (identifier)
-    type_parameters: (type_parameters
-      (type_parameter
-        name: (type_identifier)))
-    parameters: (parameter_list
-      (parameter
-        name: (identifier)
-        type: (named_type
-          name: (type_identifier))))
-    return_type: (named_type
-      name: (type_identifier))
-    where_clause: (where_clause
-      (where_predicate
-        name: (type_identifier)
-        bounds: (bound_list
-          (bound
-            name: (type_identifier)
-            assoc: (assoc_bindings
-              (assoc_binding
-                name: (type_identifier)
-                value: (named_type
-                  name: (type_identifier))))))))
-    body: (block
-      tail: (integer_literal))))
-
 ==============================
 a type alias
 ==============================
@@ -1266,7 +1105,7 @@ trait Show {
 an associated constant, inside an impl
 ==============================
 
-pub impl Int {
+impl Int {
     const MAX: Int = 4611686018427387903;
 }
 
@@ -1282,28 +1121,6 @@ pub impl Int {
         type: (named_type
           name: (type_identifier))
         value: (integer_literal)))))
-
-==============================
-`pub use` hands a name on
-==============================
-
-pub use html::{Html};
-use io;
-
----
-
-(source_file
-  (use_declaration
-    tree: (use_tree
-      path: (use_path
-        (identifier))
-      group: (use_group
-        (use_tree_member
-          name: (type_identifier)))))
-  (use_declaration
-    tree: (use_tree
-      path: (use_path
-        (identifier)))))
 
 ============================================
 an extern function, with its two attributes

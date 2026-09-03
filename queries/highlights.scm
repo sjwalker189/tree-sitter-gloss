@@ -86,11 +86,10 @@
 
 (package_declaration name: (identifier) @module)
 
-; A `use` path names directories, and the alias it binds is another name for one. The
+; A `use` path names directories. The
 ; uppercase segment where a package path stops is a type, and the rule below already colours
 ; it — so only the lowercase run is a module here.
 (use_path (identifier) @module)
-(use_alias name: (identifier) @module)
 ; `self` and `super` are roots rather than values, whatever else they mean elsewhere.
 (use_path ["self" "super"] @module.builtin)
 ; What a group or a single-item path takes *out* of a package is an ordinary name.
@@ -203,10 +202,6 @@
   ; the `word` token, so this is only this token where the grammar admits it — `let attrs = 1` is
   ; an ordinary binding in both.
   "attrs"
-  ; Contextual in the compiler's lexer, and highlighted unconditionally here — the grammar only
-  ; admits it in the one position where it is the keyword, so a variable named `where` is not
-  ; this token.
-  "where"
 ] @keyword
 
 ; `text_declaration` *is* the `text` token — the rule has no other content — so it is captured
