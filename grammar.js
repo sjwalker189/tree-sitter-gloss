@@ -547,21 +547,12 @@ module.exports = grammar({
     block: ($) => seq("{", repeat($._statement), optional(field("tail", $._expression)), "}"),
 
     _statement: ($) =>
-      choice($.let_statement, $.assignment_statement, $.expression_statement),
+      choice($.let_statement, $.expression_statement),
 
-    // `x = e;` and `p.f = e;`. The compiler decides this *after* parsing the left side, by a
-    // checkpoint, and keeps `=` out of the operator table on purpose — an assignment is a
-    // statement, so `a = b = c` and `f(x = 1)` do not parse. The target is a place there and an
-    // ordinary expression here, because whether it is one is a question for the checker.
-    assignment_statement: ($) =>
-      seq(field("target", $._expression), "=", field("value", $._expression), ";"),
 
     let_statement: ($) =>
       seq(
         "let",
-        // On the binding rather than on the type: what it describes is whether this *name* may
-        // be made to mean something else later.
-        optional("mut"),
         field("name", choice($.identifier, "_")),
         optional(seq(":", field("type", $._type))),
         "=",
@@ -578,7 +569,6 @@ module.exports = grammar({
         $.if_expression,
         $.match_expression,
         $.loop_expression,
-        $.while_expression,
         $.for_expression,
         $.block,
       ),
@@ -757,11 +747,6 @@ module.exports = grammar({
     loop_expression: ($) =>
       seq("loop", optional(field("carried", $.loop_header)), field("body", $.block)),
 
-    // `while cond { body }`. No header, unlike `loop`: what varies is whatever mutable local the
-    // body assigns, and the compiler infers that set. `Unit`, so `loop` stays the form that
-    // produces a value.
-    while_expression: ($) =>
-      seq("while", field("condition", $._expression), field("body", $.block)),
 
     // `for (total = 0) x in xs.iter() { .. }`, and `for x in xs.iter() { .. }`. The header is
     // the same one `loop` takes — the two forms are one idea, and a `for` carrying nothing is

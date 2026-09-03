@@ -219,7 +219,6 @@
   "pure"
   "extern"
   "linear"
-  "mut"
 ] @keyword.modifier
 
 [
@@ -227,7 +226,6 @@
   "else"
   "match"
   "loop"
-  "while"
   "break"
   "continue"
   "return"
