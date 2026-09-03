@@ -502,3 +502,41 @@ fn f(xs: Array<Int>) -> Int {
             arguments: (argument_list))
           body: (block)))
       tail: (integer_literal))))
+
+================================================================================
+let with a pattern and an else
+================================================================================
+
+fn f(o: Option<Int>) -> Int {
+    let Option::Some(n) = o else { return 0 };
+    n
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))))
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (tuple_struct_pattern
+          (path_pattern
+            (type_identifier)
+            (type_identifier))
+          (binding_pattern
+            (identifier)))
+        (identifier)
+        (block
+          (return_expression
+            (integer_literal))))
+      (identifier))))

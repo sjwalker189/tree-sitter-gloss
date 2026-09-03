@@ -466,7 +466,7 @@ try propagates a Result
 ==============================
 
 fn f() -> Int {
-    parse(s)?
+    try parse(s).transform()
 }
 
 ---
@@ -479,17 +479,21 @@ fn f() -> Int {
       name: (type_identifier))
     body: (block
       tail: (try_expression
-        (call_expression
-          function: (identifier)
-          arguments: (argument_list
-            (identifier)))))))
+        operand: (call_expression
+          function: (field_expression
+            value: (call_expression
+              function: (identifier)
+              arguments: (argument_list
+                (identifier)))
+            field: (identifier))
+          arguments: (argument_list))))))
 
 =======================================
-try binds tighter than any operator
+try binds like a unary operator
 =======================================
 
 fn f() -> Int {
-    a? + b?
+    try a.b() + c
 }
 
 ---
@@ -503,9 +507,12 @@ fn f() -> Int {
     body: (block
       tail: (binary_expression
         left: (try_expression
-          (identifier))
-        right: (try_expression
-          (identifier))))))
+          operand: (call_expression
+            function: (field_expression
+              value: (identifier)
+              field: (identifier))
+            arguments: (argument_list)))
+        right: (identifier)))))
 
 ==============================
 closure

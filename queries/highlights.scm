@@ -229,6 +229,7 @@
   "break"
   "continue"
   "return"
+  "try"
 ] @keyword.control
 
 ; `for` is two keywords wearing one spelling: the loop, and the `impl Show for Int` that has

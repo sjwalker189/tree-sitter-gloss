@@ -39,8 +39,7 @@ const PREC = {
   additive: 9,
   multiplicative: 10,
   unary: 11,
-  // Postfix `?`, `.field` and `(args)` bind tighter than any operator, so `a? + b?`
-  // propagates each side before adding them.
+  // Postfix `.field` and `(args)` bind tighter than any operator.
   postfix: 12,
 };
 
@@ -551,13 +550,26 @@ module.exports = grammar({
 
 
     let_statement: ($) =>
-      seq(
-        "let",
-        field("name", choice($.identifier, "_")),
-        optional(seq(":", field("type", $._type))),
-        "=",
-        field("value", $._expression),
-        ";",
+      choice(
+        seq(
+          "let",
+          field("name", choice($.identifier, "_")),
+          optional(seq(":", field("type", $._type))),
+          "=",
+          field("value", $._expression),
+          ";",
+        ),
+        // `let Some(x) = e else { .. };` — a refutable pattern, and the block that runs when it
+        // does not match. The compiler requires that block to leave; the grammar only shapes it.
+        seq(
+          "let",
+          field("pattern", choice($.tuple_struct_pattern, $.path_pattern, $.literal_pattern)),
+          "=",
+          field("value", $._expression),
+          "else",
+          field("else", $.block),
+          ";",
+        ),
       ),
 
     // A block-like expression may stand as a statement without a `;`, as in Rust.
@@ -662,7 +674,9 @@ module.exports = grammar({
 
     // `e?` — propagate a `Result`'s error to the caller. Desugars to a `match`, and names
     // `Result::Ok` and `Result::Err` by name, so the compiler holds no table of lang items.
-    try_expression: ($) => prec(PREC.postfix, seq($._expression, "?")),
+    // `try e` — prefix, binding like `-` and `!`, so it covers the postfix chain to its right.
+    // Which calls inside the operand unwrap is decided by their types, in the checker.
+    try_expression: ($) => prec(PREC.unary, seq("try", field("operand", $._expression))),
 
     // `Point { x: 1 }`, and `Conn<Active> { ..c }`.
     //
@@ -708,12 +722,16 @@ module.exports = grammar({
         field("body", $.block),
       ),
 
+    // Right-associative, so an `else` binds to the nearest `if` — which is what settles
+    // `let P = if c { a } else { b } else { .. }` the way the compiler's greedy `if` does.
     if_expression: ($) =>
-      seq(
-        "if",
-        field("condition", $._expression),
-        field("consequence", $.block),
-        optional(seq("else", field("alternative", choice($.block, $.if_expression)))),
+      prec.right(
+        seq(
+          "if",
+          field("condition", $._expression),
+          field("consequence", $.block),
+          optional(seq("else", field("alternative", choice($.block, $.if_expression)))),
+        ),
       ),
 
     match_expression: ($) =>
