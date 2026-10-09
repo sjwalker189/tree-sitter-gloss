@@ -624,11 +624,12 @@ module.exports = grammar({
       ),
 
     // `use x <- f(a)` — the rest of the block becomes a closure, and the call takes it as its
-    // last argument. Gleam's continuation, spelled with Gleam's arrow.
+    // last argument. Gleam's continuation, spelled with Gleam's arrow. `use <- f(a)` binds
+    // nothing, for a callee whose closure takes nothing.
     use_statement: ($) =>
       seq(
         "use",
-        field("pattern", $._pattern),
+        optional(field("pattern", $._pattern)),
         "<-",
         field("value", $._expression),
         optional($._terminator),

@@ -498,3 +498,63 @@ fn f() -> Int {
         (identifier))
       (unary_expression
         (identifier)))))
+
+=========================================================================
+a continuation that binds nothing
+=========================================================================
+
+view Order(qty: Int) -> Html(Msg) {
+    use <- ctx::provide(Bounds(min: 1, max: 10, step: 2))
+    <NumberInput value={qty} on_change={n => Qty(n)}/>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (type_identifier))))
+    (block
+      (use_statement
+        (call_expression
+          (path_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (call_expression
+              (type_identifier)
+              (argument_list
+                (labelled_argument
+                  (identifier)
+                  (integer_literal))
+                (labelled_argument
+                  (identifier)
+                  (integer_literal))
+                (labelled_argument
+                  (identifier)
+                  (integer_literal)))))))
+      (element
+        (element_self_closing
+          (type_identifier)
+          (element_attribute
+            (attribute_name)
+            (element_value
+              (identifier)))
+          (element_attribute
+            (attribute_name)
+            (element_value
+              (lambda_expression
+                (identifier)
+                (call_expression
+                  (type_identifier)
+                  (argument_list
+                    (identifier)))))))))))

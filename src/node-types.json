@@ -6529,7 +6529,7 @@
     "fields": {
       "pattern": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "binding_pattern",

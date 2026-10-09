@@ -1072,8 +1072,8 @@ an event attribute: a hole that is a closure over the event
 =========================================================================
 
 view Counter(count: Int) -> Html(Msg) {
-    <button onClick={Increment}>{count}</button>
-    <input onInput={Changed(event.value)}/>
+    <button onClick={_ => Increment}>{count}</button>
+    <input onInput={e => Changed(e.value)}/>
 }
 
 ---
@@ -1099,7 +1099,8 @@ view Counter(count: Int) -> Html(Msg) {
             (element_attribute
               (attribute_name)
               (element_value
-                (type_identifier))))
+                (lambda_expression
+                  (type_identifier)))))
           (element_children
             (element_interpolation
               (identifier)))
@@ -1111,9 +1112,11 @@ view Counter(count: Int) -> Html(Msg) {
           (element_attribute
             (attribute_name)
             (element_value
-              (call_expression
-                (type_identifier)
-                (argument_list
-                  (field_expression
-                    (identifier)
-                    (identifier)))))))))))
+              (lambda_expression
+                (identifier)
+                (call_expression
+                  (type_identifier)
+                  (argument_list
+                    (field_expression
+                      (identifier)
+                      (identifier))))))))))))
