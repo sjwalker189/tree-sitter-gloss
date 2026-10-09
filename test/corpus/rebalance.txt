@@ -1006,3 +1006,42 @@ view Page(items: List(Str), n: Int) {
               (identifier)))
           (element_text))
         (element_close)))))
+
+=========================================================================
+an attribute name with a colon
+=========================================================================
+
+view Button(live: Str) {
+  <button x-on:click="go" x-bind:disabled="!({live})" xlink:href={x}>go</button>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (block
+      (element
+        (element_open
+          (identifier)
+          (element_attribute
+            (attribute_name)
+            (string))
+          (element_attribute
+            (attribute_name)
+            (string
+              (string_interpolation
+                (identifier))))
+          (element_attribute
+            (attribute_name)
+            (element_value
+              (identifier))))
+        (element_children
+          (element_text))
+        (element_close
+          (identifier))))))

@@ -497,7 +497,9 @@ module.exports = grammar({
     //
     // The one thing the compiler accepts and this does not is `aria - label`, spaced — it is the
     // same attribute written strangely, and no file writes it.
-    attribute_name: (_) => token(/[A-Za-z_][A-Za-z0-9_]*(-[A-Za-z_][A-Za-z0-9_]*)*/),
+    // `aria-label`, and `x-on:click` — a `:` followed by a letter continues the name, as HTML's
+    // namespaced and directive attributes need.
+    attribute_name: (_) => token(/[A-Za-z_][A-Za-z0-9_]*([-:][A-Za-z_][A-Za-z0-9_]*)*/),
 
     // --- generics ----------------------------------------------------------------------
 

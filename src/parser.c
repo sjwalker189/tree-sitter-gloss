@@ -4720,7 +4720,8 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
       END_STATE();
     case 52:
       ACCEPT_TOKEN(sym_attribute_name);
-      if (lookahead == '-') ADVANCE(28);
+      if (lookahead == '-' ||
+          lookahead == ':') ADVANCE(28);
       if (('0' <= lookahead && lookahead <= '9') ||
           ('A' <= lookahead && lookahead <= 'Z') ||
           lookahead == '_' ||
