@@ -1072,8 +1072,8 @@ an event attribute: a hole that is a closure over the event
 =========================================================================
 
 view Counter(count: Int) -> Html(Msg) {
-    <button on:click={Increment}>{count}</button>
-    <input on:input={Changed(event.value)}/>
+    <button onClick={Increment}>{count}</button>
+    <input onInput={Changed(event.value)}/>
 }
 
 ---
