@@ -1,0 +1,677 @@
+=========================================================================
+statements end with their line, and a `;` separates two on one line
+=========================================================================
+
+fn f() -> Int {
+    let a = 1
+    let b = 2; let c = 3
+    a + b + c
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (identifier)
+        (integer_literal))
+      (let_statement
+        (identifier)
+        (integer_literal))
+      (let_statement
+        (identifier)
+        (integer_literal))
+      (binary_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (identifier)))))
+
+=========================================================================
+a line opening with `(`, `-` or `<` begins a new statement
+=========================================================================
+
+view Pair() {
+    let x = f(1)
+    (x)
+    -x
+    <p>one</p>
+    <p>two</p>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list)
+    (block
+      (let_statement
+        (identifier)
+        (call_expression
+          (identifier)
+          (argument_list
+            (integer_literal))))
+      (expression_statement
+        (parenthesized_expression
+          (identifier)))
+      (expression_statement
+        (unary_expression
+          (identifier)))
+      (expression_statement
+        (element
+          (element_open
+            (identifier))
+          (element_children
+            (element_text))
+          (element_close
+            (identifier))))
+      (element
+        (element_open
+          (identifier))
+        (element_children
+          (element_text))
+        (element_close
+          (identifier))))))
+
+=========================================================================
+an operator at the start of a line continues the expression
+=========================================================================
+
+fn f() -> Int {
+    triangle(10)
+        + grid()
+        |> finish
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (binary_expression
+        (binary_expression
+          (call_expression
+            (identifier)
+            (argument_list
+              (integer_literal)))
+          (call_expression
+            (identifier)
+            (argument_list)))
+        (identifier)))))
+
+=========================================================================
+import, with a group and a glob
+=========================================================================
+
+import io
+import io::{println, print}
+import Colour::*
+
+---
+
+(source_file
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier))))
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier))
+      (use_group
+        (use_tree_member
+          (identifier))
+        (use_tree_member
+          (identifier)))))
+  (use_declaration
+    (use_tree
+      (use_path
+        (type_identifier))
+      (use_glob))))
+
+=========================================================================
+generics in parens, lowercase variables, bounds in where
+=========================================================================
+
+struct Pair(a, b) { first: a, second: b }
+enum Opt(t) { None, Some(t) }
+type Rows(t) = Array(t)
+fn largest(a: t, b: t) -> t where t: Ord { if a > b { a } else { b } }
+impl Map(k, v) where k: Hash + Eq { fn get(self, key: k) -> Option(v) { None } }
+fn sum(it: i) -> Int where i: Iterator(Item = Int) { 0 }
+
+---
+
+(source_file
+  (struct_item
+    (type_identifier)
+    (type_parameters
+      (type_parameter
+        (identifier))
+      (type_parameter
+        (identifier)))
+    (field_list
+      (field_declaration
+        (identifier)
+        (named_type
+          (identifier)))
+      (field_declaration
+        (identifier)
+        (named_type
+          (identifier)))))
+  (enum_item
+    (type_identifier)
+    (type_parameters
+      (type_parameter
+        (identifier)))
+    (variant_list
+      (variant
+        (type_identifier))
+      (variant
+        (type_identifier)
+        (variant_payload
+          (named_type
+            (identifier))))))
+  (type_alias_item
+    (type_identifier)
+    (type_parameters
+      (type_parameter
+        (identifier)))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (identifier)))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (identifier))))
+    (named_type
+      (identifier))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier)))))
+    (block
+      (if_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (block
+          (identifier))
+        (block
+          (identifier)))))
+  (impl_item
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (identifier))
+        (named_type
+          (identifier))))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier))
+          (bound
+            (type_identifier)))))
+    (impl_body
+      (function_item
+        (identifier)
+        (parameter_list
+          (self_parameter)
+          (parameter
+            (identifier)
+            (named_type
+              (identifier))))
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (identifier))))
+        (block
+          (type_identifier)))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (identifier))))
+    (named_type
+      (type_identifier))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier)
+            (assoc_bindings
+              (assoc_binding
+                (type_identifier)
+                (named_type
+                  (type_identifier))))))))
+    (block
+      (integer_literal))))
+
+=========================================================================
+bare function types and arrow closures
+=========================================================================
+
+fn apply(f: (Int) -> Int, g: (Str, Int) -> Unit) -> Int {
+    let double = (n: Int) -> Int => n * 2
+    let inc = n => n + 1
+    let add = (a, b) => { a + b }
+    f(double(inc(1)))
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (function_type
+          (parameter_type_list
+            (named_type
+              (type_identifier)))
+          (named_type
+            (type_identifier))))
+      (parameter
+        (identifier)
+        (function_type
+          (parameter_type_list
+            (named_type
+              (type_identifier))
+            (named_type
+              (type_identifier)))
+          (named_type
+            (type_identifier)))))
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (identifier)
+        (lambda_expression
+          (parameter_list
+            (parameter
+              (identifier)
+              (named_type
+                (type_identifier))))
+          (named_type
+            (type_identifier))
+          (binary_expression
+            (identifier)
+            (integer_literal))))
+      (let_statement
+        (identifier)
+        (lambda_expression
+          (identifier)
+          (binary_expression
+            (identifier)
+            (integer_literal))))
+      (let_statement
+        (identifier)
+        (lambda_expression
+          (parameter_list
+            (parameter
+              (identifier))
+            (parameter
+              (identifier)))
+          (block
+            (binary_expression
+              (identifier)
+              (identifier)))))
+      (call_expression
+        (identifier)
+        (argument_list
+          (call_expression
+            (identifier)
+            (argument_list
+              (call_expression
+                (identifier)
+                (argument_list
+                  (integer_literal))))))))))
+
+=========================================================================
+extend, and a view without fn
+=========================================================================
+
+extend Str { fn shout(self) -> Str { self + "!" } }
+
+pub view Card(title: Str) {
+    <div>{title}</div>
+}
+
+---
+
+(source_file
+  (impl_item
+    (named_type
+      (type_identifier))
+    (impl_body
+      (function_item
+        (identifier)
+        (parameter_list
+          (self_parameter))
+        (named_type
+          (type_identifier))
+        (block
+          (binary_expression
+            (identifier)
+            (string))))))
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (block
+      (element
+        (element_open
+          (identifier))
+        (element_children
+          (element_interpolation
+            (identifier)))
+        (element_close
+          (identifier))))))
+
+=========================================================================
+let assert, use continuations, and match over several subjects
+=========================================================================
+
+fn f(o: Option(Int), a: Int, b: Int) -> Int {
+    let assert Some(n) = o
+    use half <- with_half(n)
+    match a > b, a == b {
+        true, _ => 1
+        _, true => 0
+        _, _ => half
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (tuple_struct_pattern
+          (path_pattern
+            (type_identifier))
+          (binding_pattern
+            (identifier)))
+        (identifier))
+      (use_statement
+        (binding_pattern
+          (identifier))
+        (call_expression
+          (identifier)
+          (argument_list
+            (identifier))))
+      (match_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (binary_expression
+          (identifier)
+          (identifier))
+        (match_arm_list
+          (match_arm
+            (literal_pattern
+              (boolean_literal))
+            (wildcard_pattern)
+            (integer_literal))
+          (match_arm
+            (wildcard_pattern)
+            (literal_pattern
+              (boolean_literal))
+            (integer_literal))
+          (match_arm
+            (wildcard_pattern)
+            (wildcard_pattern)
+            (identifier)))))))
+
+=========================================================================
+arguments by name, by default, and constructors by field
+=========================================================================
+
+fn area(width: Int, height: Int = 2, scale: Int = 1) -> Int { width * height * scale }
+
+fn f(p: Point, height: Int) -> Int {
+    let q = Point(..p, y: 10)
+    let m = Insert(user: "sam", count: 7)
+    area(2, height:) + area(width: 2, scale: 5) + q.y
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))
+        (integer_literal))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))
+        (integer_literal)))
+    (named_type
+      (type_identifier))
+    (block
+      (binary_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (identifier))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (identifier)
+        (call_expression
+          (type_identifier)
+          (argument_list
+            (struct_base
+              (identifier))
+            (labelled_argument
+              (identifier)
+              (integer_literal)))))
+      (let_statement
+        (identifier)
+        (call_expression
+          (type_identifier)
+          (argument_list
+            (labelled_argument
+              (identifier)
+              (string))
+            (labelled_argument
+              (identifier)
+              (integer_literal)))))
+      (binary_expression
+        (binary_expression
+          (call_expression
+            (identifier)
+            (argument_list
+              (integer_literal)
+              (labelled_argument
+                (identifier))))
+          (call_expression
+            (identifier)
+            (argument_list
+              (labelled_argument
+                (identifier)
+                (integer_literal))
+              (labelled_argument
+                (identifier)
+                (integer_literal)))))
+        (field_expression
+          (identifier)
+          (identifier))))))
+
+=========================================================================
+labelled variant fields, and patterns by field name
+=========================================================================
+
+enum Message {
+    Insert(user: Str, count: Int),
+    Get(Int),
+}
+
+fn describe(m: Message) -> Int {
+    match m {
+        Insert(user:, count: 7) => user.len()
+        Insert(count:, ..) => count
+        Get(n) => n
+    }
+}
+
+---
+
+(source_file
+  (enum_item
+    (type_identifier)
+    (variant_list
+      (variant
+        (type_identifier)
+        (variant_payload
+          (variant_field
+            (identifier)
+            (named_type
+              (type_identifier)))
+          (variant_field
+            (identifier)
+            (named_type
+              (type_identifier)))))
+      (variant
+        (type_identifier)
+        (variant_payload
+          (named_type
+            (type_identifier))))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))
+    (block
+      (match_expression
+        (identifier)
+        (match_arm_list
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (field_pattern
+                (identifier))
+              (field_pattern
+                (identifier)
+                (literal_pattern
+                  (integer_literal))))
+            (call_expression
+              (field_expression
+                (identifier)
+                (identifier))
+              (argument_list)))
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (field_pattern
+                (identifier))
+              (rest_pattern))
+            (identifier))
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (binding_pattern
+                (identifier)))
+            (identifier)))))))
+
+=========================================================================
+a const reads its type off a literal, and a unit struct needs no `;`
+=========================================================================
+
+const MAX = 120
+const NAME: Str = "x"
+struct Cat
+
+---
+
+(source_file
+  (const_item
+    (type_identifier)
+    (integer_literal))
+  (const_item
+    (type_identifier)
+    (named_type
+      (type_identifier))
+    (string))
+  (struct_item
+    (type_identifier)))

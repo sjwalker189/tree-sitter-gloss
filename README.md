@@ -5,7 +5,7 @@ A [tree-sitter](https://tree-sitter.github.io) grammar for
 reference-counted language for building web applications.
 
 ```console
-$ tree-sitter test                        # 122 corpus tests
+$ tree-sitter test                        # 150 corpus tests
 $ script/check-against-compiler ../gloss-lang   # every real file in the compiler repo
 ```
 
@@ -44,7 +44,14 @@ this grammar — the LR state decides. What *does* need help is telling a nested
 closing tag, so `</` and `/>` are single tokens here where the compiler peeks at the token
 after the `<`.
 
-**Element content is not code**, and that is the reason for `src/scanner.c`. Everything
+**A statement ends with its line.** The compiler reads the newline; this grammar makes the `;`
+optional and lets the automaton settle where a statement ends, which gives the same tree
+everywhere but one place: a line opening with `<`, `(` or `-`, which would otherwise read as a
+comparison, a call or a subtraction continuing the line above. `src/scanner.c` reports that line
+break as a token of its own, so `<p>one</p>` followed by `<p>two</p>` is two statements here as
+it is in the compiler.
+
+**Element content is not code**, and that is the other reason for `src/scanner.c`. Everything
 between an element's `>` and the next `<` or `{` is character data *including its whitespace*
 — the space in `<p>a b</p>` is part of the document, not trivia. `extras` cannot be turned off
 for one rule, so the token is scanned externally. The compiler solves the same problem with a
@@ -56,7 +63,7 @@ its closing tag to a line comment. Both cases are in the corpus.
 | | |
 |---|---|
 | `grammar.js` | the grammar, annotated with what it is derived from |
-| `src/scanner.c` | one external token: element character data |
+| `src/scanner.c` | two external tokens: element character data, and the line break that ends a statement |
 | `queries/highlights.scm` | syntax highlighting |
 | `queries/locals.scm` | scopes and bindings |
 | `queries/injections.scm` | deliberately almost empty — see below |

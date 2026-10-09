@@ -747,28 +747,27 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (call_expression
-            function: (identifier)
-            arguments: (argument_list))
-          body: (match_arm_list
-            (match_arm
-              pattern: (tuple_struct_pattern
-                type: (path_pattern
-                  (type_identifier)
-                  (type_identifier))
-                (binding_pattern
-                  (identifier)))
-              value: (identifier))
-            (match_arm
-              pattern: (tuple_struct_pattern
-                type: (path_pattern
-                  (type_identifier)
-                  (type_identifier))
-                (binding_pattern
-                  (identifier)))
-              value: (integer_literal))))))))
+      tail: (match_expression
+        value: (call_expression
+          function: (identifier)
+          arguments: (argument_list))
+        body: (match_arm_list
+          (match_arm
+            pattern: (tuple_struct_pattern
+              type: (path_pattern
+                (type_identifier)
+                (type_identifier))
+              (binding_pattern
+                (identifier)))
+            value: (identifier))
+          (match_arm
+            pattern: (tuple_struct_pattern
+              type: (path_pattern
+                (type_identifier)
+                (type_identifier))
+              (binding_pattern
+                (identifier)))
+            value: (integer_literal)))))))
 
 =================================================
 a closure as a match arm's value, and a match as a closure's body

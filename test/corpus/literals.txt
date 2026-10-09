@@ -240,15 +240,14 @@ fn f(d: Digit) -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (literal_pattern
-                (char_literal))
-              value: (integer_literal))
-            (match_arm
-              pattern: (literal_pattern
-                (char_literal))
-              value: (integer_literal))))))))
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (literal_pattern
+              (char_literal))
+            value: (integer_literal))
+          (match_arm
+            pattern: (literal_pattern
+              (char_literal))
+            value: (integer_literal)))))))

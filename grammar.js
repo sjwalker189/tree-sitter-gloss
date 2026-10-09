@@ -28,6 +28,8 @@
 const PREC = {
   // The compiler's `binary_bp`, in `kind.rs`. Rust's ordering rather than C's: comparison
   // binds tighter than the bitwise operators, so `a & b == c` is `a & (b == c)`.
+  // `|>` binds loosest of all: `a + b |> f` pipes the sum.
+  pipe: 0,
   or: 1,
   and: 2,
   bitor: 3,
@@ -48,7 +50,10 @@ module.exports = grammar({
 
   extras: ($) => [/\s/, $.comment],
 
-  externals: ($) => [$.element_text],
+  // `_soft_end` is the one piece of the newline rule the automaton cannot see: a statement ends
+  // at a line break when the next line opens with `<`, `(` or `-`, which would otherwise read
+  // as a comparison, a call or a subtraction continuing it. The scanner produces it only there.
+  externals: ($) => [$.element_text, $._soft_end],
 
   word: ($) => $.identifier,
 
@@ -65,6 +70,13 @@ module.exports = grammar({
     // `*` or a `{` follows, so it cannot decide whether the path is finished. One token of
     // lookahead past the `::` settles it, which is what declaring the conflict buys.
     [$.use_path],
+    // A statement ends with its line, so an expression before a `}` is either the last
+    // statement or the block's value. Both readings are kept and dynamic precedence picks the
+    // value, which is what the compiler does by reading the newline.
+    [$.block, $.expression_statement],
+    // `(x)` is a parenthesized value until a `=>` says it was an arrow's parameter list. The
+    // compiler scans ahead for the arrow; here both readings run until the token after `)`.
+    [$.parameter, $._expression],
   ],
 
   rules: {
@@ -90,7 +102,7 @@ module.exports = grammar({
 
     // `package html;` — checked against the directory the file sits in, so a file moved into
     // the wrong place is an error rather than a silent change of meaning.
-    package_declaration: ($) => seq("package", field("name", $.identifier), ";"),
+    package_declaration: ($) => seq("package", field("name", $.identifier), optional(";")),
 
     // `use io;`, `use io::{println};`, `use Option::*;`, `use super::text as t;`
     //
@@ -105,7 +117,10 @@ module.exports = grammar({
     // with a lowercase name needs the braces of `use io::{println};`: both a directory and a
     // function are lowercase names, and the braces are the only thing telling them apart.
     // Nothing in this grammar has to know which is which, and neither does the reader.
-    use_declaration: ($) => seq("use", field("tree", $.use_tree), ";"),
+    // `import` is the spelling the rebalance settled on; `use` stays accepted by the compiler
+    // until every file has moved, and in a block it is the continuation statement below.
+    use_declaration: ($) =>
+      seq(choice("use", "import"), field("tree", $.use_tree), optional(";")),
 
     use_tree: ($) =>
       seq(
@@ -178,11 +193,11 @@ module.exports = grammar({
         optional($._modifiers),
         "const",
         field("name", $.type_identifier),
-        ":",
-        field("type", $._type),
+        // A literal initializer says its own type; anything else is annotated.
+        optional(seq(":", field("type", $._type))),
         "=",
         field("value", $._expression),
-        ";",
+        optional(";"),
       ),
 
     // `type Slug = Str;`, `type Rows<T> = Array<T>;`
@@ -202,7 +217,7 @@ module.exports = grammar({
         optional(field("type_parameters", $.type_parameters)),
         "=",
         field("value", $._type),
-        ";",
+        optional(";"),
       ),
 
     // The run of modifiers before a declaration.
@@ -223,27 +238,35 @@ module.exports = grammar({
     // authority. The compiler scans the run of modifiers and dispatches on what it ends at, so
     // any order of any subset parses and a repeat is a *diagnostic* rather than a parse error —
     // this mirrors that, rather than enumerating the orders.
+    // A statement ends with its line, so a body-less declaration needs no `;` — and a `view`
+    // may drop the `fn`: `view Card(title: Str) { .. }`. The keyword is optional after *any*
+    // run of modifiers rather than only after `view`, because a run is one rule here; which
+    // modifiers permit the omission is the compiler's business, and every item but a function
+    // begins with its own keyword, so nothing else can follow a modifier and a name.
     function_item: ($) =>
       seq(
         optional($._modifiers),
-        "fn",
+        optional("fn"),
         // Either case. Identifier case is semantic here, so a name is ordinarily lowercase —
         // but a `view` may be capitalised, because a component is a thing rather than an action
         // and because `<Card/>` will need the capital to tell a component from a tag. The
         // compiler allows it only after `view`; accepting it here for any `fn` keeps this LR(1)
         // and leaves the restriction where the message is.
         field("name", choice($.identifier, $.type_identifier)),
-        optional(field("type_parameters", $.type_parameters)),
+        // Declared in angles only: a function names its variables by using them, and a paren
+        // list after its name is its parameters.
+        optional(field("type_parameters", alias($._angle_type_parameters, $.type_parameters))),
         field("parameters", $.parameter_list),
         optional(seq("->", field("return_type", $._type))),
-        // A body, or a `;` and none. The second is what an `@intrinsic` declaration is: the
-        // runtime supplies the body and the declaration supplies only the type.
+        optional(field("where", $.where_clause)),
+        // A body, or none. The second is what an `@intrinsic` declaration is: the runtime
+        // supplies the body and the declaration supplies only the type.
         //
         // Accepted for *any* function, exactly as the compiler's parser accepts it, and for the
         // same reason — which declarations may go without a body is a question about the
         // attribute, and an attribute is the item's *sibling* rather than part of it. So neither
         // parser can tell from here, and the rule is stated where the answer is known.
-        field("body", choice($.block, ";")),
+        optional(field("body", choice($.block, ";"))),
       ),
 
     parameter_list: ($) =>
@@ -256,8 +279,13 @@ module.exports = grammar({
     // modules check in parallel and in any order — but it is optional in the grammar, exactly
     // as it is in the compiler's. Rejecting it here would replace the checker's explanation of
     // why it is required with a parse error that says nothing.
+    // `status: Int = 200` — a parameter a call may leave out.
     parameter: ($) =>
-      seq(field("name", $.identifier), optional(seq(":", field("type", $._type)))),
+      seq(
+        field("name", $.identifier),
+        optional(seq(":", field("type", $._type))),
+        optional(seq("=", field("default", $._expression))),
+      ),
 
     struct_item: ($) =>
       seq(
@@ -269,7 +297,7 @@ module.exports = grammar({
         // nothing between the braces; the terminator says the same in one character. Nothing
         // downstream tells them apart: a struct is a one-constructor algebraic type either
         // way, and the bare literal `Idle` is that constructor applied to no fields.
-        choice(field("body", $.field_list), ";"),
+        optional(choice(field("body", $.field_list), ";")),
       ),
 
     field_list: ($) => seq("{", commaSep($.field_declaration), optional(","), "}"),
@@ -290,7 +318,12 @@ module.exports = grammar({
     variant: ($) =>
       seq(field("name", $.type_identifier), optional(field("payload", $.variant_payload))),
 
-    variant_payload: ($) => seq("(", commaSep1($._type), optional(","), ")"),
+    // `(Int, List)`, or `(user: NewUser, reply: Reply(Int))` — a variant's fields are all
+    // positional or all labelled, and the compiler says which.
+    variant_payload: ($) =>
+      seq("(", commaSep1(choice($.variant_field, $._type)), optional(","), ")"),
+
+    variant_field: ($) => seq(field("name", $.identifier), ":", field("type", $._type)),
 
     trait_item: ($) =>
       seq(
@@ -316,7 +349,7 @@ module.exports = grammar({
         "type",
         field("name", $.type_identifier),
         optional(seq("=", field("value", $._type))),
-        ";",
+        optional(";"),
       ),
 
     // `fn show(self) -> Str;` — no body. With one it is a *default*, and parses as an
@@ -335,19 +368,24 @@ module.exports = grammar({
         field("name", $.identifier),
         field("parameters", $.parameter_list),
         optional(seq("->", field("return_type", $._type))),
-        ";",
+        optional(";"),
       )),
 
     // `impl Show for Int`, or `impl<T> Array<T>` for an inherent block. Both start with a
     // type and the `for` decides which was which — the compiler parses one and looks, rather
     // than guessing, which is what lets a trait be package-qualified and a self type generic.
+    //
+    // `extend Tracer { .. }` adds methods to a type declared elsewhere, and is the inherent
+    // block under another name. The bounds on an impl's variables go in a `where` clause after
+    // the head.
     impl_item: ($) =>
       seq(
         optional($._modifiers),
-        "impl",
-        optional(field("type_parameters", $.type_parameters)),
+        choice("impl", "extend"),
+        optional(field("type_parameters", alias($._angle_type_parameters, $.type_parameters))),
         field("trait", $._type),
         optional(seq("for", field("type", $._type))),
+        optional(field("where", $.where_clause)),
         field("body", $.impl_body),
       ),
 
@@ -453,10 +491,32 @@ module.exports = grammar({
 
     // --- generics ----------------------------------------------------------------------
 
-    type_parameters: ($) => seq("<", commaSep1($.type_parameter), optional(","), ">"),
+    // `(a, b)` is the spelling; `<T, U>` stays accepted until every file has moved. A variable
+    // is a lowercase name, and need not be declared at all — a function names its own by
+    // using them — which is what the `where` clause below bounds.
+    type_parameters: ($) =>
+      choice(
+        $._angle_type_parameters,
+        seq("(", commaSep1($.type_parameter), optional(","), ")"),
+      ),
+
+    // The declared form alone, for an `impl` head: `impl(t) ..` would read as a function type
+    // standing for the trait, and an impl declares nothing in the new spelling — it names its
+    // variables in the type and bounds them in `where`.
+    _angle_type_parameters: ($) => seq("<", commaSep1($.type_parameter), optional(","), ">"),
 
     type_parameter: ($) =>
-      seq(field("name", $.type_identifier), optional(seq(":", field("bounds", $.bound_list)))),
+      seq(
+        field("name", choice($.identifier, $.type_identifier)),
+        optional(seq(":", field("bounds", $.bound_list))),
+      ),
+
+    // `where t: Ord, k: Hash + Eq` — after a signature or an impl head. A predicate is the
+    // same node a declared parameter is, which is how the compiler merges the two by name.
+    //
+    // Right-associative so the list runs as far as the commas do: inside an `elements` block a
+    // member may be followed by a comma of its own, and that one belongs to the block.
+    where_clause: ($) => prec.right(seq("where", commaSep1($.type_parameter))),
 
     bound_list: ($) => sep1($.bound, "+"),
 
@@ -471,12 +531,21 @@ module.exports = grammar({
         optional(field("assoc", $.assoc_bindings)),
       ),
 
-    assoc_bindings: ($) => seq("<", commaSep1($.assoc_binding), optional(","), ">"),
+    assoc_bindings: ($) =>
+      choice(
+        seq("<", commaSep1($.assoc_binding), optional(","), ">"),
+        seq("(", commaSep1($.assoc_binding), optional(","), ")"),
+      ),
 
     assoc_binding: ($) =>
       seq(field("name", $.type_identifier), "=", field("value", $._type)),
 
-    type_arguments: ($) => seq("<", commaSep1($._type), optional(","), ">"),
+    // `Option(Int)` — a type applied to arguments is written like a value built from them.
+    type_arguments: ($) =>
+      choice(
+        seq("<", commaSep1($._type), optional(","), ">"),
+        seq("(", commaSep1($._type), optional(","), ")"),
+      ),
 
     // --- types -------------------------------------------------------------------------
 
@@ -532,11 +601,15 @@ module.exports = grammar({
         optional(field("type_arguments", $.type_arguments)),
       ),
 
+    // `(Request) -> Response` — bare; the `fn` spelling stays accepted until every file has moved.
     function_type: ($) =>
-      seq(
-        "fn",
-        field("parameters", $.parameter_type_list),
-        optional(seq("->", $._type_term)),
+      choice(
+        seq(
+          "fn",
+          field("parameters", $.parameter_type_list),
+          optional(seq("->", $._type_term)),
+        ),
+        seq(field("parameters", $.parameter_type_list), "->", $._type_term),
       ),
 
     parameter_type_list: ($) => seq("(", commaSep($._type), optional(","), ")"),
@@ -545,9 +618,13 @@ module.exports = grammar({
 
     block: ($) => seq("{", repeat($._statement), optional(field("tail", $._expression)), "}"),
 
+    // A statement ends with its line, and a `;` is written only between two on one line. The
+    // compiler reads the newline; this grammar makes the `;` optional and lets the automaton
+    // settle where one statement ends — which differs from the compiler in exactly the cases
+    // the reference calls out, a `(` or a `-` opening the next line, and in those it still
+    // produces a tree rather than an error.
     _statement: ($) =>
-      choice($.let_statement, $.expression_statement),
-
+      choice($.let_statement, $.use_statement, $.expression_statement),
 
     let_statement: ($) =>
       choice(
@@ -557,9 +634,9 @@ module.exports = grammar({
           optional(seq(":", field("type", $._type))),
           "=",
           field("value", $._expression),
-          ";",
+          optional($._terminator),
         ),
-        // `let Some(x) = e else { .. };` — a refutable pattern, and the block that runs when it
+        // `let Some(x) = e else { .. }` — a refutable pattern, and the block that runs when it
         // does not match. The compiler requires that block to leave; the grammar only shapes it.
         seq(
           "let",
@@ -568,13 +645,40 @@ module.exports = grammar({
           field("value", $._expression),
           "else",
           field("else", $.block),
-          ";",
+          optional($._terminator),
+        ),
+        // `let assert Some(x) = e` — the same pattern, and a panic where the `else` would be.
+        seq(
+          "let",
+          "assert",
+          field("pattern", $._pattern),
+          "=",
+          field("value", $._expression),
+          optional($._terminator),
         ),
       ),
 
-    // A block-like expression may stand as a statement without a `;`, as in Rust.
+    // `use x <- f(a)` — the rest of the block becomes a closure, and the call takes it as its
+    // last argument. Gleam's continuation, spelled with Gleam's arrow.
+    use_statement: ($) =>
+      seq(
+        "use",
+        field("pattern", $._pattern),
+        "<-",
+        field("value", $._expression),
+        optional($._terminator),
+      ),
+
+    // An expression standing as a statement. Without a `;` it is also what a block's tail is,
+    // and the two readings are told apart by dynamic precedence: the last expression of a block
+    // is its value.
     expression_statement: ($) =>
-      choice(seq($._expression, ";"), prec(1, $._block_like_expression)),
+      choice(seq($._expression, $._terminator), prec.dynamic(-1, $._expression)),
+
+    // `;` between two statements on one line, or the line break the scanner reports — see
+    // `externals`. Every other line break ends a statement by the automaton running out of
+    // ways to continue it.
+    _terminator: ($) => choice(";", $._soft_end),
 
     _block_like_expression: ($) =>
       choice(
@@ -639,6 +743,7 @@ module.exports = grammar({
 
     binary_expression: ($) => {
       const table = [
+        [PREC.pipe, "|>"],
         [PREC.or, "||"],
         [PREC.and, "&&"],
         [PREC.bitor, "|"],
@@ -667,7 +772,19 @@ module.exports = grammar({
     call_expression: ($) =>
       prec(PREC.postfix, seq(field("function", $._expression), field("arguments", $.argument_list))),
 
-    argument_list: ($) => seq("(", commaSep($._expression), optional(","), ")"),
+    // `(a, name: b, other:, ..base)` — positional, then by name, then a constructor's base.
+    // The order is the compiler's rule; here any mix parses, and that is a diagnostic there.
+    argument_list: ($) =>
+      seq(
+        "(",
+        commaSep(choice($._expression, $.labelled_argument, $.struct_base)),
+        optional(","),
+        ")",
+      ),
+
+    // `name: value`, or `name:` for the local of that name.
+    labelled_argument: ($) =>
+      seq(field("name", $.identifier), ":", optional(field("value", $._expression))),
 
     field_expression: ($) =>
       prec(PREC.postfix, seq(field("value", $._expression), ".", field("field", $.identifier))),
@@ -714,13 +831,30 @@ module.exports = grammar({
     // `fn(x: Int) -> Int { x + 1 }`. Parameters may be annotated, as in a declaration, or left
     // for the type expected of the closure to supply. The body is a block and only a block; the
     // keyword is what keeps a closure and a `match` arm's `=>` apart without lookahead.
+    // Or `(x: Int) -> Int => x + 1`, `n => n * 2`, `(a, b) => { .. }` — the arrow, which is the
+    // spelling; `fn` stays accepted until every file has moved. The body runs as far right as
+    // an expression can.
     lambda_expression: ($) =>
-      seq(
-        "fn",
-        field("parameters", $.parameter_list),
-        optional(seq("->", field("return_type", $._type))),
-        field("body", $.block),
+      choice(
+        seq(
+          "fn",
+          field("parameters", $.parameter_list),
+          optional(seq("->", field("return_type", $._type))),
+          field("body", $.block),
+        ),
+        prec.right(
+          seq(
+            field("parameters", choice($.identifier, alias($._arrow_parameters, $.parameter_list))),
+            optional(seq("->", field("return_type", $._type))),
+            "=>",
+            field("body", $._expression),
+          ),
+        ),
       ),
+
+    // An arrow's parameters, which never include `self`: with it in the list, `(self + 1)` would
+    // lex `self` as the keyword the moment a parameter list was possible and lose the value.
+    _arrow_parameters: ($) => seq("(", commaSep($.parameter), optional(","), ")"),
 
     // Right-associative, so an `else` binds to the nearest `if` — which is what settles
     // `let P = if c { a } else { b } else { .. }` the way the compiler's greedy `if` does.
@@ -734,13 +868,19 @@ module.exports = grammar({
         ),
       ),
 
+    // `match a, b { p, q => .. }` — several subjects without a tuple, one pattern each.
     match_expression: ($) =>
-      seq("match", field("value", $._expression), field("body", $.match_arm_list)),
+      seq("match", commaSep1(field("value", $._expression)), field("body", $.match_arm_list)),
 
     match_arm_list: ($) => seq("{", repeat($.match_arm), "}"),
 
     match_arm: ($) =>
-      seq(field("pattern", $._pattern), "=>", field("value", $._expression), optional(",")),
+      seq(
+        commaSep1(field("pattern", $._pattern)),
+        "=>",
+        field("value", $._expression),
+        optional(","),
+      ),
 
     // `loop (i = 0, total = 0) { .. }` — the values that change between rounds are named,
     // because nothing else can change. The header *is* the block's parameter list.
@@ -873,8 +1013,21 @@ module.exports = grammar({
     // A constructor's fields may only be names — a nested pattern is rejected by the
     // compiler rather than compiled, because code generation extracts fields with no test of
     // its own. It is a grammar the parser accepts and the checker refuses.
+    //
+    // `Insert(user:, reply: r)` names fields; `Thread(id:, ..)` leaves the rest unwritten.
     tuple_struct_pattern: ($) =>
-      seq(field("type", $.path_pattern), "(", commaSep($._pattern), optional(","), ")"),
+      seq(
+        field("type", $.path_pattern),
+        "(",
+        commaSep(choice($._pattern, $.field_pattern, $.rest_pattern)),
+        optional(","),
+        ")",
+      ),
+
+    // `name: pat`, or `name:` binding the field to a local of that name.
+    field_pattern: ($) => seq(field("name", $.identifier), ":", optional(field("pattern", $._pattern))),
+
+    rest_pattern: (_) => "..",
 
     // --- tokens ------------------------------------------------------------------------
 

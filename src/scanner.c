@@ -24,6 +24,7 @@
 
 enum TokenType {
   ELEMENT_TEXT,
+  SOFT_END,
 };
 
 void *tree_sitter_gloss_external_scanner_create(void) { return NULL; }
@@ -46,6 +47,30 @@ void tree_sitter_gloss_external_scanner_deserialize(void *payload, const char *b
 bool tree_sitter_gloss_external_scanner_scan(void *payload, TSLexer *lexer,
                                              const bool *valid_symbols) {
   (void)payload;
+
+  // A statement ends at a line break when the next line opens with `<`, `(` or `-`: an
+  // element, a parenthesized value or a negation, which the compiler's parser reads the same
+  // way (`newline_before` in `parser.rs`). Only the whitespace is consumed; the token that
+  // follows is lexed as the start of the next statement. Every other line break is left to the
+  // automaton, which ends the statement by running out of ways to continue it. Asked first,
+  // because `element_text` is never valid in the same state.
+  if (valid_symbols[SOFT_END]) {
+    bool newline = false;
+    while (lexer->lookahead == ' ' || lexer->lookahead == '\t' || lexer->lookahead == '\r' ||
+           lexer->lookahead == '\n') {
+      if (lexer->lookahead == '\n') {
+        newline = true;
+      }
+      lexer->advance(lexer, true);
+    }
+    if (newline &&
+        (lexer->lookahead == '<' || lexer->lookahead == '(' || lexer->lookahead == '-')) {
+      lexer->result_symbol = SOFT_END;
+      lexer->mark_end(lexer);
+      return true;
+    }
+    return false;
+  }
 
   if (!valid_symbols[ELEMENT_TEXT]) {
     return false;

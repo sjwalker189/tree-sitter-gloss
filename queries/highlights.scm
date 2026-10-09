@@ -66,9 +66,14 @@
 (parameter name: (identifier) @variable.parameter)
 (self_parameter) @variable.builtin
 
+; An argument's label is the parameter's name, and reads as one.
+(labelled_argument name: (identifier) @variable.parameter)
+
 (field_declaration name: (identifier) @property)
 (field_initializer name: (identifier) @property)
 (field_expression field: (identifier) @property)
+(variant_field name: (identifier) @property)
+(field_pattern name: (identifier) @property)
 
 ; An attribute name is a field — a declared group is spliced into each element's generated
 ; attribute struct as ordinary fields, and a medium reads `a.class` — so it takes the colour every
@@ -78,6 +83,10 @@
 (attribute_declaration name: (attribute_name) @property)
 
 (type_parameter name: (type_identifier) @type.definition)
+
+; A type variable is a lowercase name, declared by being used — `fn largest(a: t) -> t` — and
+; bounded in `where`. Only its declaration can be told from a value without resolving anything.
+(type_parameter name: (identifier) @type.definition)
 
 ; An alias's *declaration*. A use of one cannot be told from any other type name without
 ; resolving it — an alias is transparent, so `Slug` and `Str` are the same thing — and the rule
@@ -196,6 +205,8 @@
   "type"
   "test"
   "impl"
+  "extend"
+  "where"
   "elements"
   "element"
   ; Contextual in the compiler, and contextual here for free: tree-sitter extracts keywords from
@@ -211,7 +222,11 @@
 [
   "package"
   "use"
+  "import"
 ] @keyword.import
+
+; `use` in a block is the continuation statement, which is control flow rather than an import.
+(use_statement "use" @keyword.control)
 
 [
   "pub"
@@ -230,6 +245,7 @@
   "continue"
   "return"
   "try"
+  "assert"
 ] @keyword.control
 
 ; `for` is two keywords wearing one spelling: the loop, and the `impl Show for Int` that has
@@ -261,7 +277,9 @@
   "="
   "->"
   "=>"
-  "?"
+  "<-"
+  "|>"
+  ".."
 ] @operator
 
 [

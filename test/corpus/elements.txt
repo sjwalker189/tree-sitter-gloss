@@ -525,25 +525,24 @@ view fn f<M: Html>(m: M) -> M {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (if_expression
-          condition: (identifier)
-          consequence: (block
-            tail: (element
-              open: (element_open
-                name: (identifier))
-              children: (element_children
-                (element_text))
-              close: (element_close
-                name: (identifier))))
-          alternative: (block
-            tail: (element
-              open: (element_open
-                name: (identifier))
-              children: (element_children
-                (element_text))
-              close: (element_close
-                name: (identifier)))))))))
+      tail: (if_expression
+        condition: (identifier)
+        consequence: (block
+          tail: (element
+            open: (element_open
+              name: (identifier))
+            children: (element_children
+              (element_text))
+            close: (element_close
+              name: (identifier))))
+        alternative: (block
+          tail: (element
+            open: (element_open
+              name: (identifier))
+            children: (element_children
+              (element_text))
+            close: (element_close
+              name: (identifier))))))))
 
 ===================================
 an interpolation holding a call

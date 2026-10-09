@@ -15,13 +15,12 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (if_expression
-          condition: (identifier)
-          consequence: (block
-            tail: (integer_literal))
-          alternative: (block
-            tail: (integer_literal)))))))
+      tail: (if_expression
+        condition: (identifier)
+        consequence: (block
+          tail: (integer_literal))
+        alternative: (block
+          tail: (integer_literal))))))
 
 ==============================
 if as a statement
@@ -68,17 +67,16 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (if_expression
+      tail: (if_expression
+        condition: (identifier)
+        consequence: (block
+          tail: (integer_literal))
+        alternative: (if_expression
           condition: (identifier)
           consequence: (block
             tail: (integer_literal))
-          alternative: (if_expression
-            condition: (identifier)
-            consequence: (block
-              tail: (integer_literal))
-            alternative: (block
-              tail: (integer_literal))))))))
+          alternative: (block
+            tail: (integer_literal)))))))
 
 ==============================
 match over constructors
@@ -100,23 +98,22 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (path_pattern
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (path_pattern
+              (type_identifier))
+            value: (integer_literal))
+          (match_arm
+            pattern: (tuple_struct_pattern
+              type: (path_pattern
                 (type_identifier))
-              value: (integer_literal))
-            (match_arm
-              pattern: (tuple_struct_pattern
-                type: (path_pattern
-                  (type_identifier))
-                (binding_pattern
-                  (identifier))
-                (binding_pattern
-                  (identifier)))
-              value: (identifier))))))))
+              (binding_pattern
+                (identifier))
+              (binding_pattern
+                (identifier)))
+            value: (identifier)))))))
 
 ======================================
 match over literals and a wildcard
@@ -139,21 +136,20 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (literal_pattern
-                (integer_literal))
-              value: (integer_literal))
-            (match_arm
-              pattern: (literal_pattern
-                (integer_literal))
-              value: (integer_literal))
-            (match_arm
-              pattern: (wildcard_pattern)
-              value: (integer_literal))))))))
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (literal_pattern
+              (integer_literal))
+            value: (integer_literal))
+          (match_arm
+            pattern: (literal_pattern
+              (integer_literal))
+            value: (integer_literal))
+          (match_arm
+            pattern: (wildcard_pattern)
+            value: (integer_literal)))))))
 
 ==============================
 loop with carried values
@@ -174,31 +170,30 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (loop_expression
-          carried: (loop_header
-            (loop_binding
-              name: (identifier)
-              value: (integer_literal))
-            (loop_binding
-              name: (identifier)
-              value: (integer_literal)))
-          body: (block
-            tail: (if_expression
-              condition: (binary_expression
-                left: (identifier)
-                right: (integer_literal))
-              consequence: (block
-                tail: (break_expression
-                  (identifier)))
-              alternative: (block
-                tail: (continue_expression
-                  (binary_expression
-                    left: (identifier)
-                    right: (integer_literal))
-                  (binary_expression
-                    left: (identifier)
-                    right: (identifier)))))))))))
+      tail: (loop_expression
+        carried: (loop_header
+          (loop_binding
+            name: (identifier)
+            value: (integer_literal))
+          (loop_binding
+            name: (identifier)
+            value: (integer_literal)))
+        body: (block
+          tail: (if_expression
+            condition: (binary_expression
+              left: (identifier)
+              right: (integer_literal))
+            consequence: (block
+              tail: (break_expression
+                (identifier)))
+            alternative: (block
+              tail: (continue_expression
+                (binary_expression
+                  left: (identifier)
+                  right: (integer_literal))
+                (binary_expression
+                  left: (identifier)
+                  right: (identifier))))))))))
 
 ========================================
 loop with an annotated carried value
@@ -219,47 +214,46 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (loop_expression
-          carried: (loop_header
-            (loop_binding
-              name: (identifier)
-              value: (integer_literal))
-            (loop_binding
-              name: (identifier)
-              type: (named_type
-                name: (type_identifier)
-                type_arguments: (type_arguments
-                  (named_type
-                    name: (type_identifier))))
-              value: (call_expression
-                function: (path_expression
-                  qualifier: (type_identifier)
-                  name: (identifier))
-                arguments: (argument_list))))
-          body: (block
-            tail: (if_expression
-              condition: (binary_expression
-                left: (identifier)
-                right: (integer_literal))
-              consequence: (block
-                tail: (break_expression
-                  (call_expression
-                    function: (field_expression
-                      value: (identifier)
-                      field: (identifier))
-                    arguments: (argument_list))))
-              alternative: (block
-                tail: (continue_expression
-                  (binary_expression
-                    left: (identifier)
-                    right: (integer_literal))
-                  (call_expression
-                    function: (field_expression
-                      value: (identifier)
-                      field: (identifier))
-                    arguments: (argument_list
-                      (identifier))))))))))))
+      tail: (loop_expression
+        carried: (loop_header
+          (loop_binding
+            name: (identifier)
+            value: (integer_literal))
+          (loop_binding
+            name: (identifier)
+            type: (named_type
+              name: (type_identifier)
+              type_arguments: (type_arguments
+                (named_type
+                  name: (type_identifier))))
+            value: (call_expression
+              function: (path_expression
+                qualifier: (type_identifier)
+                name: (identifier))
+              arguments: (argument_list))))
+        body: (block
+          tail: (if_expression
+            condition: (binary_expression
+              left: (identifier)
+              right: (integer_literal))
+            consequence: (block
+              tail: (break_expression
+                (call_expression
+                  function: (field_expression
+                    value: (identifier)
+                    field: (identifier))
+                  arguments: (argument_list))))
+            alternative: (block
+              tail: (continue_expression
+                (binary_expression
+                  left: (identifier)
+                  right: (integer_literal))
+                (call_expression
+                  function: (field_expression
+                    value: (identifier)
+                    field: (identifier))
+                  arguments: (argument_list
+                    (identifier)))))))))))
 
 ==============================
 loop with no header
@@ -280,11 +274,10 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (loop_expression
-          body: (block
-            tail: (break_expression
-              (integer_literal))))))))
+      tail: (loop_expression
+        body: (block
+          tail: (break_expression
+            (integer_literal)))))))
 
 ==============================
 break with no value
@@ -303,10 +296,9 @@ fn f() {
     name: (identifier)
     parameters: (parameter_list)
     body: (block
-      (expression_statement
-        (loop_expression
-          body: (block
-            tail: (break_expression)))))))
+      tail: (loop_expression
+        body: (block
+          tail: (break_expression))))))
 
 ==============================
 nested loops
@@ -330,25 +322,24 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (loop_expression
-          carried: (loop_header
-            (loop_binding
-              name: (identifier)
-              value: (integer_literal)))
-          body: (block
-            (let_statement
-              name: (identifier)
-              value: (loop_expression
-                carried: (loop_header
-                  (loop_binding
-                    name: (identifier)
-                    value: (integer_literal)))
-                body: (block
-                  tail: (break_expression
-                    (identifier)))))
-            tail: (break_expression
-              (identifier))))))))
+      tail: (loop_expression
+        carried: (loop_header
+          (loop_binding
+            name: (identifier)
+            value: (integer_literal)))
+        body: (block
+          (let_statement
+            name: (identifier)
+            value: (loop_expression
+              carried: (loop_header
+                (loop_binding
+                  name: (identifier)
+                  value: (integer_literal)))
+              body: (block
+                tail: (break_expression
+                  (identifier)))))
+          tail: (break_expression
+            (identifier)))))))
 
 ==============================
 early return
@@ -450,22 +441,21 @@ fn f(xs: Array<Int>) -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (for_expression
-          carried: (loop_header
-            (loop_binding
-              name: (identifier)
-              value: (integer_literal)))
-          element: (identifier)
-          iterator: (call_expression
-            function: (field_expression
-              value: (identifier)
-              field: (identifier))
-            arguments: (argument_list))
-          body: (block
-            tail: (binary_expression
-              left: (identifier)
-              right: (identifier))))))))
+      tail: (for_expression
+        carried: (loop_header
+          (loop_binding
+            name: (identifier)
+            value: (integer_literal)))
+        element: (identifier)
+        iterator: (call_expression
+          function: (field_expression
+            value: (identifier)
+            field: (identifier))
+          arguments: (argument_list))
+        body: (block
+          tail: (binary_expression
+            left: (identifier)
+            right: (identifier)))))))
 
 ================================================================================
 for with no carried value, as a statement

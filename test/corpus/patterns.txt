@@ -15,13 +15,12 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (wildcard_pattern)
-              value: (integer_literal))))))))
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (wildcard_pattern)
+            value: (integer_literal)))))))
 
 ==============================
 binding
@@ -40,14 +39,13 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (binding_pattern
-                (identifier))
-              value: (identifier))))))))
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (binding_pattern
+              (identifier))
+            value: (identifier)))))))
 
 ==============================
 literals
@@ -66,18 +64,17 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (literal_pattern
-                (integer_literal))
-              value: (integer_literal))
-            (match_arm
-              pattern: (literal_pattern
-                (boolean_literal))
-              value: (integer_literal))))))))
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (literal_pattern
+              (integer_literal))
+            value: (integer_literal))
+          (match_arm
+            pattern: (literal_pattern
+              (boolean_literal))
+            value: (integer_literal)))))))
 
 ==============================
 bare constructor
@@ -96,18 +93,17 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (path_pattern
-                (type_identifier))
-              value: (integer_literal))
-            (match_arm
-              pattern: (path_pattern
-                (type_identifier))
-              value: (integer_literal))))))))
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (path_pattern
+              (type_identifier))
+            value: (integer_literal))
+          (match_arm
+            pattern: (path_pattern
+              (type_identifier))
+            value: (integer_literal)))))))
 
 ==============================
 qualified constructor
@@ -126,20 +122,19 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (path_pattern
-                (type_identifier)
-                (type_identifier))
-              value: (integer_literal))
-            (match_arm
-              pattern: (path_pattern
-                (type_identifier)
-                (type_identifier))
-              value: (integer_literal))))))))
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (path_pattern
+              (type_identifier)
+              (type_identifier))
+            value: (integer_literal))
+          (match_arm
+            pattern: (path_pattern
+              (type_identifier)
+              (type_identifier))
+            value: (integer_literal)))))))
 
 ==============================
 constructor with fields
@@ -158,23 +153,22 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (tuple_struct_pattern
-                type: (path_pattern
-                  (type_identifier))
-                (binding_pattern
-                  (identifier))
-                (binding_pattern
-                  (identifier)))
-              value: (identifier))
-            (match_arm
-              pattern: (path_pattern
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (tuple_struct_pattern
+              type: (path_pattern
                 (type_identifier))
-              value: (integer_literal))))))))
+              (binding_pattern
+                (identifier))
+              (binding_pattern
+                (identifier)))
+            value: (identifier))
+          (match_arm
+            pattern: (path_pattern
+              (type_identifier))
+            value: (integer_literal)))))))
 
 ===========================================
 a package-qualified constructor pattern
@@ -193,25 +187,24 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (tuple_struct_pattern
-                type: (path_pattern
-                  (identifier)
-                  (type_identifier)
-                  (type_identifier))
-                (binding_pattern
-                  (identifier)))
-              value: (identifier))
-            (match_arm
-              pattern: (path_pattern
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (tuple_struct_pattern
+              type: (path_pattern
                 (identifier)
                 (type_identifier)
                 (type_identifier))
-              value: (integer_literal))))))))
+              (binding_pattern
+                (identifier)))
+            value: (identifier))
+          (match_arm
+            pattern: (path_pattern
+              (identifier)
+              (type_identifier)
+              (type_identifier))
+            value: (integer_literal)))))))
 
 ================================================================
 a float pattern, which the compiler refuses and this accepts
@@ -230,17 +223,16 @@ fn f() -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (literal_pattern
-                (float_literal))
-              value: (integer_literal))
-            (match_arm
-              pattern: (wildcard_pattern)
-              value: (integer_literal))))))))
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (literal_pattern
+              (float_literal))
+            value: (integer_literal))
+          (match_arm
+            pattern: (wildcard_pattern)
+            value: (integer_literal)))))))
 
 ==============================
 a string pattern, which is only complete over a union
@@ -266,15 +258,14 @@ fn f(m: "a" | "b") -> Int {
     return_type: (named_type
       name: (type_identifier))
     body: (block
-      (expression_statement
-        (match_expression
-          value: (identifier)
-          body: (match_arm_list
-            (match_arm
-              pattern: (literal_pattern
-                (string))
-              value: (integer_literal))
-            (match_arm
-              pattern: (literal_pattern
-                (string))
-              value: (integer_literal))))))))
+      tail: (match_expression
+        value: (identifier)
+        body: (match_arm_list
+          (match_arm
+            pattern: (literal_pattern
+              (string))
+            value: (integer_literal))
+          (match_arm
+            pattern: (literal_pattern
+              (string))
+            value: (integer_literal)))))))
