@@ -1084,3 +1084,38 @@ view Icon(name: Str) {
         (element_close
           (identifier)
           (identifier))))))
+
+=========================================================================
+an assert statement, an underscore arrow and a string over two lines
+=========================================================================
+
+test "a taken email is refused" {
+  let taken = submit("/register", _ => 1)
+  assert taken.status == 422
+  let text = "a
+  b"
+}
+
+---
+
+(source_file
+  (test_item
+    (string)
+    (block
+      (let_statement
+        (identifier)
+        (call_expression
+          (identifier)
+          (argument_list
+            (string)
+            (lambda_expression
+              (integer_literal)))))
+      (assert_statement
+        (binary_expression
+          (field_expression
+            (identifier)
+            (identifier))
+          (integer_literal)))
+      (let_statement
+        (identifier)
+        (string)))))

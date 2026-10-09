@@ -573,7 +573,12 @@ module.exports = grammar({
     // the reference calls out, a `(` or a `-` opening the next line, and in those it still
     // produces a tree rather than an error.
     _statement: ($) =>
-      choice($.let_statement, $.use_statement, $.expression_statement),
+      choice($.let_statement, $.use_statement, $.assert_statement, $.expression_statement),
+
+    // `assert reply.status == 303` — a panic, naming the condition, when it is false. The word
+    // is contextual in the compiler; here it is only this token where a statement may start.
+    assert_statement: ($) =>
+      seq("assert", field("condition", $._expression), optional($._terminator)),
 
     let_statement: ($) =>
       choice(
@@ -814,7 +819,7 @@ module.exports = grammar({
         ),
         prec.right(
           seq(
-            field("parameters", choice($.identifier, alias($._arrow_parameters, $.parameter_list))),
+            field("parameters", choice($.identifier, "_", alias($._arrow_parameters, $.parameter_list))),
             optional(seq("->", field("return_type", $._type))),
             "=>",
             field("body", $._expression),
@@ -1063,7 +1068,8 @@ module.exports = grammar({
     string: ($) =>
       seq(
         '"',
-        repeat(choice($.escape_sequence, $.string_interpolation, /[^"{\\\n]+/)),
+        // A string may span lines; the newlines are part of it.
+        repeat(choice($.escape_sequence, $.string_interpolation, /[^"{\\]+/)),
         '"',
       ),
 

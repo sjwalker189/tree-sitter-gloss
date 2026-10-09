@@ -2551,7 +2551,40 @@
         },
         {
           "type": "SYMBOL",
+          "name": "assert_statement"
+        },
+        {
+          "type": "SYMBOL",
           "name": "expression_statement"
+        }
+      ]
+    },
+    "assert_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "assert"
+        },
+        {
+          "type": "FIELD",
+          "name": "condition",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_expression"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_terminator"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         }
       ]
     },
@@ -4083,6 +4116,10 @@
                       "name": "identifier"
                     },
                     {
+                      "type": "STRING",
+                      "value": "_"
+                    },
+                    {
                       "type": "ALIAS",
                       "content": {
                         "type": "SYMBOL",
@@ -5491,7 +5528,7 @@
               },
               {
                 "type": "PATTERN",
-                "value": "[^\"{\\\\\\n]+"
+                "value": "[^\"{\\\\]+"
               }
             ]
           }
