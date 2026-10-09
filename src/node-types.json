@@ -6910,10 +6910,6 @@
     "named": false
   },
   {
-    "type": "pure",
-    "named": false
-  },
-  {
     "type": "return",
     "named": false
   },

@@ -652,10 +652,6 @@
         },
         {
           "type": "STRING",
-          "value": "pure"
-        },
-        {
-          "type": "STRING",
           "value": "view"
         },
         {

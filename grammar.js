@@ -233,7 +233,7 @@ module.exports = grammar({
     //
     // It is also what keeps this LR(1): a repeat per item makes `pub` ambiguous between them
     // until the head keyword arrives.
-    _modifier: (_) => choice("pub", "pure", "view", "linear", "extern", "opaque"),
+    _modifier: (_) => choice("pub", "view", "linear", "extern", "opaque"),
 
     _modifiers: ($) => repeat1($._modifier),
 

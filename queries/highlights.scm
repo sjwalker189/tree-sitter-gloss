@@ -232,7 +232,6 @@
 [
   "pub"
   "view"
-  "pure"
   "extern"
   "linear"
   "opaque"

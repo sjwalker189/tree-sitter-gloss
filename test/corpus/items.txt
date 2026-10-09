@@ -720,15 +720,15 @@ test "adds two numbers" {
 pure, and modifiers in any order
 ================================================================================
 
-pure fn sum(xs: Array<Int>) -> Int {
+fn sum(xs: Array<Int>) -> Int {
     0
 }
 
-pub pure view fn card<M: Html>(m: M) -> M {
+pub view fn card<M: Html>(m: M) -> M {
     m
 }
 
-view pure fn other<M: Html>(m: M) -> M {
+view fn other<M: Html>(m: M) -> M {
     m
 }
 
@@ -789,7 +789,7 @@ a pure trait method obliges every impl of it
 ================================================================================
 
 trait Render {
-    pure fn render(self) -> Str;
+    fn render(self) -> Str;
 }
 
 --------------------------------------------------------------------------------
@@ -1036,7 +1036,7 @@ an intrinsic declaration, which has no body
 ==============================
 
 @intrinsic
-pure fn str_len(s: Str) -> Int;
+fn str_len(s: Str) -> Int;
 
 ---
 
