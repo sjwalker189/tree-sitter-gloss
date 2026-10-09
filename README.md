@@ -5,7 +5,7 @@ A [tree-sitter](https://tree-sitter.github.io) grammar for
 reference-counted language for building web applications.
 
 ```console
-$ tree-sitter test                        # 150 corpus tests
+$ tree-sitter test                        # 225 corpus tests
 $ script/check-against-compiler ../gloss-lang   # every real file in the compiler repo
 ```
 
@@ -50,6 +50,11 @@ everywhere but one place: a line opening with `<`, `(` or `-`, which would other
 comparison, a call or a subtraction continuing the line above. `src/scanner.c` reports that line
 break as a token of its own, so `<p>one</p>` followed by `<p>two</p>` is two statements here as
 it is in the compiler.
+
+**`sql` is a keyword only before a `(` or a `{`.** The compiler peeks at the token after it, so
+`sql::render(parts, "$")` and `let sql = ..` are ordinary uses of a name; an internal keyword
+cannot peek, and where a query literal may start every `sql` would lex as one. So the scanner
+reads it and looks past it, and gives it back as a name when no literal follows.
 
 **Element content is not code**, and that is the other reason for `src/scanner.c`. Everything
 between an element's `>` and the next `<` or `{` is character data *including its whitespace*

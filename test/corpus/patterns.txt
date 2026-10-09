@@ -269,3 +269,444 @@ fn f(m: "a" | "b") -> Int {
             pattern: (literal_pattern
               (string))
             value: (integer_literal)))))))
+
+=========================================================================
+patterns nest to any depth
+=========================================================================
+
+fn f(o: Option(Shape)) -> Int {
+    match o {
+        Some(Shape::Line(0)) => 0
+        Some(Shape::Rect(w, _)) => w
+        Some(Dot) => 1
+        None => 2
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))))
+    (named_type
+      (type_identifier))
+    (block
+      (match_expression
+        (identifier)
+        (match_arm_list
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (tuple_struct_pattern
+                (path_pattern
+                  (type_identifier)
+                  (type_identifier))
+                (literal_pattern
+                  (integer_literal))))
+            (integer_literal))
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (tuple_struct_pattern
+                (path_pattern
+                  (type_identifier)
+                  (type_identifier))
+                (binding_pattern
+                  (identifier))
+                (wildcard_pattern)))
+            (identifier))
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (path_pattern
+                (type_identifier)))
+            (integer_literal))
+          (match_arm
+            (path_pattern
+              (type_identifier))
+            (integer_literal)))))))
+
+=========================================================================
+fields by name, a field matched against a pattern, and the rest left unwritten
+=========================================================================
+
+fn f(m: Message) -> Int {
+    match m {
+        Insert(user:, reply: r) => 1
+        Thread(id:, ..) => id
+        Update(id: 7, title: Some(t)) => t.len()
+        Update(..) => 0
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))
+    (block
+      (match_expression
+        (identifier)
+        (match_arm_list
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (field_pattern
+                (identifier))
+              (field_pattern
+                (identifier)
+                (binding_pattern
+                  (identifier))))
+            (integer_literal))
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (field_pattern
+                (identifier))
+              (rest_pattern))
+            (identifier))
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (field_pattern
+                (identifier)
+                (literal_pattern
+                  (integer_literal)))
+              (field_pattern
+                (identifier)
+                (tuple_struct_pattern
+                  (path_pattern
+                    (type_identifier))
+                  (binding_pattern
+                    (identifier)))))
+            (call_expression
+              (field_expression
+                (identifier)
+                (identifier))
+              (argument_list)))
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (rest_pattern))
+            (integer_literal)))))))
+
+=========================================================================
+list patterns in a match: empty, exact, a head and the rest
+=========================================================================
+
+fn sum(xs: List(Int)) -> Int {
+    match xs {
+        [] => 0
+        [x] => x
+        [x, y] => x + y
+        [first, ..] if first < 0 => 0
+        [head, ..tail] => head + sum(tail)
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))))
+    (named_type
+      (type_identifier))
+    (block
+      (match_expression
+        (identifier)
+        (match_arm_list
+          (match_arm
+            (list_pattern)
+            (integer_literal))
+          (match_arm
+            (list_pattern
+              (binding_pattern
+                (identifier)))
+            (identifier))
+          (match_arm
+            (list_pattern
+              (binding_pattern
+                (identifier))
+              (binding_pattern
+                (identifier)))
+            (binary_expression
+              (identifier)
+              (identifier)))
+          (match_arm
+            (list_pattern
+              (binding_pattern
+                (identifier))
+              (rest_pattern))
+            (match_guard
+              (binary_expression
+                (identifier)
+                (integer_literal)))
+            (integer_literal))
+          (match_arm
+            (list_pattern
+              (binding_pattern
+                (identifier))
+              (rest_pattern
+                (identifier)))
+            (binary_expression
+              (identifier)
+              (call_expression
+                (identifier)
+                (argument_list
+                  (identifier))))))))))
+
+=========================================================================
+tuple patterns, nested in a constructor and holding a wildcard
+=========================================================================
+
+fn f(p: (Int, Option((Int, Str)))) -> Int {
+    match p {
+        (0, _) => 0
+        (n, Some((m, _))) => n + m
+        (n, None) => n
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (tuple_type
+          (parameter_type_list
+            (named_type
+              (type_identifier))
+            (named_type
+              (type_identifier)
+              (type_arguments
+                (tuple_type
+                  (parameter_type_list
+                    (named_type
+                      (type_identifier))
+                    (named_type
+                      (type_identifier))))))))))
+    (named_type
+      (type_identifier))
+    (block
+      (match_expression
+        (identifier)
+        (match_arm_list
+          (match_arm
+            (tuple_pattern
+              (literal_pattern
+                (integer_literal))
+              (wildcard_pattern))
+            (integer_literal))
+          (match_arm
+            (tuple_pattern
+              (binding_pattern
+                (identifier))
+              (tuple_struct_pattern
+                (path_pattern
+                  (type_identifier))
+                (tuple_pattern
+                  (binding_pattern
+                    (identifier))
+                  (wildcard_pattern))))
+            (binary_expression
+              (identifier)
+              (identifier)))
+          (match_arm
+            (tuple_pattern
+              (binding_pattern
+                (identifier))
+              (path_pattern
+                (type_identifier)))
+            (identifier)))))))
+
+=========================================================================
+literal patterns of each base: an integer, a string, a char, a bool
+=========================================================================
+
+fn f(n: Int, s: Str, c: Char, b: Bool) -> Int {
+    match n { 0 => 0, 0xFF => 1, _ => 2 }
+    match s { "get" => 0, "post" => 1, _ => 2 }
+    match c { 'a' => 0, '\n' => 1, _ => 2 }
+    match b { true => 0, false => 1 }
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))
+    (block
+      (expression_statement
+        (match_expression
+          (identifier)
+          (match_arm_list
+            (match_arm
+              (literal_pattern
+                (integer_literal))
+              (integer_literal))
+            (match_arm
+              (literal_pattern
+                (integer_literal))
+              (integer_literal))
+            (match_arm
+              (wildcard_pattern)
+              (integer_literal)))))
+      (expression_statement
+        (match_expression
+          (identifier)
+          (match_arm_list
+            (match_arm
+              (literal_pattern
+                (string))
+              (integer_literal))
+            (match_arm
+              (literal_pattern
+                (string))
+              (integer_literal))
+            (match_arm
+              (wildcard_pattern)
+              (integer_literal)))))
+      (expression_statement
+        (match_expression
+          (identifier)
+          (match_arm_list
+            (match_arm
+              (literal_pattern
+                (char_literal))
+              (integer_literal))
+            (match_arm
+              (literal_pattern
+                (char_literal
+                  (escape_sequence)))
+              (integer_literal))
+            (match_arm
+              (wildcard_pattern)
+              (integer_literal)))))
+      (match_expression
+        (identifier)
+        (match_arm_list
+          (match_arm
+            (literal_pattern
+              (boolean_literal))
+            (integer_literal))
+          (match_arm
+            (literal_pattern
+              (boolean_literal))
+            (integer_literal)))))))
+
+=========================================================================
+bare constructors where the subject's type is known, and the prelude's four
+=========================================================================
+
+fn f(r: Result(Option(Int), Str)) -> Int {
+    match r {
+        Ok(Some(n)) => n
+        Ok(None) => 0
+        Err(why) => why.len()
+    }
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)
+              (type_arguments
+                (named_type
+                  (type_identifier))))
+            (named_type
+              (type_identifier))))))
+    (named_type
+      (type_identifier))
+    (block
+      (match_expression
+        (identifier)
+        (match_arm_list
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (tuple_struct_pattern
+                (path_pattern
+                  (type_identifier))
+                (binding_pattern
+                  (identifier))))
+            (identifier))
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (path_pattern
+                (type_identifier)))
+            (integer_literal))
+          (match_arm
+            (tuple_struct_pattern
+              (path_pattern
+                (type_identifier))
+              (binding_pattern
+                (identifier)))
+            (call_expression
+              (field_expression
+                (identifier)
+                (identifier))
+              (argument_list))))))))

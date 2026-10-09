@@ -1094,3 +1094,1224 @@ extern fn getpid() -> i32;
     parameters: (parameter_list)
     return_type: (named_type
       name: (identifier))))
+
+=========================================================================
+import, in every shape the reference lists
+=========================================================================
+
+import io
+import io::{println, print as say}
+import domain::accounts::user::User
+import domain::{accounts, forum::{thread, Page}}
+import text::Found::*
+import super::text::{slug}
+import html::{Html, Markup, Buffer}
+
+---
+
+(source_file
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier))))
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier))
+      (use_group
+        (use_tree
+          (use_path
+            (identifier)))
+        (use_tree
+          (use_path
+            (identifier))
+          (identifier)))))
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier)
+        (identifier)
+        (identifier)
+        (type_identifier))))
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier))
+      (use_group
+        (use_tree
+          (use_path
+            (identifier)))
+        (use_tree
+          (use_path
+            (identifier))
+          (use_group
+            (use_tree
+              (use_path
+                (identifier)))
+            (use_tree
+              (use_path
+                (type_identifier))))))))
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier)
+        (type_identifier))
+      (use_glob)))
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier))
+      (use_group
+        (use_tree
+          (use_path
+            (identifier))))))
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier))
+      (use_group
+        (use_tree
+          (use_path
+            (type_identifier)))
+        (use_tree
+          (use_path
+            (type_identifier)))
+        (use_tree
+          (use_path
+            (type_identifier)))))))
+
+=========================================================================
+a function names its variables by using them, and bounds them after the signature
+=========================================================================
+
+fn largest(a: t, b: t) -> t where t: Ord { if a > b { a } else { b } }
+
+fn sum(it: i) -> Int where i: Iterator(Item = Int) { iter::fold(it, 0, (acc, x) => acc + x) }
+
+fn lookup(m: Map(k, v), key: k) -> Option(v) where k: Hash + Eq, v: Show { m.get(key) }
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (identifier))))
+    (named_type
+      (identifier))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier)))))
+    (block
+      (if_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (block
+          (identifier))
+        (block
+          (identifier)))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (identifier))))
+    (named_type
+      (type_identifier))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier)
+            (assoc_bindings
+              (assoc_binding
+                (type_identifier)
+                (named_type
+                  (type_identifier))))))))
+    (block
+      (call_expression
+        (path_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (identifier)
+          (integer_literal)
+          (lambda_expression
+            (parameter_list
+              (parameter
+                (identifier))
+              (parameter
+                (identifier)))
+            (binary_expression
+              (identifier)
+              (identifier)))))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (identifier))
+            (named_type
+              (identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (identifier))))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (identifier))))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier))
+          (bound
+            (type_identifier))))
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier)))))
+    (block
+      (call_expression
+        (field_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (identifier))))))
+
+=========================================================================
+parameters with defaults, an ignored parameter, and no return type
+=========================================================================
+
+fn area(width: Int, height: Int = 2, scale: Int = 1) -> Int { width * height * scale }
+
+fn ignore(_: Int, x: Str) { io::println(x) }
+
+pub fn start(port: Int = 8080, sessions: Option(Str) = None) { serve(port, sessions) }
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))
+        (integer_literal))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))
+        (integer_literal)))
+    (named_type
+      (type_identifier))
+    (block
+      (binary_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (identifier))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (block
+      (call_expression
+        (path_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (identifier)))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))
+        (integer_literal))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))
+        (type_identifier)))
+    (block
+      (call_expression
+        (identifier)
+        (argument_list
+          (identifier)
+          (identifier))))))
+
+=========================================================================
+a generic struct and enum in the paren form, and a linear one
+=========================================================================
+
+struct Pair(a, b) { first: a, second: b }
+
+enum Tree(t) { Leaf, Node(Tree(t), t, Tree(t)) }
+
+linear enum Step(s) { Idle(s), Done }
+
+---
+
+(source_file
+  (struct_item
+    (type_identifier)
+    (type_parameters
+      (type_parameter
+        (identifier))
+      (type_parameter
+        (identifier)))
+    (field_list
+      (field_declaration
+        (identifier)
+        (named_type
+          (identifier)))
+      (field_declaration
+        (identifier)
+        (named_type
+          (identifier)))))
+  (enum_item
+    (type_identifier)
+    (type_parameters
+      (type_parameter
+        (identifier)))
+    (variant_list
+      (variant
+        (type_identifier))
+      (variant
+        (type_identifier)
+        (variant_payload
+          (named_type
+            (type_identifier)
+            (type_arguments
+              (named_type
+                (identifier))))
+          (named_type
+            (identifier))
+          (named_type
+            (type_identifier)
+            (type_arguments
+              (named_type
+                (identifier))))))))
+  (enum_item
+    (type_identifier)
+    (type_parameters
+      (type_parameter
+        (identifier)))
+    (variant_list
+      (variant
+        (type_identifier)
+        (variant_payload
+          (named_type
+            (identifier))))
+      (variant
+        (type_identifier)))))
+
+=========================================================================
+a struct whose methods sit after its fields, public and opaque
+=========================================================================
+
+pub opaque struct Counter {
+    count: Int,
+    step: Int,
+
+    pub fn next(by: Int = 0) -> Counter { Counter(..self, count: count + step + by) }
+    pub fn twice() -> Counter { next().next(by: 1) }
+    fn reset() -> Counter { Counter(count: 0, step:) }
+}
+
+---
+
+(source_file
+  (struct_item
+    (type_identifier)
+    (field_list
+      (field_declaration
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (field_declaration
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (function_item
+        (identifier)
+        (parameter_list
+          (parameter
+            (identifier)
+            (named_type
+              (type_identifier))
+            (integer_literal)))
+        (named_type
+          (type_identifier))
+        (block
+          (call_expression
+            (type_identifier)
+            (argument_list
+              (struct_base
+                (identifier))
+              (labelled_argument
+                (identifier)
+                (binary_expression
+                  (binary_expression
+                    (identifier)
+                    (identifier))
+                  (identifier)))))))
+      (function_item
+        (identifier)
+        (parameter_list)
+        (named_type
+          (type_identifier))
+        (block
+          (call_expression
+            (field_expression
+              (call_expression
+                (identifier)
+                (argument_list))
+              (identifier))
+            (argument_list
+              (labelled_argument
+                (identifier)
+                (integer_literal))))))
+      (function_item
+        (identifier)
+        (parameter_list)
+        (named_type
+          (type_identifier))
+        (block
+          (call_expression
+            (type_identifier)
+            (argument_list
+              (labelled_argument
+                (identifier)
+                (integer_literal))
+              (labelled_argument
+                (identifier)))))))))
+
+=========================================================================
+a variant with labelled fields, and a message enum carrying a reply
+=========================================================================
+
+enum Message {
+    Insert(user: NewUser, reply: Reply(Result(Int, Str))),
+    Get(Int),
+    Quit,
+}
+
+---
+
+(source_file
+  (enum_item
+    (type_identifier)
+    (variant_list
+      (variant
+        (type_identifier)
+        (variant_payload
+          (variant_field
+            (identifier)
+            (named_type
+              (type_identifier)))
+          (variant_field
+            (identifier)
+            (named_type
+              (type_identifier)
+              (type_arguments
+                (named_type
+                  (type_identifier)
+                  (type_arguments
+                    (named_type
+                      (type_identifier))
+                    (named_type
+                      (type_identifier)))))))))
+      (variant
+        (type_identifier)
+        (variant_payload
+          (named_type
+            (type_identifier))))
+      (variant
+        (type_identifier)))))
+
+=========================================================================
+an enum derives, a struct derives, and an attribute takes no arguments
+=========================================================================
+
+@derive(Eq, Ord)
+enum Level { Low, High }
+
+@derive(Eq)
+pub struct Point { x: Int, y: Int }
+
+@intrinsic
+fn chan_new() -> Int
+
+---
+
+(source_file
+  (attribute
+    (identifier)
+    (type_identifier)
+    (type_identifier))
+  (enum_item
+    (type_identifier)
+    (variant_list
+      (variant
+        (type_identifier))
+      (variant
+        (type_identifier))))
+  (attribute
+    (identifier)
+    (type_identifier))
+  (struct_item
+    (type_identifier)
+    (field_list
+      (field_declaration
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (field_declaration
+        (identifier)
+        (named_type
+          (type_identifier)))))
+  (attribute
+    (identifier))
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))))
+
+=========================================================================
+a trait with a supertrait, an associated type, a signature and a default
+=========================================================================
+
+pub trait Iterator {
+    type Item
+    fn next(self) -> Option(Pair(Self, Self::Item))
+}
+
+trait Ord: Eq {
+    fn cmp(self, other: Self) -> Ordering
+    fn max(self, other: Self) -> Self { if self.cmp(other) == Ordering::Less { other } else { self } }
+}
+
+trait Table: sql::Table + Show {}
+
+---
+
+(source_file
+  (trait_item
+    (type_identifier)
+    (trait_body
+      (associated_type
+        (type_identifier))
+      (method_signature
+        (identifier)
+        (parameter_list
+          (self_parameter))
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)
+              (type_arguments
+                (named_type
+                  (type_identifier))
+                (named_type
+                  (type_identifier)
+                  (type_identifier)))))))))
+  (trait_item
+    (type_identifier)
+    (bound_list
+      (bound
+        (type_identifier)))
+    (trait_body
+      (method_signature
+        (identifier)
+        (parameter_list
+          (self_parameter)
+          (parameter
+            (identifier)
+            (named_type
+              (type_identifier))))
+        (named_type
+          (type_identifier)))
+      (function_item
+        (identifier)
+        (parameter_list
+          (self_parameter)
+          (parameter
+            (identifier)
+            (named_type
+              (type_identifier))))
+        (named_type
+          (type_identifier))
+        (block
+          (if_expression
+            (binary_expression
+              (call_expression
+                (field_expression
+                  (identifier)
+                  (identifier))
+                (argument_list
+                  (identifier)))
+              (path_expression
+                (type_identifier)
+                (type_identifier)))
+            (block
+              (identifier))
+            (block
+              (identifier)))))))
+  (trait_item
+    (type_identifier)
+    (bound_list
+      (bound
+        (identifier)
+        (type_identifier))
+      (bound
+        (type_identifier)))
+    (trait_body)))
+
+=========================================================================
+impls: for a package-qualified trait, with a bare const, for a generic type, and bounded in where
+=========================================================================
+
+impl sql::Table for User { const NAME = "users" }
+
+impl Iterator for ArrayIter(t) {
+    type Item = t
+    fn next(self) -> Option(Pair(ArrayIter(t), t)) { self.step() }
+}
+
+impl Map(k, v) where k: Hash + Eq {
+    fn get_or(key: k, fallback: v) -> v { match self.get(key) { Some(v) => v, None => fallback } }
+}
+
+impl Show for Pair(a, b) where a: Show, b: Show {
+    fn show(self) -> Str { "({self.first.show()}, {self.second.show()})" }
+}
+
+impl Extra for Five {}
+
+---
+
+(source_file
+  (impl_item
+    (named_type
+      (identifier)
+      (type_identifier))
+    (named_type
+      (type_identifier))
+    (impl_body
+      (const_item
+        (type_identifier)
+        (string))))
+  (impl_item
+    (named_type
+      (type_identifier))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (identifier))))
+    (impl_body
+      (associated_type
+        (type_identifier)
+        (named_type
+          (identifier)))
+      (function_item
+        (identifier)
+        (parameter_list
+          (self_parameter))
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)
+              (type_arguments
+                (named_type
+                  (type_identifier)
+                  (type_arguments
+                    (named_type
+                      (identifier))))
+                (named_type
+                  (identifier))))))
+        (block
+          (call_expression
+            (field_expression
+              (identifier)
+              (identifier))
+            (argument_list))))))
+  (impl_item
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (identifier))
+        (named_type
+          (identifier))))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier))
+          (bound
+            (type_identifier)))))
+    (impl_body
+      (function_item
+        (identifier)
+        (parameter_list
+          (parameter
+            (identifier)
+            (named_type
+              (identifier)))
+          (parameter
+            (identifier)
+            (named_type
+              (identifier))))
+        (named_type
+          (identifier))
+        (block
+          (match_expression
+            (call_expression
+              (field_expression
+                (identifier)
+                (identifier))
+              (argument_list
+                (identifier)))
+            (match_arm_list
+              (match_arm
+                (tuple_struct_pattern
+                  (path_pattern
+                    (type_identifier))
+                  (binding_pattern
+                    (identifier)))
+                (identifier))
+              (match_arm
+                (path_pattern
+                  (type_identifier))
+                (identifier))))))))
+  (impl_item
+    (named_type
+      (type_identifier))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (identifier))
+        (named_type
+          (identifier))))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier))))
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier)))))
+    (impl_body
+      (function_item
+        (identifier)
+        (parameter_list
+          (self_parameter))
+        (named_type
+          (type_identifier))
+        (block
+          (string
+            (string_interpolation
+              (call_expression
+                (field_expression
+                  (field_expression
+                    (identifier)
+                    (identifier))
+                  (identifier))
+                (argument_list)))
+            (string_interpolation
+              (call_expression
+                (field_expression
+                  (field_expression
+                    (identifier)
+                    (identifier))
+                  (identifier))
+                (argument_list))))))))
+  (impl_item
+    (named_type
+      (type_identifier))
+    (named_type
+      (type_identifier))
+    (impl_body)))
+
+=========================================================================
+an inherent impl uses Self as a type and as a constructor
+=========================================================================
+
+impl Point {
+    fn origin() -> Self { Self(x: 0, y: 0) }
+    fn moved(self, by: Int) -> Self { Self { x: self.x + by, y: self.y } }
+}
+
+---
+
+(source_file
+  (impl_item
+    (named_type
+      (type_identifier))
+    (impl_body
+      (function_item
+        (identifier)
+        (parameter_list)
+        (named_type
+          (type_identifier))
+        (block
+          (call_expression
+            (type_identifier)
+            (argument_list
+              (labelled_argument
+                (identifier)
+                (integer_literal))
+              (labelled_argument
+                (identifier)
+                (integer_literal))))))
+      (function_item
+        (identifier)
+        (parameter_list
+          (self_parameter)
+          (parameter
+            (identifier)
+            (named_type
+              (type_identifier))))
+        (named_type
+          (type_identifier))
+        (block
+          (struct_literal
+            (type_identifier)
+            (field_initializer_list
+              (field_initializer
+                (identifier)
+                (binary_expression
+                  (field_expression
+                    (identifier)
+                    (identifier))
+                  (identifier)))
+              (field_initializer
+                (identifier)
+                (field_expression
+                  (identifier)
+                  (identifier))))))))))
+
+=========================================================================
+extend, for a type declared elsewhere, with the receiver implicit
+=========================================================================
+
+extend Str {
+    fn shout() -> Str { self + "!" }
+    pub fn initial() -> Option(Char) { self.chars().first() }
+}
+
+extend Option(Int) {
+    fn or_zero() -> Int { match self { Some(n) => n, None => 0 } }
+}
+
+---
+
+(source_file
+  (impl_item
+    (named_type
+      (type_identifier))
+    (impl_body
+      (function_item
+        (identifier)
+        (parameter_list)
+        (named_type
+          (type_identifier))
+        (block
+          (binary_expression
+            (identifier)
+            (string))))
+      (function_item
+        (identifier)
+        (parameter_list)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))
+        (block
+          (call_expression
+            (field_expression
+              (call_expression
+                (field_expression
+                  (identifier)
+                  (identifier))
+                (argument_list))
+              (identifier))
+            (argument_list))))))
+  (impl_item
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (type_identifier))))
+    (impl_body
+      (function_item
+        (identifier)
+        (parameter_list)
+        (named_type
+          (type_identifier))
+        (block
+          (match_expression
+            (identifier)
+            (match_arm_list
+              (match_arm
+                (tuple_struct_pattern
+                  (path_pattern
+                    (type_identifier))
+                  (binding_pattern
+                    (identifier)))
+                (identifier))
+              (match_arm
+                (path_pattern
+                  (type_identifier))
+                (integer_literal)))))))))
+
+=========================================================================
+views, capitalised and public, taking children
+=========================================================================
+
+view Card(title: Str, children: Html) {
+    <div class="card">
+        <h3>{title}</h3>
+        {children}
+    </div>
+}
+
+pub view Row(cells: List(Str)) { <tr>{cells.map(c => <td>{c}</td>)}</tr> }
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (block
+      (element
+        (element_open
+          (identifier)
+          (element_attribute
+            (attribute_name)
+            (string)))
+        (element_children
+          (element_text)
+          (element
+            (element_open
+              (identifier))
+            (element_children
+              (element_interpolation
+                (identifier)))
+            (element_close
+              (identifier)))
+          (element_text)
+          (element_interpolation
+            (identifier))
+          (element_text))
+        (element_close
+          (identifier)))))
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))))
+    (block
+      (element
+        (element_open
+          (identifier))
+        (element_children
+          (element_interpolation
+            (call_expression
+              (field_expression
+                (identifier)
+                (identifier))
+              (argument_list
+                (lambda_expression
+                  (identifier)
+                  (element
+                    (element_open
+                      (identifier))
+                    (element_children
+                      (element_interpolation
+                        (identifier)))
+                    (element_close
+                      (identifier))))))))
+        (element_close
+          (identifier))))))
+
+=========================================================================
+constants: from a literal, annotated, public, and computed
+=========================================================================
+
+const MAX_DEPTH = 10
+const GREETING: Str = "hello"
+pub const LIMIT: Int = 10 * 2
+const TOKEN_HEADER = "x-gloss-upgrade"
+
+---
+
+(source_file
+  (const_item
+    (type_identifier)
+    (integer_literal))
+  (const_item
+    (type_identifier)
+    (named_type
+      (type_identifier))
+    (string))
+  (const_item
+    (type_identifier)
+    (named_type
+      (type_identifier))
+    (binary_expression
+      (integer_literal)
+      (integer_literal)))
+  (const_item
+    (type_identifier)
+    (string)))
+
+=========================================================================
+type aliases: generic in parens, a union of each base type
+=========================================================================
+
+type Slug = Str
+type Rows(t) = Array(t)
+type Method = "get" | "post" | "dialog"
+type Level = 1 | 2 | 3
+type Digit = '0' | '1' | '2'
+type Flag = true | false
+pub type Handler(s) = (Context(s)) -> Response
+
+---
+
+(source_file
+  (type_alias_item
+    (type_identifier)
+    (named_type
+      (type_identifier)))
+  (type_alias_item
+    (type_identifier)
+    (type_parameters
+      (type_parameter
+        (identifier)))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (identifier)))))
+  (type_alias_item
+    (type_identifier)
+    (union_type
+      (literal_type
+        (string))
+      (literal_type
+        (string))
+      (literal_type
+        (string))))
+  (type_alias_item
+    (type_identifier)
+    (union_type
+      (literal_type
+        (integer_literal))
+      (literal_type
+        (integer_literal))
+      (literal_type
+        (integer_literal))))
+  (type_alias_item
+    (type_identifier)
+    (union_type
+      (literal_type
+        (char_literal))
+      (literal_type
+        (char_literal))
+      (literal_type
+        (char_literal))))
+  (type_alias_item
+    (type_identifier)
+    (union_type
+      (literal_type
+        (boolean_literal))
+      (literal_type
+        (boolean_literal))))
+  (type_alias_item
+    (type_identifier)
+    (type_parameters
+      (type_parameter
+        (identifier)))
+    (function_type
+      (parameter_type_list
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (identifier)))))
+      (named_type
+        (type_identifier)))))
+
+=========================================================================
+tests, and a test whose body is assertions
+=========================================================================
+
+test "arithmetic is what it looks like" { 2 + 2 == 4 }
+
+test "a reply redirects" {
+    let reply = app(get("/"))
+    assert reply.status == 303
+    assert reply.header("location") == Some("/threads")
+}
+
+---
+
+(source_file
+  (test_item
+    (string)
+    (block
+      (binary_expression
+        (binary_expression
+          (integer_literal)
+          (integer_literal))
+        (integer_literal))))
+  (test_item
+    (string)
+    (block
+      (let_statement
+        (identifier)
+        (call_expression
+          (identifier)
+          (argument_list
+            (call_expression
+              (identifier)
+              (argument_list
+                (string))))))
+      (assert_statement
+        (binary_expression
+          (field_expression
+            (identifier)
+            (identifier))
+          (integer_literal)))
+      (assert_statement
+        (binary_expression
+          (call_expression
+            (field_expression
+              (identifier)
+              (identifier))
+            (argument_list
+              (string)))
+          (call_expression
+            (type_identifier)
+            (argument_list
+              (string))))))))
+
+=========================================================================
+an extern function with its library and symbol
+=========================================================================
+
+@link(m)
+@symbol(fabs)
+extern fn absolute(x: Float) -> Float
+
+extern fn strlen(s: Str) -> Int
+
+---
+
+(source_file
+  (attribute
+    (identifier)
+    (identifier))
+  (attribute
+    (identifier)
+    (identifier))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier)))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))))
+
+=========================================================================
+a main that returns the exit status, and one that returns nothing
+=========================================================================
+
+fn main() -> Int { 0 }
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (integer_literal))))

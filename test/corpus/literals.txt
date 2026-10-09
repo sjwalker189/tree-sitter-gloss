@@ -251,3 +251,106 @@ fn f(d: Digit) -> Int {
             pattern: (literal_pattern
               (char_literal))
             value: (integer_literal)))))))
+
+=========================================================================
+floats with exponents, and integers with separators in every radix
+=========================================================================
+
+fn f() -> Float {
+    let a = 1e9
+    let b = 2.5e-3
+    let c = 1_000.000_1
+    let d = 0xFF_FF + 0b1010_1010 + 0o7_7 + 1_000_000
+    a + b + c
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (identifier)
+        (float_literal))
+      (let_statement
+        (identifier)
+        (float_literal))
+      (let_statement
+        (identifier)
+        (float_literal))
+      (let_statement
+        (identifier)
+        (binary_expression
+          (binary_expression
+            (binary_expression
+              (integer_literal)
+              (integer_literal))
+            (integer_literal))
+          (integer_literal)))
+      (binary_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (identifier)))))
+
+=========================================================================
+a string spanning lines, and every escape
+=========================================================================
+
+fn f() -> Str {
+    "line one
+line two\ttabbed \"quoted\" \\ back \u{1F600} \{ brace \n"
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (string
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)))))
+
+=========================================================================
+a doc comment, a line comment after code, and a comment inside an expression
+=========================================================================
+
+/// What it does.
+fn f() -> Int { // after the brace
+    let a = 1 // after a statement
+    a + // between operands
+        2
+}
+
+---
+
+(source_file
+  (comment)
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (comment)
+      (let_statement
+        (identifier)
+        (integer_literal))
+      (comment)
+      (binary_expression
+        (identifier)
+        (comment)
+        (integer_literal)))))

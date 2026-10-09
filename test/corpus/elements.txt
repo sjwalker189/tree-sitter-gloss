@@ -662,3 +662,407 @@ view fn Field<M: Html>(m: M) -> M {
           (element_attribute
             name: (attribute_name)))))))
 
+=========================================================================
+attribute names that are keywords elsewhere: type, for, in, as
+=========================================================================
+
+view Form() {
+    <form>
+        <label for="n">name</label>
+        <input type="text" name="n" required/>
+        <select as="x" in="y"></select>
+    </form>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list)
+    (block
+      (element
+        (element_open
+          (identifier))
+        (element_children
+          (element_text)
+          (element
+            (element_open
+              (identifier)
+              (element_attribute
+                (attribute_name)
+                (string)))
+            (element_children
+              (element_text))
+            (element_close
+              (identifier)))
+          (element_text)
+          (element
+            (element_self_closing
+              (identifier)
+              (element_attribute
+                (attribute_name)
+                (string))
+              (element_attribute
+                (attribute_name)
+                (string))
+              (element_attribute
+                (attribute_name))))
+          (element_text)
+          (element
+            (element_open
+              (identifier)
+              (element_attribute
+                (attribute_name)
+                (string))
+              (element_attribute
+                (attribute_name)
+                (string)))
+            (element_close
+              (identifier)))
+          (element_text))
+        (element_close
+          (identifier))))))
+
+=========================================================================
+an if with no else in a hole, a list of elements, and an option
+=========================================================================
+
+view Page(user: Option(User), items: List(Str)) {
+    <div>
+        {if items.len() > 0 { <h2>items</h2> }}
+        {items.map(i => <li>{i}</li>)}
+        {user.map(u => <p>{u.name}</p>)}
+    </div>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))))
+    (block
+      (element
+        (element_open
+          (identifier))
+        (element_children
+          (element_text)
+          (element_interpolation
+            (if_expression
+              (binary_expression
+                (call_expression
+                  (field_expression
+                    (identifier)
+                    (identifier))
+                  (argument_list))
+                (integer_literal))
+              (block
+                (element
+                  (element_open
+                    (identifier))
+                  (element_children
+                    (element_text))
+                  (element_close
+                    (identifier))))))
+          (element_text)
+          (element_interpolation
+            (call_expression
+              (field_expression
+                (identifier)
+                (identifier))
+              (argument_list
+                (lambda_expression
+                  (identifier)
+                  (element
+                    (element_open
+                      (identifier))
+                    (element_children
+                      (element_interpolation
+                        (identifier)))
+                    (element_close
+                      (identifier)))))))
+          (element_text)
+          (element_interpolation
+            (call_expression
+              (field_expression
+                (identifier)
+                (identifier))
+              (argument_list
+                (lambda_expression
+                  (identifier)
+                  (element
+                    (element_open
+                      (identifier))
+                    (element_children
+                      (element_interpolation
+                        (field_expression
+                          (identifier)
+                          (identifier))))
+                    (element_close
+                      (identifier)))))))
+          (element_text))
+        (element_close
+          (identifier))))))
+
+=========================================================================
+a fragment with children, nested in an element, and empty
+=========================================================================
+
+view F() {
+    <div>
+        <>
+            <p>a</p>
+            <p>b</p>
+        </>
+        <></>
+    </div>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list)
+    (block
+      (element
+        (element_open
+          (identifier))
+        (element_children
+          (element_text)
+          (element
+            (element_open)
+            (element_children
+              (element_text)
+              (element
+                (element_open
+                  (identifier))
+                (element_children
+                  (element_text))
+                (element_close
+                  (identifier)))
+              (element_text)
+              (element
+                (element_open
+                  (identifier))
+                (element_children
+                  (element_text))
+                (element_close
+                  (identifier)))
+              (element_text))
+            (element_close))
+          (element_text)
+          (element
+            (element_open)
+            (element_close))
+          (element_text))
+        (element_close
+          (identifier))))))
+
+=========================================================================
+attribute values: a string with a hole, an expression, an integer, an option
+=========================================================================
+
+view A(n: Int, cls: Option(Str), checked: Bool) {
+    <input class="row-{n}" tabindex={n} data-cls={cls} checked={checked} disabled/>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (block
+      (element
+        (element_self_closing
+          (identifier)
+          (element_attribute
+            (attribute_name)
+            (string
+              (string_interpolation
+                (identifier))))
+          (element_attribute
+            (attribute_name)
+            (element_value
+              (identifier)))
+          (element_attribute
+            (attribute_name)
+            (element_value
+              (identifier)))
+          (element_attribute
+            (attribute_name)
+            (element_value
+              (identifier)))
+          (element_attribute
+            (attribute_name)))))))
+
+=========================================================================
+a component with attributes and children, and one self-closing
+=========================================================================
+
+view Page() {
+    <Layout title="x" width={3}>
+        <Card title="y"><p>body</p></Card>
+        <Spacer/>
+    </Layout>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list)
+    (block
+      (element
+        (element_open
+          (type_identifier)
+          (element_attribute
+            (attribute_name)
+            (string))
+          (element_attribute
+            (attribute_name)
+            (element_value
+              (integer_literal))))
+        (element_children
+          (element_text)
+          (element
+            (element_open
+              (type_identifier)
+              (element_attribute
+                (attribute_name)
+                (string)))
+            (element_children
+              (element
+                (element_open
+                  (identifier))
+                (element_children
+                  (element_text))
+                (element_close
+                  (identifier))))
+            (element_close
+              (type_identifier)))
+          (element_text)
+          (element
+            (element_self_closing
+              (type_identifier)))
+          (element_text))
+        (element_close
+          (type_identifier))))))
+
+=========================================================================
+an element as a let's value, an argument, and a block's tail
+=========================================================================
+
+fn f() -> Str {
+    let h = <p>one</p>
+    let page = <div>{h}</div>
+    html::render(<Card title="x"><p>body</p><br/></Card>)
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (identifier)
+        (element
+          (element_open
+            (identifier))
+          (element_children
+            (element_text))
+          (element_close
+            (identifier))))
+      (let_statement
+        (identifier)
+        (element
+          (element_open
+            (identifier))
+          (element_children
+            (element_interpolation
+              (identifier)))
+          (element_close
+            (identifier))))
+      (call_expression
+        (path_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (element
+            (element_open
+              (type_identifier)
+              (element_attribute
+                (attribute_name)
+                (string)))
+            (element_children
+              (element
+                (element_open
+                  (identifier))
+                (element_children
+                  (element_text))
+                (element_close
+                  (identifier)))
+              (element
+                (element_self_closing
+                  (identifier))))
+            (element_close
+              (type_identifier))))))))
+
+=========================================================================
+text content holds punctuation, quotes and a brace closed by hand
+=========================================================================
+
+view T() {
+    <p>It's "quoted", 50% off - and more: a=b; c.d(e) [f] }</p>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list)
+    (block
+      (element
+        (element_open
+          (identifier))
+        (element_children
+          (element_text))
+        (element_close
+          (identifier))))))

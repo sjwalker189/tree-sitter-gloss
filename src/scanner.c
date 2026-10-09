@@ -25,7 +25,38 @@
 enum TokenType {
   ELEMENT_TEXT,
   SOFT_END,
+  SQL_KEYWORD,
 };
+
+static bool is_name_char(int32_t c) {
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+}
+
+static bool is_space(int32_t c) { return c == ' ' || c == '\t' || c == '\r' || c == '\n'; }
+
+// `sql` opens a query literal only when a `(` or a `{` follows it, and is an ordinary name
+// everywhere else — `sql::render(..)`, `let sql = ..` — which is what the compiler's
+// `at_sql_literal` decides by peeking at the next token. An internal keyword cannot peek: where
+// a literal may start, every `sql` would lex as the keyword and `sql::render` would be an error.
+static bool scan_sql_keyword(TSLexer *lexer) {
+  while (is_space(lexer->lookahead)) {
+    lexer->advance(lexer, true);
+  }
+  if (lexer->lookahead != 's') return false;
+  lexer->advance(lexer, false);
+  if (lexer->lookahead != 'q') return false;
+  lexer->advance(lexer, false);
+  if (lexer->lookahead != 'l') return false;
+  lexer->advance(lexer, false);
+  if (is_name_char(lexer->lookahead)) return false;
+  lexer->mark_end(lexer);
+  while (is_space(lexer->lookahead)) {
+    lexer->advance(lexer, true);
+  }
+  if (lexer->lookahead != '(' && lexer->lookahead != '{') return false;
+  lexer->result_symbol = SQL_KEYWORD;
+  return true;
+}
 
 void *tree_sitter_gloss_external_scanner_create(void) { return NULL; }
 void tree_sitter_gloss_external_scanner_destroy(void *payload) { (void)payload; }
@@ -69,7 +100,12 @@ bool tree_sitter_gloss_external_scanner_scan(void *payload, TSLexer *lexer,
       lexer->mark_end(lexer);
       return true;
     }
-    return false;
+    // Not a soft end; the whitespace was skipped, so a query literal may still start here.
+    return valid_symbols[SQL_KEYWORD] && scan_sql_keyword(lexer);
+  }
+
+  if (valid_symbols[SQL_KEYWORD] && scan_sql_keyword(lexer)) {
+    return true;
   }
 
   if (!valid_symbols[ELEMENT_TEXT]) {

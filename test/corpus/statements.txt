@@ -1,0 +1,500 @@
+=========================================================================
+let: inferred, annotated, shadowed, and discarded
+=========================================================================
+
+fn f() -> Int {
+    let x = 10
+    let y: Int = 20
+    let x = x + y
+    let _ = io::println("ignored")
+    let z: List(Str) = []
+    x
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (identifier)
+        (integer_literal))
+      (let_statement
+        (identifier)
+        (named_type
+          (type_identifier))
+        (integer_literal))
+      (let_statement
+        (identifier)
+        (binary_expression
+          (identifier)
+          (identifier)))
+      (let_statement
+        (call_expression
+          (path_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (string))))
+      (let_statement
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))
+        (list_expression))
+      (identifier))))
+
+=========================================================================
+let with a pattern: a tuple, a list, a struct, a constructor with an else
+=========================================================================
+
+fn f(o: Option(Int), xs: List(Int), p: Point) -> Int {
+    let (quotient, remainder) = divide(n)
+    let [first, ..rest] = xs
+    let Point(x:, y:) = p
+    let Some(n) = o else { return fallback }
+    let Ok(v) = parse(s) else { panic("bad") }
+    quotient + remainder + first + x + y + n + v
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (tuple_pattern
+          (binding_pattern
+            (identifier))
+          (binding_pattern
+            (identifier)))
+        (call_expression
+          (identifier)
+          (argument_list
+            (identifier))))
+      (let_statement
+        (list_pattern
+          (binding_pattern
+            (identifier))
+          (rest_pattern
+            (identifier)))
+        (identifier))
+      (let_statement
+        (tuple_struct_pattern
+          (path_pattern
+            (type_identifier))
+          (field_pattern
+            (identifier))
+          (field_pattern
+            (identifier)))
+        (identifier))
+      (let_statement
+        (tuple_struct_pattern
+          (path_pattern
+            (type_identifier))
+          (binding_pattern
+            (identifier)))
+        (identifier)
+        (block
+          (return_expression
+            (identifier))))
+      (let_statement
+        (tuple_struct_pattern
+          (path_pattern
+            (type_identifier))
+          (binding_pattern
+            (identifier)))
+        (call_expression
+          (identifier)
+          (argument_list
+            (identifier)))
+        (block
+          (call_expression
+            (identifier)
+            (argument_list
+              (string)))))
+      (binary_expression
+        (binary_expression
+          (binary_expression
+            (binary_expression
+              (binary_expression
+                (binary_expression
+                  (identifier)
+                  (identifier))
+                (identifier))
+              (identifier))
+            (identifier))
+          (identifier))
+        (identifier)))))
+
+=========================================================================
+let assert, with a constructor and with a tuple
+=========================================================================
+
+fn f() -> Int {
+    let assert Ok(db) = db::start(url)
+    let assert Some(user) = users.get(id)
+    let assert (a, b) = pair
+    let assert [one] = xs
+    a + b + one
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (tuple_struct_pattern
+          (path_pattern
+            (type_identifier))
+          (binding_pattern
+            (identifier)))
+        (call_expression
+          (path_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (identifier))))
+      (let_statement
+        (tuple_struct_pattern
+          (path_pattern
+            (type_identifier))
+          (binding_pattern
+            (identifier)))
+        (call_expression
+          (field_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (identifier))))
+      (let_statement
+        (tuple_pattern
+          (binding_pattern
+            (identifier))
+          (binding_pattern
+            (identifier)))
+        (identifier))
+      (let_statement
+        (list_pattern
+          (binding_pattern
+            (identifier)))
+        (identifier))
+      (binary_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (identifier)))))
+
+=========================================================================
+use binds the rest of the block as the call's last argument
+=========================================================================
+
+fn handler(ctx: Context) -> Response {
+    use user <- require(ctx)
+    use (db, tx) <- transaction(ctx.db)
+    use _ <- measured("handler")
+    use Some(id) <- optional_int(ctx, "id")
+    reply::html(page(user, id))
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))
+    (block
+      (use_statement
+        (binding_pattern
+          (identifier))
+        (call_expression
+          (identifier)
+          (argument_list
+            (identifier))))
+      (use_statement
+        (tuple_pattern
+          (binding_pattern
+            (identifier))
+          (binding_pattern
+            (identifier)))
+        (call_expression
+          (identifier)
+          (argument_list
+            (field_expression
+              (identifier)
+              (identifier)))))
+      (use_statement
+        (wildcard_pattern)
+        (call_expression
+          (identifier)
+          (argument_list
+            (string))))
+      (use_statement
+        (tuple_struct_pattern
+          (path_pattern
+            (type_identifier))
+          (binding_pattern
+            (identifier)))
+        (call_expression
+          (identifier)
+          (argument_list
+            (identifier)
+            (string))))
+      (call_expression
+        (path_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (call_expression
+            (identifier)
+            (argument_list
+              (identifier)
+              (identifier))))))))
+
+=========================================================================
+assert, with a comparison, a call, and a negation
+=========================================================================
+
+fn f() -> Int {
+    assert reply.status == 303
+    assert xs.contains(3)
+    assert !done
+    0
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (assert_statement
+        (binary_expression
+          (field_expression
+            (identifier)
+            (identifier))
+          (integer_literal)))
+      (assert_statement
+        (call_expression
+          (field_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (integer_literal))))
+      (assert_statement
+        (unary_expression
+          (identifier)))
+      (integer_literal))))
+
+=========================================================================
+a semicolon separates two statements on one line, and ends no line
+=========================================================================
+
+fn f() -> Int {
+    let a = 1; let b = 2; io::println("{a}")
+    a + b
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (identifier)
+        (integer_literal))
+      (let_statement
+        (identifier)
+        (integer_literal))
+      (expression_statement
+        (call_expression
+          (path_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (string
+              (string_interpolation
+                (identifier))))))
+      (binary_expression
+        (identifier)
+        (identifier)))))
+
+=========================================================================
+an expression statement that is a call written for its effect, and a block's value after it
+=========================================================================
+
+fn f() -> Int {
+    io::println("one")
+    xs.each(x => io::println(x.to_str()))
+    if debug { io::println("two") }
+    match o { Some(_) => io::println("some"), None => io::println("none") }
+    0
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (expression_statement
+        (call_expression
+          (path_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (string))))
+      (expression_statement
+        (call_expression
+          (field_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (lambda_expression
+              (identifier)
+              (call_expression
+                (path_expression
+                  (identifier)
+                  (identifier))
+                (argument_list
+                  (call_expression
+                    (field_expression
+                      (identifier)
+                      (identifier))
+                    (argument_list))))))))
+      (expression_statement
+        (if_expression
+          (identifier)
+          (block
+            (call_expression
+              (path_expression
+                (identifier)
+                (identifier))
+              (argument_list
+                (string))))))
+      (expression_statement
+        (match_expression
+          (identifier)
+          (match_arm_list
+            (match_arm
+              (tuple_struct_pattern
+                (path_pattern
+                  (type_identifier))
+                (wildcard_pattern))
+              (call_expression
+                (path_expression
+                  (identifier)
+                  (identifier))
+                (argument_list
+                  (string))))
+            (match_arm
+              (path_pattern
+                (type_identifier))
+              (call_expression
+                (path_expression
+                  (identifier)
+                  (identifier))
+                (argument_list
+                  (string)))))))
+      (integer_literal))))
+
+=========================================================================
+a dot at the start of a line continues a chain; a dash begins a statement
+=========================================================================
+
+fn f() -> Int {
+    let total = xs
+        .map(x => x * 2)
+        .fold(0, (a, b) => a + b)
+    total
+    -total
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (identifier)
+        (call_expression
+          (field_expression
+            (call_expression
+              (field_expression
+                (identifier)
+                (identifier))
+              (argument_list
+                (lambda_expression
+                  (identifier)
+                  (binary_expression
+                    (identifier)
+                    (integer_literal)))))
+            (identifier))
+          (argument_list
+            (integer_literal)
+            (lambda_expression
+              (parameter_list
+                (parameter
+                  (identifier))
+                (parameter
+                  (identifier)))
+              (binary_expression
+                (identifier)
+                (identifier))))))
+      (expression_statement
+        (identifier))
+      (unary_expression
+        (identifier)))))

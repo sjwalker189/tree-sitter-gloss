@@ -1,0 +1,235 @@
+=========================================================================
+a query with a row type, a hole typed by its column, and a list hole
+=========================================================================
+
+fn get(db: Db, id: Int, ids: List(Int)) -> Result(User, sql::Error) {
+    db.one(sql(User) { SELECT * FROM users WHERE id = {id} })
+    db.all(sql(User) { SELECT id, email FROM users WHERE id = ANY({ids}) ORDER BY id LIMIT {limit} OFFSET {offset} })
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (type_identifier))
+        (named_type
+          (identifier)
+          (type_identifier))))
+    (block
+      (expression_statement
+        (call_expression
+          (field_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (sql_literal
+              (named_type
+                (type_identifier))
+              (sql_text)
+              (sql_hole
+                (identifier))
+              (sql_text)))))
+      (call_expression
+        (field_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (sql_literal
+            (named_type
+              (type_identifier))
+            (sql_text)
+            (sql_hole
+              (identifier))
+            (sql_text)
+            (sql_hole
+              (identifier))
+            (sql_text)
+            (sql_hole
+              (identifier))
+            (sql_text)))))))
+
+=========================================================================
+a query with no row type, answered as a count, and one decoding a column
+=========================================================================
+
+fn touch(db: Db, now: Timestamp, id: Int, new: NewUser) -> Result(Int, sql::Error) {
+    try db.exec(sql { UPDATE threads SET last_activity = {now} WHERE id = {id} })
+    db.one(sql(Int) { INSERT INTO users {new} RETURNING id })
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (type_identifier))
+        (named_type
+          (identifier)
+          (type_identifier))))
+    (block
+      (expression_statement
+        (try_expression
+          (call_expression
+            (field_expression
+              (identifier)
+              (identifier))
+            (argument_list
+              (sql_literal
+                (sql_text)
+                (sql_hole
+                  (identifier))
+                (sql_text)
+                (sql_hole
+                  (identifier))
+                (sql_text))))))
+      (call_expression
+        (field_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (sql_literal
+            (named_type
+              (type_identifier))
+            (sql_text)
+            (sql_hole
+              (identifier))
+            (sql_text)))))))
+
+=========================================================================
+a query labelled for traces, a row hole after SET, and text on several lines
+=========================================================================
+
+fn update(db: Db, user: User) -> Result(Int, sql::Error) {
+    db.exec(
+        sql {
+            UPDATE users
+            SET {user}
+            WHERE id = {user.id}
+              AND email LIKE {pattern}
+        }
+        .label("users.update"),
+    )
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (type_identifier))
+        (named_type
+          (identifier)
+          (type_identifier))))
+    (block
+      (call_expression
+        (field_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (call_expression
+            (field_expression
+              (sql_literal
+                (sql_text)
+                (sql_hole
+                  (identifier))
+                (sql_text)
+                (sql_hole
+                  (field_expression
+                    (identifier)
+                    (identifier)))
+                (sql_text)
+                (sql_hole
+                  (identifier))
+                (sql_text))
+              (identifier))
+            (argument_list
+              (string))))))))
+
+=========================================================================
+sql is a name everywhere but before a brace
+=========================================================================
+
+fn f() -> Int {
+    let sql = 1
+    sql::render(parts, "$")
+    sql + 1
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (identifier)
+        (integer_literal))
+      (expression_statement
+        (call_expression
+          (path_expression
+            (identifier)
+            (identifier))
+          (argument_list
+            (identifier)
+            (string))))
+      (binary_expression
+        (identifier)
+        (integer_literal)))))

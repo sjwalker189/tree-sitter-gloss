@@ -53,7 +53,9 @@ module.exports = grammar({
   // `_soft_end` is the one piece of the newline rule the automaton cannot see: a statement ends
   // at a line break when the next line opens with `<`, `(` or `-`, which would otherwise read
   // as a comparison, a call or a subtraction continuing it. The scanner produces it only there.
-  externals: ($) => [$.element_text, $._soft_end],
+  // `_sql_keyword` is the `sql` that opens a query literal, scanned externally so it can look
+  // past itself for the `(` or `{` that makes it one; see `scan_sql_keyword` in the scanner.
+  externals: ($) => [$.element_text, $._soft_end, $._sql_keyword],
 
   word: ($) => $.identifier,
 
@@ -1083,7 +1085,7 @@ module.exports = grammar({
     // text means is the compiler's business; the grammar takes everything that is not a brace.
     sql_literal: ($) =>
       seq(
-        "sql",
+        alias($._sql_keyword, "sql"),
         optional(seq("(", field("row", $._type), ")")),
         "{",
         repeat(choice($.sql_hole, $.sql_text)),

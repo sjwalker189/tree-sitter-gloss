@@ -5564,7 +5564,12 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_sql_keyword"
+          },
+          "named": false,
           "value": "sql"
         },
         {
@@ -5721,6 +5726,10 @@
     {
       "type": "SYMBOL",
       "name": "_soft_end"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_sql_keyword"
     }
   ],
   "inline": [],

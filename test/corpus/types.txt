@@ -433,3 +433,404 @@ fn route(m: "get" | "post") -> Int { 0 }
       name: (type_identifier))
     body: (block
       tail: (integer_literal))))
+
+=========================================================================
+function types: bare, returning nothing, returning a function, and as an argument
+=========================================================================
+
+fn apply(f: (Int) -> Int, x: Int) -> Int { f(x) }
+fn run(job: () -> Unit) { job() }
+fn curry(f: (Int, Int) -> Int) -> (Int) -> (Int) -> Int { a => b => f(a, b) }
+fn handlers(hs: List((Request) -> Response)) -> Int { hs.len() }
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (function_type
+          (parameter_type_list
+            (named_type
+              (type_identifier)))
+          (named_type
+            (type_identifier))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))
+    (block
+      (call_expression
+        (identifier)
+        (argument_list
+          (identifier)))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (function_type
+          (parameter_type_list)
+          (named_type
+            (type_identifier)))))
+    (block
+      (call_expression
+        (identifier)
+        (argument_list))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (function_type
+          (parameter_type_list
+            (named_type
+              (type_identifier))
+            (named_type
+              (type_identifier)))
+          (named_type
+            (type_identifier)))))
+    (function_type
+      (parameter_type_list
+        (named_type
+          (type_identifier)))
+      (function_type
+        (parameter_type_list
+          (named_type
+            (type_identifier)))
+        (named_type
+          (type_identifier))))
+    (block
+      (lambda_expression
+        (identifier)
+        (lambda_expression
+          (identifier)
+          (call_expression
+            (identifier)
+            (argument_list
+              (identifier)
+              (identifier)))))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (function_type
+              (parameter_type_list
+                (named_type
+                  (type_identifier)))
+              (named_type
+                (type_identifier)))))))
+    (named_type
+      (type_identifier))
+    (block
+      (call_expression
+        (field_expression
+          (identifier)
+          (identifier))
+        (argument_list)))))
+
+=========================================================================
+generic types in the paren form, nested, qualified, and over a tuple
+=========================================================================
+
+fn f(a: Option(Int), b: Result(List(Str), Str), c: sql::Statement(User), d: Map(Str, List((Int, Str)))) -> actor::Subject(Message) {
+    actor::new()
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)
+              (type_arguments
+                (named_type
+                  (type_identifier))))
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (identifier)
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))
+            (named_type
+              (type_identifier)
+              (type_arguments
+                (tuple_type
+                  (parameter_type_list
+                    (named_type
+                      (type_identifier))
+                    (named_type
+                      (type_identifier))))))))))
+    (named_type
+      (identifier)
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (type_identifier))))
+    (block
+      (call_expression
+        (path_expression
+          (identifier)
+          (identifier))
+        (argument_list)))))
+
+=========================================================================
+an associated type projected from Self and from a variable
+=========================================================================
+
+trait Container {
+    type Item
+    fn first(self) -> Option(Self::Item)
+}
+
+fn head(c: c) -> Option(c::Item) where c: Container { c.first() }
+
+---
+
+(source_file
+  (trait_item
+    (type_identifier)
+    (trait_body
+      (associated_type
+        (type_identifier))
+      (method_signature
+        (identifier)
+        (parameter_list
+          (self_parameter))
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)
+              (type_identifier)))))))
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (identifier))))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (identifier)
+          (type_identifier))))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier)))))
+    (block
+      (call_expression
+        (field_expression
+          (identifier)
+          (identifier))
+        (argument_list)))))
+
+=========================================================================
+a tuple type of two and of three, and Unit written out
+=========================================================================
+
+fn divide(n: Int) -> (Int, Int) { (n / 10, n % 10) }
+fn triple() -> (Int, Str, Bool) { (1, "a", true) }
+fn nothing() -> Unit { io::println("") }
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (tuple_type
+      (parameter_type_list
+        (named_type
+          (type_identifier))
+        (named_type
+          (type_identifier))))
+    (block
+      (tuple_expression
+        (binary_expression
+          (identifier)
+          (integer_literal))
+        (binary_expression
+          (identifier)
+          (integer_literal)))))
+  (function_item
+    (identifier)
+    (parameter_list)
+    (tuple_type
+      (parameter_type_list
+        (named_type
+          (type_identifier))
+        (named_type
+          (type_identifier))
+        (named_type
+          (type_identifier))))
+    (block
+      (tuple_expression
+        (integer_literal)
+        (string)
+        (boolean_literal))))
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (call_expression
+        (path_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (string))))))
+
+=========================================================================
+sized integers and Array of one, in every position
+=========================================================================
+
+fn pack(a: u8, b: i64, c: Array(u8)) -> Array(u32) {
+    let d: u16 = 200
+    Array::new()
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (identifier)))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (identifier))))))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (identifier))))
+    (block
+      (let_statement
+        (identifier)
+        (named_type
+          (identifier))
+        (integer_literal))
+      (call_expression
+        (path_expression
+          (type_identifier)
+          (identifier))
+        (argument_list)))))
+
+=========================================================================
+a bound that fixes an associated type, in the paren form, beside the angle form
+=========================================================================
+
+fn total(it: i) -> Int where i: Iterator(Item = Int) { iter::sum(it) }
+fn count<I: Iterator<Item = Str>>(it: I) -> Int { iter::count(it) }
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (identifier))))
+    (named_type
+      (type_identifier))
+    (where_clause
+      (type_parameter
+        (identifier)
+        (bound_list
+          (bound
+            (type_identifier)
+            (assoc_bindings
+              (assoc_binding
+                (type_identifier)
+                (named_type
+                  (type_identifier))))))))
+    (block
+      (call_expression
+        (path_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (identifier)))))
+  (function_item
+    (identifier)
+    (type_parameters
+      (type_parameter
+        (type_identifier)
+        (bound_list
+          (bound
+            (type_identifier)
+            (assoc_bindings
+              (assoc_binding
+                (type_identifier)
+                (named_type
+                  (type_identifier))))))))
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier))
+    (block
+      (call_expression
+        (path_expression
+          (identifier)
+          (identifier))
+        (argument_list
+          (identifier))))))
