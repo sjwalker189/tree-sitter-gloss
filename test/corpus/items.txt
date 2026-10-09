@@ -1095,6 +1095,37 @@ extern fn getpid() -> i32;
     return_type: (named_type
       name: (identifier))))
 
+==============================================
+an extern bound to a dotted host symbol
+==============================================
+
+@symbol(Node.prototype.appendChild.call)
+extern fn append_child(parent: Ptr, child: Ptr) -> Ptr
+
+---
+
+(source_file
+  (attribute
+    name: (identifier)
+    (attribute_path
+      (type_identifier)
+      (identifier)
+      (identifier)
+      (identifier)))
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)))
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      name: (type_identifier))))
+
 =========================================================================
 import, in every shape the reference lists
 =========================================================================

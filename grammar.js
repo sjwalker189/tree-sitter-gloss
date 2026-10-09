@@ -179,8 +179,21 @@ module.exports = grammar({
         "@",
         field("name", $.identifier),
         optional(
-          seq("(", commaSep(choice($.type_identifier, $.identifier)), optional(","), ")"),
+          seq(
+            "(",
+            commaSep(choice($.type_identifier, $.identifier, $.attribute_path)),
+            optional(","),
+            ")",
+          ),
         ),
+      ),
+
+    // `@symbol(document.querySelector)`: a host symbol on the JavaScript target, walked from
+    // `globalThis` one segment at a time.
+    attribute_path: ($) =>
+      seq(
+        choice($.type_identifier, $.identifier),
+        repeat1(seq(".", choice($.type_identifier, $.identifier))),
       ),
 
     // `const MAX_DEPTH: Int = 10;`
