@@ -1507,7 +1507,7 @@
     "fields": {
       "name": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "-",
@@ -1680,7 +1680,7 @@
     "fields": {
       "name": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "-",

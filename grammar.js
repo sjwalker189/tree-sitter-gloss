@@ -994,12 +994,14 @@ module.exports = grammar({
 
     _hyphenated_name: ($) => seq($.identifier, repeat(seq("-", $.identifier))),
 
-    element_open: ($) => seq("<", field("name", $._tag_name), repeat($.element_attribute), ">"),
+    // `<div class="a">`, or `<>` — a fragment, with no name and no attributes.
+    element_open: ($) =>
+      seq("<", optional(seq(field("name", $._tag_name), repeat($.element_attribute))), ">"),
 
     element_self_closing: ($) =>
       seq("<", field("name", $._tag_name), repeat($.element_attribute), "/>"),
 
-    element_close: ($) => seq("</", field("name", $._tag_name), ">"),
+    element_close: ($) => seq("</", optional(field("name", $._tag_name)), ">"),
 
     // `class="card"`, `class={expr}`, or a bare `disabled`.
     //

@@ -919,3 +919,90 @@ fn f(p: (Int, Str), xs: List(Int)) -> Int {
                   (identifier)
                   (identifier))
                 (argument_list)))))))))
+
+=========================================================================
+a fragment, a component with children, and an interpolated attribute
+=========================================================================
+
+view Page(items: List(Str), n: Int) {
+  <>
+    <Field label="Reply"><textarea rows={5} required>{draft}</textarea></Field>
+    <a href="/?page={n}">{items.map(i => <li>{i}</li>)}</a>
+  </>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (block
+      (element
+        (element_open)
+        (element_children
+          (element_text)
+          (element
+            (element_open
+              (type_identifier)
+              (element_attribute
+                (attribute_name)
+                (string)))
+            (element_children
+              (element
+                (element_open
+                  (identifier)
+                  (element_attribute
+                    (attribute_name)
+                    (element_value
+                      (integer_literal)))
+                  (element_attribute
+                    (attribute_name)))
+                (element_children
+                  (element_interpolation
+                    (identifier)))
+                (element_close
+                  (identifier))))
+            (element_close
+              (type_identifier)))
+          (element_text)
+          (element
+            (element_open
+              (identifier)
+              (element_attribute
+                (attribute_name)
+                (string
+                  (string_interpolation
+                    (identifier)))))
+            (element_children
+              (element_interpolation
+                (call_expression
+                  (field_expression
+                    (identifier)
+                    (identifier))
+                  (argument_list
+                    (lambda_expression
+                      (identifier)
+                      (element
+                        (element_open
+                          (identifier))
+                        (element_children
+                          (element_interpolation
+                            (identifier)))
+                        (element_close
+                          (identifier))))))))
+            (element_close
+              (identifier)))
+          (element_text))
+        (element_close)))))
