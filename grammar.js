@@ -77,6 +77,10 @@ module.exports = grammar({
     // `(x)` is a parenthesized value until a `=>` says it was an arrow's parameter list. The
     // compiler scans ahead for the arrow; here both readings run until the token after `)`.
     [$.parameter, $._expression],
+    // `x if x > y => y`: the `=>` ends the guard, so `y` is an operand, but `y =>` is also how
+    // an arrow closure begins. Both run; the closure's reading leaves the arm with no arrow
+    // and dies there.
+    [$.lambda_expression, $._expression],
   ],
 
   rules: {
@@ -122,10 +126,13 @@ module.exports = grammar({
     use_declaration: ($) =>
       seq(choice("use", "import"), field("tree", $.use_tree), optional(";")),
 
+    // `a::b`, `a::{b, c::{D, E}}`, `a::*`, or `a::b as c` — Rust's grouping, so a group's member
+    // is a tree of its own and may carry its own `as`.
     use_tree: ($) =>
       seq(
         field("path", $.use_path),
         optional(choice($.use_glob, field("group", $.use_group))),
+        optional(seq("as", field("alias", choice($.identifier, $.type_identifier)))),
       ),
 
     use_path: ($) =>
@@ -136,11 +143,7 @@ module.exports = grammar({
 
     use_glob: (_) => seq("::", "*"),
 
-    // Flat: a member is a name, never another path.
-    use_group: ($) =>
-      seq("::", "{", commaSep($.use_tree_member), optional(","), "}"),
-
-    use_tree_member: ($) => field("name", choice($.identifier, $.type_identifier)),
+    use_group: ($) => seq("::", "{", commaSep($.use_tree), optional(","), "}"),
 
     // An attribute is a *sibling* of the declaration it applies to rather than its parent, which
     // is the shape the compiler's parser produces and the reason every item rule is unchanged: an
@@ -230,7 +233,7 @@ module.exports = grammar({
     //
     // It is also what keeps this LR(1): a repeat per item makes `pub` ambiguous between them
     // until the head keyword arrives.
-    _modifier: (_) => choice("pub", "pure", "view", "linear", "extern"),
+    _modifier: (_) => choice("pub", "pure", "view", "linear", "extern", "opaque"),
 
     _modifiers: ($) => repeat1($._modifier),
 
@@ -282,7 +285,7 @@ module.exports = grammar({
     // `status: Int = 200` — a parameter a call may leave out.
     parameter: ($) =>
       seq(
-        field("name", $.identifier),
+        field("name", choice($.identifier, "_")),
         optional(seq(":", field("type", $._type))),
         optional(seq("=", field("default", $._expression))),
       ),
@@ -300,7 +303,14 @@ module.exports = grammar({
         optional(choice(field("body", $.field_list), ";")),
       ),
 
-    field_list: ($) => seq("{", commaSep($.field_declaration), optional(","), "}"),
+    // The fields, and then the type's own methods: `struct Accounts { users: Store, fn get(id:
+    // Int) -> Option(User) { users.get(id) } }`. A method ends itself, so no comma follows one.
+    field_list: ($) =>
+      seq(
+        "{",
+        repeat(choice(seq($.field_declaration, optional(",")), $.function_item)),
+        "}",
+      ),
 
     field_declaration: ($) => seq(field("name", $.identifier), ":", field("type", $._type)),
 
@@ -562,7 +572,11 @@ module.exports = grammar({
     // union member has to be a literal, so a function type can never be one.
     union_type: ($) => prec.left(seq($._type_term, repeat1(seq("|", $._type_term)))),
 
-    _type_term: ($) => choice($.named_type, $.function_type, $.literal_type),
+    _type_term: ($) => choice($.named_type, $.function_type, $.tuple_type, $.literal_type),
+
+    // `(Int, Str)` — the prelude's `Pair`, nested to the right. The same parenthesised list a
+    // bare function type opens with; the arrow after it is what tells them apart.
+    tuple_type: ($) => $.parameter_type_list,
 
     // `"get"`, `3`, `-1`, `true` in type position — a type inhabited by exactly one value.
     //
@@ -636,15 +650,24 @@ module.exports = grammar({
           field("value", $._expression),
           optional($._terminator),
         ),
-        // `let Some(x) = e else { .. }` — a refutable pattern, and the block that runs when it
-        // does not match. The compiler requires that block to leave; the grammar only shapes it.
+        // `let Some(x) = e else { .. }` — a pattern, and the block that runs when it does not
+        // match. `let (a, b) = pair` never fails and writes no `else`; which patterns may go
+        // without one is the checker's question, so the grammar takes either.
         seq(
           "let",
-          field("pattern", choice($.tuple_struct_pattern, $.path_pattern, $.literal_pattern)),
+          field(
+            "pattern",
+            choice(
+              $.tuple_struct_pattern,
+              $.tuple_pattern,
+              $.list_pattern,
+              $.path_pattern,
+              $.literal_pattern,
+            ),
+          ),
           "=",
           field("value", $._expression),
-          "else",
-          field("else", $.block),
+          optional(seq("else", field("else", $.block))),
           optional($._terminator),
         ),
         // `let assert Some(x) = e` — the same pattern, and a panic where the `else` would be.
@@ -704,6 +727,8 @@ module.exports = grammar({
         $.type_identifier,
         $.path_expression,
         $.parenthesized_expression,
+        $.tuple_expression,
+        $.list_expression,
         $.unary_expression,
         $.binary_expression,
         $.call_expression,
@@ -737,6 +762,16 @@ module.exports = grammar({
     _path_segment: ($) => choice($.type_identifier, $.identifier),
 
     parenthesized_expression: ($) => seq("(", $._expression, ")"),
+
+    // `(a, b)` — the prelude's `Pair`, nested to the right for more.
+    tuple_expression: ($) =>
+      seq("(", $._expression, repeat1(seq(",", $._expression)), optional(","), ")"),
+
+    // `[a, b, ..rest]` — the prelude's `List`, as `Cons` and `Nil`.
+    list_expression: ($) =>
+      seq("[", commaSep(choice($._expression, $.rest_expression)), optional(","), "]"),
+
+    rest_expression: ($) => seq("..", field("value", $._expression)),
 
     unary_expression: ($) =>
       prec(PREC.unary, seq(field("operator", choice("-", "!")), field("operand", $._expression))),
@@ -877,10 +912,18 @@ module.exports = grammar({
     match_arm: ($) =>
       seq(
         commaSep1(field("pattern", $._pattern)),
+        optional(field("guard", $.match_guard)),
         "=>",
         field("value", $._expression),
-        optional(","),
+        // An arm ends with its line as a statement does, and the same line break the scanner
+        // reports ends it where the next arm opens with `(` or `[`.
+        optional(choice(",", $._soft_end)),
       ),
+
+    // `pat if cond =>`. The condition runs to the `=>`, which the compiler keeps from being
+    // read as an arrow closure's; here the two readings run side by side and only the one
+    // that reaches the arm's arrow survives.
+    match_guard: ($) => seq("if", field("condition", $._expression)),
 
     // `loop (i = 0, total = 0) { .. }` — the values that change between rounds are named,
     // because nothing else can change. The header *is* the block's parameter list.
@@ -985,7 +1028,17 @@ module.exports = grammar({
         $.literal_pattern,
         $.path_pattern,
         $.tuple_struct_pattern,
+        $.tuple_pattern,
+        $.list_pattern,
       ),
+
+    // `(p, q)` — a `Pair` taken apart.
+    tuple_pattern: ($) =>
+      seq("(", $._pattern, repeat1(seq(",", $._pattern)), optional(","), ")"),
+
+    // `[p, q]`, `[first, ..]`, `[head, ..tail]` — `Cons` and `Nil` taken apart.
+    list_pattern: ($) =>
+      seq("[", commaSep(choice($._pattern, $.rest_pattern)), optional(","), "]"),
 
     wildcard_pattern: (_) => "_",
 
@@ -1027,7 +1080,9 @@ module.exports = grammar({
     // `name: pat`, or `name:` binding the field to a local of that name.
     field_pattern: ($) => seq(field("name", $.identifier), ":", optional(field("pattern", $._pattern))),
 
-    rest_pattern: (_) => "..",
+    // `..` for the fields a constructor pattern leaves unwritten, or `..tail` binding the
+    // rest of a list.
+    rest_pattern: ($) => seq("..", optional(field("binding", $.identifier))),
 
     // --- tokens ------------------------------------------------------------------------
 

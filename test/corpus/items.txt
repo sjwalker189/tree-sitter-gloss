@@ -38,10 +38,12 @@ use self::helpers;
       path: (use_path
         (identifier))
       group: (use_group
-        (use_tree_member
-          name: (identifier))
-        (use_tree_member
-          name: (identifier)))))
+        (use_tree
+          path: (use_path
+            (identifier)))
+        (use_tree
+          path: (use_path
+            (identifier))))))
   (use_declaration
     tree: (use_tree
       path: (use_path
@@ -57,10 +59,12 @@ use self::helpers;
       path: (use_path
         (type_identifier))
       group: (use_group
-        (use_tree_member
-          name: (type_identifier))
-        (use_tree_member
-          name: (type_identifier)))))
+        (use_tree
+          path: (use_path
+            (type_identifier)))
+        (use_tree
+          path: (use_path
+            (type_identifier))))))
   (use_declaration
     tree: (use_tree
       path: (use_path

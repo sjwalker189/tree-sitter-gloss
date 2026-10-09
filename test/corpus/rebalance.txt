@@ -129,10 +129,12 @@ import Colour::*
       (use_path
         (identifier))
       (use_group
-        (use_tree_member
-          (identifier))
-        (use_tree_member
-          (identifier)))))
+        (use_tree
+          (use_path
+            (identifier)))
+        (use_tree
+          (use_path
+            (identifier))))))
   (use_declaration
     (use_tree
       (use_path
@@ -675,3 +677,245 @@ struct Cat
     (string))
   (struct_item
     (type_identifier)))
+
+=========================================================================
+imports nest, and a member may be renamed
+=========================================================================
+
+import domain::accounts::{user::{ProfileError, User}, user_store::{NewUser, UserStore}}
+import server::{handlers::forms, views::{accounts as views, layout}}
+import clock::Clock as Time
+
+---
+
+(source_file
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier)
+        (identifier))
+      (use_group
+        (use_tree
+          (use_path
+            (identifier))
+          (use_group
+            (use_tree
+              (use_path
+                (type_identifier)))
+            (use_tree
+              (use_path
+                (type_identifier)))))
+        (use_tree
+          (use_path
+            (identifier))
+          (use_group
+            (use_tree
+              (use_path
+                (type_identifier)))
+            (use_tree
+              (use_path
+                (type_identifier))))))))
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier))
+      (use_group
+        (use_tree
+          (use_path
+            (identifier)
+            (identifier)))
+        (use_tree
+          (use_path
+            (identifier))
+          (use_group
+            (use_tree
+              (use_path
+                (identifier))
+              (identifier))
+            (use_tree
+              (use_path
+                (identifier))))))))
+  (use_declaration
+    (use_tree
+      (use_path
+        (identifier)
+        (type_identifier))
+      (type_identifier))))
+
+=========================================================================
+a struct holds its methods, and may be opaque
+=========================================================================
+
+pub opaque struct Accounts {
+  users: Store,
+  clock: Clock,
+
+  pub fn get(id: Int) -> Option(User) { users.get(id) }
+  fn twice() -> Int { get(1).len() + get(2).len() }
+}
+
+---
+
+(source_file
+  (struct_item
+    (type_identifier)
+    (field_list
+      (field_declaration
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (field_declaration
+        (identifier)
+        (named_type
+          (type_identifier)))
+      (function_item
+        (identifier)
+        (parameter_list
+          (parameter
+            (identifier)
+            (named_type
+              (type_identifier))))
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))
+        (block
+          (call_expression
+            (field_expression
+              (identifier)
+              (identifier))
+            (argument_list
+              (identifier)))))
+      (function_item
+        (identifier)
+        (parameter_list)
+        (named_type
+          (type_identifier))
+        (block
+          (binary_expression
+            (call_expression
+              (field_expression
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (integer_literal)))
+                (identifier))
+              (argument_list))
+            (call_expression
+              (field_expression
+                (call_expression
+                  (identifier)
+                  (argument_list
+                    (integer_literal)))
+                (identifier))
+              (argument_list))))))))
+
+=========================================================================
+lists and tuples, as values, patterns and types
+=========================================================================
+
+fn f(p: (Int, Str), xs: List(Int)) -> Int {
+  let (a, b) = p
+  let ys = [0, ..xs]
+  let [first, ..rest] = ys else { return 0 }
+  match (a, ys) {
+    (0, []) => 0
+    (n, [x, _]) => n + x
+    (n, [x, ..more]) if n > x => n
+    _ => first + rest.len()
+  }
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (tuple_type
+          (parameter_type_list
+            (named_type
+              (type_identifier))
+            (named_type
+              (type_identifier)))))
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier)
+          (type_arguments
+            (named_type
+              (type_identifier))))))
+    (named_type
+      (type_identifier))
+    (block
+      (let_statement
+        (tuple_pattern
+          (binding_pattern
+            (identifier))
+          (binding_pattern
+            (identifier)))
+        (identifier))
+      (let_statement
+        (identifier)
+        (list_expression
+          (integer_literal)
+          (rest_expression
+            (identifier))))
+      (let_statement
+        (list_pattern
+          (binding_pattern
+            (identifier))
+          (rest_pattern
+            (identifier)))
+        (identifier)
+        (block
+          (return_expression
+            (integer_literal))))
+      (match_expression
+        (tuple_expression
+          (identifier)
+          (identifier))
+        (match_arm_list
+          (match_arm
+            (tuple_pattern
+              (literal_pattern
+                (integer_literal))
+              (list_pattern))
+            (integer_literal))
+          (match_arm
+            (tuple_pattern
+              (binding_pattern
+                (identifier))
+              (list_pattern
+                (binding_pattern
+                  (identifier))
+                (wildcard_pattern)))
+            (binary_expression
+              (identifier)
+              (identifier)))
+          (match_arm
+            (tuple_pattern
+              (binding_pattern
+                (identifier))
+              (list_pattern
+                (binding_pattern
+                  (identifier))
+                (rest_pattern
+                  (identifier))))
+            (match_guard
+              (binary_expression
+                (identifier)
+                (identifier)))
+            (identifier))
+          (match_arm
+            (wildcard_pattern)
+            (binary_expression
+              (identifier)
+              (call_expression
+                (field_expression
+                  (identifier)
+                  (identifier))
+                (argument_list)))))))))

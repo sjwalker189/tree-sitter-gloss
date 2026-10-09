@@ -63,8 +63,8 @@ bool tree_sitter_gloss_external_scanner_scan(void *payload, TSLexer *lexer,
       }
       lexer->advance(lexer, true);
     }
-    if (newline &&
-        (lexer->lookahead == '<' || lexer->lookahead == '(' || lexer->lookahead == '-')) {
+    if (newline && (lexer->lookahead == '<' || lexer->lookahead == '(' ||
+                    lexer->lookahead == '[' || lexer->lookahead == '-')) {
       lexer->result_symbol = SOFT_END;
       lexer->mark_end(lexer);
       return true;

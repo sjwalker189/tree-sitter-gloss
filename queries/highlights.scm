@@ -102,8 +102,8 @@
 ; `self` and `super` are roots rather than values, whatever else they mean elsewhere.
 (use_path ["self" "super"] @module.builtin)
 ; What a group or a single-item path takes *out* of a package is an ordinary name.
-(use_tree_member name: (identifier) @variable)
-(use_tree_member name: (type_identifier) @type)
+(use_tree alias: (identifier) @variable)
+(use_tree alias: (type_identifier) @type)
 
 ; The qualifier in `html::Doc`. Only the lowercase form is a package: an uppercase one is
 ; `Self::Item`, a projection through a bound, and the type rule below already colours it.
@@ -223,6 +223,7 @@
   "package"
   "use"
   "import"
+  "as"
 ] @keyword.import
 
 ; `use` in a block is the continuation statement, which is control flow rather than an import.
@@ -234,6 +235,7 @@
   "pure"
   "extern"
   "linear"
+  "opaque"
 ] @keyword.modifier
 
 [
@@ -285,6 +287,8 @@
 [
   "("
   ")"
+  "["
+  "]"
   "{"
   "}"
 ] @punctuation.bracket
@@ -298,6 +302,7 @@
 ] @punctuation.delimiter
 
 (wildcard_pattern) @character.special
+(rest_pattern binding: (identifier) @variable)
 
 ; Ordinary value names — the fallback for an identifier nothing above claimed.
 ;
