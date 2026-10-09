@@ -181,6 +181,12 @@
 ; string colour and a reader cannot see where the text stops.
 (string_interpolation ["{" "}"] @punctuation.special)
 
+; A query literal: the SQL reads as a string, the word and the braces as the frame around it,
+; and a hole is code, as in a string.
+(sql_literal "sql" @keyword)
+(sql_text) @string
+(sql_hole ["{" "}"] @punctuation.special)
+
 ; --- attributes ------------------------------------------------------------------------
 ;
 ; `@derive(Eq, Ord)`. The name reads as an attribute rather than as a function, and its arguments

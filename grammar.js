@@ -659,6 +659,7 @@ module.exports = grammar({
         $.integer_literal,
         $.float_literal,
         $.string,
+        $.sql_literal,
         $.char_literal,
         $.boolean_literal,
         $.identifier,
@@ -1076,6 +1077,22 @@ module.exports = grammar({
     // `{n}`, holding an ordinary expression — the compiler parses one with the ordinary expression
     // parser, so there is nothing narrower to say here either.
     string_interpolation: ($) => seq("{", $._expression, "}"),
+
+    // `sql(User) { SELECT * FROM users WHERE id = {id} }` — a query literal: the word, the row
+    // type if written, and the author's SQL as runs of text with holes between them. What the
+    // text means is the compiler's business; the grammar takes everything that is not a brace.
+    sql_literal: ($) =>
+      seq(
+        "sql",
+        optional(seq("(", field("row", $._type), ")")),
+        "{",
+        repeat(choice($.sql_hole, $.sql_text)),
+        "}",
+      ),
+
+    sql_text: (_) => /[^{}]+/,
+
+    sql_hole: ($) => seq("{", $._expression, "}"),
 
     // `'a'`, `'\n'`, `'\u{1F600}'` — one character. The compiler counts; the grammar takes what
     // is between the quotes, as it does for a string, so `'ab'` parses here and errors there.

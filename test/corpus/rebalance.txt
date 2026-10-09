@@ -1119,3 +1119,61 @@ test "a taken email is refused" {
       (let_statement
         (identifier)
         (string)))))
+
+================================================================================
+A query literal, with a row type, holes, and none of either
+================================================================================
+
+fn find(id: Int) -> sql::Statement(User) {
+  sql(User) { SELECT * FROM users WHERE id = {id} }
+}
+
+fn touch(ids: List(Int)) {
+  sql { UPDATE threads SET last_activity = {now()} WHERE id = ANY({ids}) }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier))))
+    return_type: (named_type
+      qualifier: (identifier)
+      name: (type_identifier)
+      type_arguments: (type_arguments
+        (named_type
+          name: (type_identifier))))
+    body: (block
+      tail: (sql_literal
+        row: (named_type
+          name: (type_identifier))
+        (sql_text)
+        (sql_hole
+          (identifier))
+        (sql_text))))
+  (function_item
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter
+        name: (identifier)
+        type: (named_type
+          name: (type_identifier)
+          type_arguments: (type_arguments
+            (named_type
+              name: (type_identifier))))))
+    body: (block
+      tail: (sql_literal
+        (sql_text)
+        (sql_hole
+          (call_expression
+            function: (identifier)
+            arguments: (argument_list)))
+        (sql_text)
+        (sql_hole
+          (identifier))
+        (sql_text)))))
