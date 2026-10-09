@@ -1066,3 +1066,54 @@ view T() {
           (element_text))
         (element_close
           (identifier))))))
+
+=========================================================================
+an event attribute: a hole that is a closure over the event
+=========================================================================
+
+view Counter(count: Int) -> Html(Msg) {
+    <button on:click={Increment}>{count}</button>
+    <input on:input={Changed(event.value)}/>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (named_type
+      (type_identifier)
+      (type_arguments
+        (named_type
+          (type_identifier))))
+    (block
+      (expression_statement
+        (element
+          (element_open
+            (identifier)
+            (element_attribute
+              (attribute_name)
+              (element_value
+                (type_identifier))))
+          (element_children
+            (element_interpolation
+              (identifier)))
+          (element_close
+            (identifier))))
+      (element
+        (element_self_closing
+          (identifier)
+          (element_attribute
+            (attribute_name)
+            (element_value
+              (call_expression
+                (type_identifier)
+                (argument_list
+                  (field_expression
+                    (identifier)
+                    (identifier)))))))))))
