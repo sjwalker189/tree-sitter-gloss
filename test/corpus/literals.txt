@@ -354,3 +354,28 @@ fn f() -> Int { // after the brace
         (identifier)
         (comment)
         (integer_literal)))))
+
+==============================================
+a string after a hole is content, never a comment
+==============================================
+
+fn url() -> Str {
+    "{scheme}//{host}{path}"
+}
+
+---
+
+(source_file
+  (function_item
+    (identifier)
+    (parameter_list)
+    (named_type
+      (type_identifier))
+    (block
+      (string
+        (string_interpolation
+          (identifier))
+        (string_interpolation
+          (identifier))
+        (string_interpolation
+          (identifier))))))

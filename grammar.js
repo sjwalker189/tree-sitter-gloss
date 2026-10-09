@@ -1086,7 +1086,9 @@ module.exports = grammar({
       seq(
         '"',
         // A string may span lines; the newlines are part of it.
-        repeat(choice($.escape_sequence, $.string_interpolation, /[^"{\\]+/)),
+        // Content is immediate: after a hole's `}` nothing is trivia, so `"{a}//{b}"` is not a
+        // comment and `"{a} b"` keeps its space.
+        repeat(choice($.escape_sequence, $.string_interpolation, token.immediate(prec(1, /[^"{\\]+/)))),
         '"',
       ),
 
