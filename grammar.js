@@ -157,7 +157,6 @@ module.exports = grammar({
         $.enum_item,
         $.trait_item,
         $.impl_item,
-        $.elements_item,
         $.test_item,
         $.const_item,
         $.type_alias_item,
@@ -237,10 +236,10 @@ module.exports = grammar({
 
     _modifiers: ($) => repeat1($._modifier),
 
-    // `view` marks a function as emitting elements; `pure` marks it as reaching no ambient
-    // authority. The compiler scans the run of modifiers and dispatches on what it ends at, so
-    // any order of any subset parses and a repeat is a *diagnostic* rather than a parse error —
-    // this mirrors that, rather than enumerating the orders.
+    // `view` marks a function as returning `Html`. The compiler scans the run of modifiers and
+    // dispatches on what it ends at, so any order of any subset parses and a repeat is a
+    // *diagnostic* rather than a parse error — this mirrors that, rather than enumerating the
+    // orders.
     // A statement ends with its line, so a body-less declaration needs no `;` — and a `view`
     // may drop the `fn`: `view Card(title: Str) { .. }`. The keyword is optional after *any*
     // run of modifiers rather than only after `view`, because a run is one rule here; which
@@ -408,72 +407,6 @@ module.exports = grammar({
         repeat(choice($.associated_type, $.const_item, $.function_item)),
         "}",
       ),
-
-    // `elements Html { element div: Children & { class: Str } }` — a vocabulary. It becomes a
-    // trait and a struct per element; nothing downstream knows it was written this way.
-    // A `pure` vocabulary generates `pure` methods, so no medium implementing it may reach
-    // the world — which is what makes `pure view fn` writable.
-    //
-    // A vocabulary may also write its methods' bodies inline, against a supertrait of its own
-    // design. Those are `function_item`s, because that is what they compile to. A body ends
-    // itself, so the comma after one is optional — hence the trailing-comma-per-member shape
-    // rather than `commaSep`.
-    elements_item: ($) =>
-      seq(
-        optional($._modifiers),
-        "elements",
-        field("name", $.type_identifier),
-        optional(seq(":", field("supertraits", $.bound_list))),
-        "{",
-        repeat(
-          seq(
-            choice(
-              $.text_declaration,
-              $.attrs_group,
-              $.element_declaration,
-              $.function_item,
-              $.method_signature,
-            ),
-            optional(","),
-          ),
-        ),
-        "}",
-      ),
-
-    // The marker saying this vocabulary admits character data. `text` and `element` are
-    // contextual: the compiler matches them by spelling here and lexes them as ordinary
-    // identifiers everywhere else, so neither is reserved.
-    text_declaration: (_) => "text",
-
-    // `attrs Global { id?: Str, class?: Str }` — a named list of attributes an element may take
-    // by naming it, instead of writing the same eighteen out 120 times.
-    //
-    // It declares no type. The group is spliced into each element's generated attribute struct
-    // as ordinary fields, so a medium reads `a.class` whether the field came from a group or from
-    // the element's own record, and nothing downstream knows a group existed. That is why an
-    // element names one through `element_spec`'s ordinary `type_identifier` arm and there is no
-    // rule here for the reference.
-    attrs_group: ($) =>
-      seq("attrs", field("name", $.type_identifier), field("attributes", $.attribute_record)),
-
-    element_declaration: ($) =>
-      seq(
-        "element",
-        field("name", $._hyphenated_name),
-        optional(seq(":", field("spec", $.element_spec))),
-      ),
-
-    // `Children`, an attribute record, or both joined by `&`.
-    element_spec: ($) => sep1($._element_spec_part, "&"),
-
-    _element_spec_part: ($) => choice($.type_identifier, $.attribute_record),
-
-    attribute_record: ($) => seq("{", commaSep($.attribute_declaration), optional(","), "}"),
-
-    // `class?: Str` is a field of type `Option<Str>`, generated the way anyone would write
-    // it — the `?` is the whole of what optional means.
-    attribute_declaration: ($) =>
-      seq(field("name", $.attribute_name), optional("?"), ":", field("type", $._type)),
 
     // `class`, `aria-label`, `http-equiv`, `type` — an attribute's name as written.
     //

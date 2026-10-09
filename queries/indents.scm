@@ -24,8 +24,6 @@
   (impl_body)
   (match_arm_list)
   (field_initializer_list)
-  (attribute_record)
-  (elements_item)
   (argument_list)
   (parameter_list)
   (parameter_type_list)

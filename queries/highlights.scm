@@ -80,7 +80,6 @@
 ; other field does. The node is `attribute_name` rather than `identifier` because the name may hold
 ; hyphens and may be a keyword; capturing the whole node is what keeps `aria-label` one colour
 ; instead of two names with an operator between them.
-(attribute_declaration name: (attribute_name) @property)
 
 (type_parameter name: (type_identifier) @type.definition)
 
@@ -163,10 +162,6 @@
 ; Element syntax is markup, and highlighting it as markup rather than as calls is the whole
 ; point of it having syntax at all.
 
-; The declaration too, not only the uses. `element input:` names the same tag `<input>` does, and
-; it was falling through to the catch-all — which is how the fallback came to be noticed at all.
-(element_declaration name: (identifier) @tag)
-
 (element_open name: (identifier) @tag)
 (element_close name: (identifier) @tag)
 (element_self_closing name: (identifier) @tag)
@@ -207,17 +202,7 @@
   "impl"
   "extend"
   "where"
-  "elements"
-  "element"
-  ; Contextual in the compiler, and contextual here for free: tree-sitter extracts keywords from
-  ; the `word` token, so this is only this token where the grammar admits it — `let attrs = 1` is
-  ; an ordinary binding in both.
-  "attrs"
 ] @keyword
-
-; `text_declaration` *is* the `text` token — the rule has no other content — so it is captured
-; as a node rather than as an anonymous keyword.
-(text_declaration) @keyword
 
 [
   "package"

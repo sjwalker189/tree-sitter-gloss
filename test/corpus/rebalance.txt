@@ -1045,3 +1045,42 @@ view Button(live: Str) {
           (element_text))
         (element_close
           (identifier))))))
+
+=========================================================================
+a tag name with hyphens in it
+=========================================================================
+
+view Icon(name: Str) {
+  <sl-button variant="primary"><sl-icon name={name}/></sl-button>
+}
+
+---
+
+(source_file
+  (function_item
+    (type_identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (named_type
+          (type_identifier))))
+    (block
+      (element
+        (element_open
+          (identifier)
+          (identifier)
+          (element_attribute
+            (attribute_name)
+            (string)))
+        (element_children
+          (element
+            (element_self_closing
+              (identifier)
+              (identifier)
+              (element_attribute
+                (attribute_name)
+                (element_value
+                  (identifier))))))
+        (element_close
+          (identifier)
+          (identifier))))))

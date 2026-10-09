@@ -67,7 +67,7 @@ its closing tag to a line comment. Both cases are in the corpus.
 | `queries/highlights.scm` | syntax highlighting |
 | `queries/locals.scm` | scopes and bindings |
 | `queries/injections.scm` | deliberately almost empty — see below |
-| `test/corpus/` | 95 tests across items, types, expressions, control flow, patterns, elements and linear types |
+| `test/corpus/` | tests across items, types, expressions, control flow, patterns, elements and linear types |
 | `script/check-against-compiler` | parse every `.gloss` file in the compiler repo |
 
 ## No HTML injection
