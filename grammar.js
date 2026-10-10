@@ -326,7 +326,18 @@ module.exports = grammar({
         "}",
       ),
 
-    field_declaration: ($) => seq(field("name", $.identifier), ":", field("type", $._type)),
+    // A field may be called `view`, `const` or another of the compiler's contextual keywords:
+    // `ui::App` has a `view`. Inside a struct body those words may also begin a method, so the
+    // lexer hands them over as keywords, and a field spelled with one is accepted here by the
+    // token and named as the identifier it is to the compiler.
+    field_declaration: ($) =>
+      seq(
+        field("name", choice($.identifier, alias($._contextual_keyword, $.identifier))),
+        ":",
+        field("type", $._type),
+      ),
+
+    _contextual_keyword: ($) => choice("view", "extern", "extend", "const", "opaque", "as"),
 
     enum_item: ($) =>
       seq(
